@@ -1,0 +1,3998 @@
+[
+  {
+    "base": "pikachu",
+    "form": "pikachu-starter",
+    "label": "Starter Pikachu",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Only in Let's go Pikachu",
+    "display_name": "Partner Pikachu"
+  },
+  {
+    "base": "eevee",
+    "form": "eevee-starter",
+    "label": "Starter Eevee",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Only in Let's go Eevee",
+    "display_name": "Partner Eevee"
+  },
+  {
+    "base": "tauros",
+    "form": "tauros",
+    "label": "Kantonian",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Tauros"
+  },
+  {
+    "base": "tauros",
+    "form": "tauros-paldea-combat-breed",
+    "label": "Paldean Combat Breed",
+    "form_type": "REGIONAL",
+    "region": "PALDEA",
+    "notes": null,
+    "display_name": "Paldean Tauros Combat"
+  },
+  {
+    "base": "tauros",
+    "form": "tauros-paldea-blaze-breed",
+    "label": "Paldean Blaze Breed",
+    "form_type": "REGIONAL",
+    "region": "PALDEA",
+    "notes": null,
+    "display_name": "Paldean Tauros Blaze"
+  },
+  {
+    "base": "tauros",
+    "form": "tauros-paldea-aqua-breed",
+    "label": "Paldean Aqua Breed",
+    "form_type": "REGIONAL",
+    "region": "PALDEA",
+    "notes": null,
+    "display_name": "Paldean Tauros Aqua"
+  },
+  {
+    "base": "venusaur",
+    "form": "venusaur-mega",
+    "label": "Mega Venusaur",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Venusaur"
+  },
+  {
+    "base": "venusaur",
+    "form": "venusaur-gmax",
+    "label": "Gigantamax Venusaur",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Venusaur"
+  },
+  {
+    "base": "charizard",
+    "form": "charizard-mega-x",
+    "label": "Mega Charizard X",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Charizard X"
+  },
+  {
+    "base": "charizard",
+    "form": "charizard-mega-y",
+    "label": "Mega Charizard Y",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Charizard Y"
+  },
+  {
+    "base": "charizard",
+    "form": "charizard-gmax",
+    "label": "Gigantamax Charizard",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Charizard"
+  },
+  {
+    "base": "blastoise",
+    "form": "blastoise-mega",
+    "label": "Mega Blastoise",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Blastoise"
+  },
+  {
+    "base": "blastoise",
+    "form": "blastoise-gmax",
+    "label": "Gigantamax Blastoise",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Blastoise"
+  },
+  {
+    "base": "butterfree",
+    "form": "butterfree-gmax",
+    "label": "Gigantamax Butterfree",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Butterfree"
+  },
+  {
+    "base": "beedrill",
+    "form": "beedrill-mega",
+    "label": "Mega Beedrill",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Beedrill"
+  },
+  {
+    "base": "pidgeot",
+    "form": "pidgeot-mega",
+    "label": "Mega Pidgeot",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Pidgeot"
+  },
+  {
+    "base": "rattata",
+    "form": "rattata",
+    "label": "Kantonian Rattata",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Rattata"
+  },
+  {
+    "base": "rattata",
+    "form": "rattata-alola",
+    "label": "Alolan Rattata",
+    "form_type": "REGIONAL",
+    "region": "ALOLA",
+    "notes": null,
+    "display_name": "Alolan Rattata"
+  },
+  {
+    "base": "raticate",
+    "form": "raticate",
+    "label": "Kantonian Raticate",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Raticate"
+  },
+  {
+    "base": "raticate",
+    "form": "raticate-alola",
+    "label": "Alolan Raticate",
+    "form_type": "REGIONAL",
+    "region": "ALOLA",
+    "notes": null,
+    "display_name": "Alolan Raticate"
+  },
+  {
+    "base": "raichu",
+    "form": "raichu",
+    "label": "Kantonian Raichu",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Raichu"
+  },
+  {
+    "base": "raichu",
+    "form": "raichu-alola",
+    "label": "Alolan Raichu",
+    "form_type": "REGIONAL",
+    "region": "ALOLA",
+    "notes": null,
+    "display_name": "Alolan Raichu"
+  },
+  {
+    "base": "raichu",
+    "form": "raichu-mega-x",
+    "label": "Mega Raichu X",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Raichu X"
+  },
+  {
+    "base": "raichu",
+    "form": "raichu-mega-y",
+    "label": "Mega Raichu Y",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Raichu Y"
+  },
+  {
+    "base": "sandshrew",
+    "form": "sandshrew",
+    "label": "Kantonian Sandshrew",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Sandshrew"
+  },
+  {
+    "base": "sandshrew",
+    "form": "sandshrew-alola",
+    "label": "Alolan Sandshrew",
+    "form_type": "REGIONAL",
+    "region": "ALOLA",
+    "notes": null,
+    "display_name": "Alolan Sandshrew"
+  },
+  {
+    "base": "sandslash",
+    "form": "sandslash",
+    "label": "Kantonian Sandslash",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Sandslash"
+  },
+  {
+    "base": "sandslash",
+    "form": "sandslash-alola",
+    "label": "Alolan Sandslash",
+    "form_type": "REGIONAL",
+    "region": "ALOLA",
+    "notes": null,
+    "display_name": "Alolan Sandslash"
+  },
+  {
+    "base": "clefable",
+    "form": "clefable-mega",
+    "label": "Mega Clefable",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Clefable"
+  },
+  {
+    "base": "vulpix",
+    "form": "vulpix",
+    "label": "Kantonian Vulpix",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Vulpix"
+  },
+  {
+    "base": "vulpix",
+    "form": "vulpix-alola",
+    "label": "Alolan Vulpix",
+    "form_type": "REGIONAL",
+    "region": "ALOLA",
+    "notes": null,
+    "display_name": "Alolan Vulpix"
+  },
+  {
+    "base": "ninetales",
+    "form": "ninetales",
+    "label": "Kantonian Ninetales",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Ninetales"
+  },
+  {
+    "base": "ninetales",
+    "form": "ninetales-alola",
+    "label": "Alolan Ninetales",
+    "form_type": "REGIONAL",
+    "region": "ALOLA",
+    "notes": null,
+    "display_name": "Alolan Ninetales"
+  },
+  {
+    "base": "pikachu",
+    "form": "pikachu-gmax",
+    "label": "Gigantamax Pikachu",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Pikachu"
+  },
+  {
+    "base": "diglett",
+    "form": "diglett",
+    "label": "Kantonian Diglett",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Diglett"
+  },
+  {
+    "base": "diglett",
+    "form": "diglett-alola",
+    "label": "Alolan Diglett",
+    "form_type": "REGIONAL",
+    "region": "ALOLA",
+    "notes": null,
+    "display_name": "Alolan Diglett"
+  },
+  {
+    "base": "dugtrio",
+    "form": "dugtrio",
+    "label": "Kantonian Dugtrio",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Dugtrio"
+  },
+  {
+    "base": "dugtrio",
+    "form": "dugtrio-alola",
+    "label": "Alolan Dugtrio",
+    "form_type": "REGIONAL",
+    "region": "ALOLA",
+    "notes": null,
+    "display_name": "Alolan Dugtrio"
+  },
+  {
+    "base": "meowth",
+    "form": "meowth",
+    "label": "Kantonian Meowth",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Meowth"
+  },
+  {
+    "base": "meowth",
+    "form": "meowth-alola",
+    "label": "Alolan Meowth",
+    "form_type": "REGIONAL",
+    "region": "ALOLA",
+    "notes": null,
+    "display_name": "Alolan Meowth"
+  },
+  {
+    "base": "meowth",
+    "form": "meowth-galar",
+    "label": "Galarian Meowth",
+    "form_type": "REGIONAL",
+    "region": "GALAR",
+    "notes": null,
+    "display_name": "Galarian Meowth"
+  },
+  {
+    "base": "meowth",
+    "form": "meowth-gmax",
+    "label": "Gigantamax Meowth",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Meowth"
+  },
+  {
+    "base": "persian",
+    "form": "persian",
+    "label": "Kantonian Persian",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Persian"
+  },
+  {
+    "base": "persian",
+    "form": "persian-alola",
+    "label": "Alolan Persian",
+    "form_type": "REGIONAL",
+    "region": "ALOLA",
+    "notes": null,
+    "display_name": "Alolan Persian"
+  },
+  {
+    "base": "growlithe",
+    "form": "growlithe",
+    "label": "Kantonian Growlithe",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Growlithe"
+  },
+  {
+    "base": "growlithe",
+    "form": "growlithe-hisui",
+    "label": "Hisuian Growlithe",
+    "form_type": "REGIONAL",
+    "region": "HISUI",
+    "notes": null,
+    "display_name": "Hisuian Growlithe"
+  },
+  {
+    "base": "arcanine",
+    "form": "arcanine",
+    "label": "Kantonian Arcanine",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Arcanine"
+  },
+  {
+    "base": "arcanine",
+    "form": "arcanine-hisui",
+    "label": "Hisuian Arcanine",
+    "form_type": "REGIONAL",
+    "region": "HISUI",
+    "notes": null,
+    "display_name": "Hisuian Arcanine"
+  },
+  {
+    "base": "machamp",
+    "form": "machamp-gmax",
+    "label": "Gigantamax Machamp",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Machamp"
+  },
+  {
+    "base": "alakazam",
+    "form": "alakazam-mega",
+    "label": "Mega Alakazam",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Alakazam"
+  },
+  {
+    "base": "victreebel",
+    "form": "victreebel-mega",
+    "label": "Mega Victreebel",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Victreebel"
+  },
+  {
+    "base": "geodude",
+    "form": "geodude",
+    "label": "Kantonian Geodude",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Geodude"
+  },
+  {
+    "base": "geodude",
+    "form": "geodude-alola",
+    "label": "Alolan Geodude",
+    "form_type": "REGIONAL",
+    "region": "ALOLA",
+    "notes": null,
+    "display_name": "Alolan Geodude"
+  },
+  {
+    "base": "graveler",
+    "form": "graveler",
+    "label": "Kantonian Graveler",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Graveler"
+  },
+  {
+    "base": "graveler",
+    "form": "graveler-alola",
+    "label": "Alolan Graveler",
+    "form_type": "REGIONAL",
+    "region": "ALOLA",
+    "notes": null,
+    "display_name": "Alolan Graveler"
+  },
+  {
+    "base": "golem",
+    "form": "golem",
+    "label": "Kantonian Golem",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Golem"
+  },
+  {
+    "base": "golem",
+    "form": "golem-alola",
+    "label": "Alolan Golem",
+    "form_type": "REGIONAL",
+    "region": "ALOLA",
+    "notes": null,
+    "display_name": "Alolan Golem"
+  },
+  {
+    "base": "ponyta",
+    "form": "ponyta",
+    "label": "Kantonian Ponyta",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Ponyta"
+  },
+  {
+    "base": "ponyta",
+    "form": "ponyta-galar",
+    "label": "Galarian Ponyta",
+    "form_type": "REGIONAL",
+    "region": "GALAR",
+    "notes": null,
+    "display_name": "Galarian Ponyta"
+  },
+  {
+    "base": "rapidash",
+    "form": "rapidash",
+    "label": "Kantonian Rapidash",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Rapidash"
+  },
+  {
+    "base": "rapidash",
+    "form": "rapidash-galar",
+    "label": "Galarian Rapidash",
+    "form_type": "REGIONAL",
+    "region": "GALAR",
+    "notes": null,
+    "display_name": "Galarian Rapidash"
+  },
+  {
+    "base": "slowpoke",
+    "form": "slowpoke",
+    "label": "Kantonian Slowpoke",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Slowpoke"
+  },
+  {
+    "base": "slowpoke",
+    "form": "slowpoke-galar",
+    "label": "Galarian Slowpoke",
+    "form_type": "REGIONAL",
+    "region": "GALAR",
+    "notes": null,
+    "display_name": "Galarian Slowpoke"
+  },
+  {
+    "base": "slowbro",
+    "form": "slowbro-mega",
+    "label": "Mega Slowbro",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Slowbro"
+  },
+  {
+    "base": "slowbro",
+    "form": "slowbro-galar",
+    "label": "Galarian Slowbro",
+    "form_type": "REGIONAL",
+    "region": "GALAR",
+    "notes": null,
+    "display_name": "Galarian Slowbro"
+  },
+  {
+    "base": "slowking",
+    "form": "slowking",
+    "label": "Kantonian Slowking",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Slowking"
+  },
+  {
+    "base": "slowking",
+    "form": "slowking-galar",
+    "label": "Galarian Slowking",
+    "form_type": "REGIONAL",
+    "region": "GALAR",
+    "notes": null,
+    "display_name": "Galarian Slowking"
+  },
+  {
+    "base": "snorlax",
+    "form": "snorlax-gmax",
+    "label": "Gigantamax Snorlax",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Snorlax"
+  },
+  {
+    "base": "farfetchd",
+    "form": "farfetchd",
+    "label": "Kantonian Farfetchd",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Farfetchd"
+  },
+  {
+    "base": "farfetchd",
+    "form": "farfetchd-galar",
+    "label": "Galarian Farfetchd",
+    "form_type": "REGIONAL",
+    "region": "GALAR",
+    "notes": null,
+    "display_name": "Galarian Farfetchd"
+  },
+  {
+    "base": "grimer",
+    "form": "grimer",
+    "label": "Kantonian Grimer",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Grimer"
+  },
+  {
+    "base": "grimer",
+    "form": "grimer-alola",
+    "label": "Alolan Grimer",
+    "form_type": "REGIONAL",
+    "region": "ALOLA",
+    "notes": null,
+    "display_name": "Alolan Grimer"
+  },
+  {
+    "base": "muk",
+    "form": "muk",
+    "label": "Kantonian Muk",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Muk"
+  },
+  {
+    "base": "muk",
+    "form": "muk-alola",
+    "label": "Alolan Muk",
+    "form_type": "REGIONAL",
+    "region": "ALOLA",
+    "notes": null,
+    "display_name": "Alolan Muk"
+  },
+  {
+    "base": "gengar",
+    "form": "gengar-mega",
+    "label": "Mega Gengar",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Gengar"
+  },
+  {
+    "base": "gengar",
+    "form": "gengar-gmax",
+    "label": "Gigantamax Gengar",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Gengar"
+  },
+  {
+    "base": "kingler",
+    "form": "kingler-gmax",
+    "label": "Gigantamax Kingler",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Kingler"
+  },
+  {
+    "base": "voltorb",
+    "form": "voltorb",
+    "label": "Kantonian Voltorb",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Voltorb"
+  },
+  {
+    "base": "voltorb",
+    "form": "voltorb-hisui",
+    "label": "Hisuian Voltorb",
+    "form_type": "REGIONAL",
+    "region": "HISUI",
+    "notes": null,
+    "display_name": "Hisuian Voltorb"
+  },
+  {
+    "base": "electrode",
+    "form": "electrode",
+    "label": "Kantonian Electrode",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Electrode"
+  },
+  {
+    "base": "electrode",
+    "form": "electrode-hisui",
+    "label": "Hisuian Electrode",
+    "form_type": "REGIONAL",
+    "region": "HISUI",
+    "notes": null,
+    "display_name": "Hisuian Electrode"
+  },
+  {
+    "base": "exeggutor",
+    "form": "exeggutor",
+    "label": "Kantonian Exeggutor",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Exeggutor"
+  },
+  {
+    "base": "exeggutor",
+    "form": "exeggutor-alola",
+    "label": "Alolan Exeggutor",
+    "form_type": "REGIONAL",
+    "region": "ALOLA",
+    "notes": null,
+    "display_name": "Alolan Exeggutor"
+  },
+  {
+    "base": "marowak",
+    "form": "marowak",
+    "label": "Kantonian Marowak",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Marowak"
+  },
+  {
+    "base": "marowak",
+    "form": "marowak-alola",
+    "label": "Alolan Marowak",
+    "form_type": "REGIONAL",
+    "region": "ALOLA",
+    "notes": null,
+    "display_name": "Alolan Marowak"
+  },
+  {
+    "base": "lapras",
+    "form": "lapras-gmax",
+    "label": "Gigantamax Lapras",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Lapras"
+  },
+  {
+    "base": "eevee",
+    "form": "eevee-gmax",
+    "label": "Gigantamax Eevee",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Eevee"
+  },
+  {
+    "base": "starmie",
+    "form": "starmie-mega",
+    "label": "Mega Starmie",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Starmie"
+  },
+  {
+    "base": "weezing",
+    "form": "weezing",
+    "label": "Kantonian Weezing",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Weezing"
+  },
+  {
+    "base": "weezing",
+    "form": "weezing-galar",
+    "label": "Galarian Weezing",
+    "form_type": "REGIONAL",
+    "region": "GALAR",
+    "notes": null,
+    "display_name": "Galarian Weezing"
+  },
+  {
+    "base": "pinsir",
+    "form": "pinsir-mega",
+    "label": "Mega Pinsir",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Pinsir"
+  },
+  {
+    "base": "kangaskhan",
+    "form": "kangaskhan-mega",
+    "label": "Mega Kangaskhan",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Kangaskhan"
+  },
+  {
+    "base": "gyarados",
+    "form": "gyarados-mega",
+    "label": "Mega Gyarados",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Gyarados"
+  },
+  {
+    "base": "aerodactyl",
+    "form": "aerodactyl-mega",
+    "label": "Mega Aerodactyl",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Aerodactyl"
+  },
+  {
+    "base": "dragonite",
+    "form": "dragonite-mega",
+    "label": "Mega Dragonite",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Dragonite"
+  },
+  {
+    "base": "mr-mime",
+    "form": "mr-mime",
+    "label": "Kantonian Mr. Mime",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Mr. Mime"
+  },
+  {
+    "base": "mr-mime",
+    "form": "mr-mime-galar",
+    "label": "Galarian Mr. Mime",
+    "form_type": "REGIONAL",
+    "region": "GALAR",
+    "notes": null,
+    "display_name": "Galarian Mr. Mime"
+  },
+  {
+    "base": "articuno",
+    "form": "articuno",
+    "label": "Kantonian Articuno",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Articuno"
+  },
+  {
+    "base": "articuno",
+    "form": "articuno-galar",
+    "label": "Galarian Articuno",
+    "form_type": "REGIONAL",
+    "region": "GALAR",
+    "notes": null,
+    "display_name": "Galarian Articuno"
+  },
+  {
+    "base": "zapdos",
+    "form": "zapdos",
+    "label": "Kantonian Zapdos",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Zapdos"
+  },
+  {
+    "base": "zapdos",
+    "form": "zapdos-galar",
+    "label": "Galarian Zapdos",
+    "form_type": "REGIONAL",
+    "region": "GALAR",
+    "notes": null,
+    "display_name": "Galarian Zapdos"
+  },
+  {
+    "base": "moltres",
+    "form": "moltres",
+    "label": "Kantonian Moltres",
+    "form_type": "REGIONAL",
+    "region": "KANTO",
+    "notes": null,
+    "display_name": "Moltres"
+  },
+  {
+    "base": "moltres",
+    "form": "moltres-galar",
+    "label": "Galarian Moltres",
+    "form_type": "REGIONAL",
+    "region": "GALAR",
+    "notes": null,
+    "display_name": "Galarian Moltres"
+  },
+  {
+    "base": "mewtwo",
+    "form": "mewtwo-mega-x",
+    "label": "Mega Mewtwo X",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Mewtwo X"
+  },
+  {
+    "base": "mewtwo",
+    "form": "mewtwo-mega-y",
+    "label": "Mega Mewtwo Y",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Mewtwo Y"
+  },
+  {
+    "base": "meganium",
+    "form": "meganium-mega",
+    "label": "Mega Meganium",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Meganium"
+  },
+  {
+    "base": "typhlosion",
+    "form": "typhlosion",
+    "label": "Johtonian Typhlosion",
+    "form_type": "REGIONAL",
+    "region": "JOHTO",
+    "notes": null,
+    "display_name": "Typhlosion"
+  },
+  {
+    "base": "typhlosion",
+    "form": "typhlosion-hisui",
+    "label": "Hisuian Typhlosion",
+    "form_type": "REGIONAL",
+    "region": "HISUI",
+    "notes": null,
+    "display_name": "Hisuian Typhlosion"
+  },
+  {
+    "base": "feraligatr",
+    "form": "feraligatr-mega",
+    "label": "Mega Feraligatr",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Feraligatr"
+  },
+  {
+    "base": "ampharos",
+    "form": "ampharos-mega",
+    "label": "Mega Ampharos",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Ampharos"
+  },
+  {
+    "base": "wooper",
+    "form": "wooper",
+    "label": "Johtonian Wooper",
+    "form_type": "REGIONAL",
+    "region": "JOHTO",
+    "notes": null,
+    "display_name": "Wooper"
+  },
+  {
+    "base": "wooper",
+    "form": "wooper-paldea",
+    "label": "Paldean Wooper",
+    "form_type": "REGIONAL",
+    "region": "PALDEA",
+    "notes": null,
+    "display_name": "Paldean Wooper"
+  },
+  {
+    "base": "steelix",
+    "form": "steelix-mega",
+    "label": "Mega Steelix",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Steelix"
+  },
+  {
+    "base": "qwilfish",
+    "form": "qwilfish",
+    "label": "Johtonian Qwilfish",
+    "form_type": "REGIONAL",
+    "region": "JOHTO",
+    "notes": null,
+    "display_name": "Qwilfish"
+  },
+  {
+    "base": "qwilfish",
+    "form": "qwilfish-hisui",
+    "label": "Hisuian Qwilfish",
+    "form_type": "REGIONAL",
+    "region": "HISUI",
+    "notes": null,
+    "display_name": "Hisuian Qwilfish"
+  },
+  {
+    "base": "scizor",
+    "form": "scizor-mega",
+    "label": "Mega Scizor",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Scizor"
+  },
+  {
+    "base": "heracross",
+    "form": "heracross-mega",
+    "label": "Mega Heracross",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Heracross"
+  },
+  {
+    "base": "corsola",
+    "form": "corsola",
+    "label": "Johtonian Corsola",
+    "form_type": "REGIONAL",
+    "region": "JOHTO",
+    "notes": null,
+    "display_name": "Corsola"
+  },
+  {
+    "base": "corsola",
+    "form": "corsola-galar",
+    "label": "Galarian Corsola",
+    "form_type": "REGIONAL",
+    "region": "GALAR",
+    "notes": null,
+    "display_name": "Galarian Corsola"
+  },
+  {
+    "base": "skarmory",
+    "form": "skarmory-mega",
+    "label": "Mega Skarmory",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Skarmory"
+  },
+  {
+    "base": "houndoom",
+    "form": "houndoom-mega",
+    "label": "Mega Houndoom",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Houndoom"
+  },
+  {
+    "base": "tyranitar",
+    "form": "tyranitar-mega",
+    "label": "Mega Tyranitar",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Tyranitar"
+  },
+  {
+    "base": "sceptile",
+    "form": "sceptile-mega",
+    "label": "Mega Sceptile",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Sceptile"
+  },
+  {
+    "base": "blaziken",
+    "form": "blaziken-mega",
+    "label": "Mega Blaziken",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Blaziken"
+  },
+  {
+    "base": "swampert",
+    "form": "swampert-mega",
+    "label": "Mega Swampert",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Swampert"
+  },
+  {
+    "base": "zigzagoon",
+    "form": "zigzagoon",
+    "label": "Hoennian Zigzagoon",
+    "form_type": "REGIONAL",
+    "region": "HOENN",
+    "notes": null,
+    "display_name": "Zigzagoon"
+  },
+  {
+    "base": "zigzagoon",
+    "form": "zigzagoon-galar",
+    "label": "Galarian Zigzagoon",
+    "form_type": "REGIONAL",
+    "region": "GALAR",
+    "notes": null,
+    "display_name": "Galarian Zigzagoon"
+  },
+  {
+    "base": "linoone",
+    "form": "linoone",
+    "label": "Hoennian Linoone",
+    "form_type": "REGIONAL",
+    "region": "HOENN",
+    "notes": null,
+    "display_name": "Linoone"
+  },
+  {
+    "base": "linoone",
+    "form": "linoone-galar",
+    "label": "Galarian Linoone",
+    "form_type": "REGIONAL",
+    "region": "GALAR",
+    "notes": null,
+    "display_name": "Galarian Linoone"
+  },
+  {
+    "base": "gardevoir",
+    "form": "gardevoir-mega",
+    "label": "Mega Gardevoir",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Gardevoir"
+  },
+  {
+    "base": "sableye",
+    "form": "sableye-mega",
+    "label": "Mega Sableye",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Sableye"
+  },
+  {
+    "base": "mawile",
+    "form": "mawile-mega",
+    "label": "Mega Mawile",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Mawile"
+  },
+  {
+    "base": "aggron",
+    "form": "aggron-mega",
+    "label": "Mega Aggron",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Aggron"
+  },
+  {
+    "base": "medicham",
+    "form": "medicham-mega",
+    "label": "Mega Medicham",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Medicham"
+  },
+  {
+    "base": "manectric",
+    "form": "manectric-mega",
+    "label": "Mega Manectric",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Manectric"
+  },
+  {
+    "base": "sharpedo",
+    "form": "sharpedo-mega",
+    "label": "Mega Sharpedo",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Sharpedo"
+  },
+  {
+    "base": "camerupt",
+    "form": "camerupt-mega",
+    "label": "Mega Camerupt",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Camerupt"
+  },
+  {
+    "base": "altaria",
+    "form": "altaria-mega",
+    "label": "Mega Altaria",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Altaria"
+  },
+  {
+    "base": "castform",
+    "form": "castform",
+    "label": "Regular",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Castform"
+  },
+  {
+    "base": "castform",
+    "form": "castform-sunny",
+    "label": "Sunny",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Only in Harsh Sun weather",
+    "display_name": "Castform Sunny"
+  },
+  {
+    "base": "castform",
+    "form": "castform-rainy",
+    "label": "Rainy",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Only in Rain weather",
+    "display_name": "Castform Rainy"
+  },
+  {
+    "base": "castform",
+    "form": "castform-snowy",
+    "label": "Snowy",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Only in Hail/Snow weather",
+    "display_name": "Castform Snowy"
+  },
+  {
+    "base": "banette",
+    "form": "banette-mega",
+    "label": "Mega Banette",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Banette"
+  },
+  {
+    "base": "absol",
+    "form": "absol-mega",
+    "label": "Mega Absol",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Absol"
+  },
+  {
+    "base": "absol",
+    "form": "absol-mega-z",
+    "label": "Mega Absol Z",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Absol Z"
+  },
+  {
+    "base": "glalie",
+    "form": "glalie-mega",
+    "label": "Mega Glalie",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Glalie"
+  },
+  {
+    "base": "salamence",
+    "form": "salamence-mega",
+    "label": "Mega Salamence",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Salamence"
+  },
+  {
+    "base": "metagross",
+    "form": "metagross-mega",
+    "label": "Mega Metagross",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Metagross"
+  },
+  {
+    "base": "latias",
+    "form": "latias-mega",
+    "label": "Mega Latias",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Latias"
+  },
+  {
+    "base": "latios",
+    "form": "latios-mega",
+    "label": "Mega Latios",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Latios"
+  },
+  {
+    "base": "kyogre",
+    "form": "kyogre-primal",
+    "label": "Primal Kyogre",
+    "form_type": "PRIMAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Primal Kyogre"
+  },
+  {
+    "base": "groudon",
+    "form": "groudon-primal",
+    "label": "Primal Groudon",
+    "form_type": "PRIMAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Primal Groudon"
+  },
+  {
+    "base": "rayquaza",
+    "form": "rayquaza-mega",
+    "label": "Mega Rayquaza",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Rayquaza"
+  },
+  {
+    "base": "deoxys",
+    "form": "deoxys-normal",
+    "label": "Deoxys",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Deoxys"
+  },
+  {
+    "base": "deoxys",
+    "form": "deoxys-attack",
+    "label": "Attack Form",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Interact with meteorite (except Gen 3 games)",
+    "display_name": "Deoxys Attack"
+  },
+  {
+    "base": "deoxys",
+    "form": "deoxys-defense",
+    "label": "Defense Form",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Interact with meteorite (except Gen 3 games)",
+    "display_name": "Deoxys Defense"
+  },
+  {
+    "base": "deoxys",
+    "form": "deoxys-speed",
+    "label": "Speed Form",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Interact with meteorite (except Gen 3 games)",
+    "display_name": "Deoxys Speed"
+  },
+  {
+    "base": "staraptor",
+    "form": "staraptor-mega",
+    "label": "Mega Staraptor",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Staraptor"
+  },
+  {
+    "base": "burmy",
+    "form": "burmy",
+    "label": "Plant Cloak",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Burmy"
+  },
+  {
+    "base": "burmy",
+    "form": "burmy-sandy",
+    "label": "Sandy Cloak",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Burmy"
+  },
+  {
+    "base": "burmy",
+    "form": "burmy-trash",
+    "label": "Trash Cloak",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Burmy"
+  },
+  {
+    "base": "wormadam-plant",
+    "form": "wormadam-plant",
+    "label": "Plant Cloak",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Wormadam"
+  },
+  {
+    "base": "wormadam-plant",
+    "form": "wormadam-sandy",
+    "label": "Sandy Cloak",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Wormadam"
+  },
+  {
+    "base": "wormadam-plant",
+    "form": "wormadam-trash",
+    "label": "Trash Cloak",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Wormadam"
+  },
+  {
+    "base": "cherrim",
+    "form": "cherrim-sunshine",
+    "label": "Sunshine Form",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Only in Harsh Sun weather",
+    "display_name": "Cherrim"
+  },
+  {
+    "base": "shellos",
+    "form": "shellos",
+    "label": "West Sea",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "West of map",
+    "display_name": "Shellos"
+  },
+  {
+    "base": "shellos",
+    "form": "shellos-east",
+    "label": "East Sea",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "East of map",
+    "display_name": "Shellos"
+  },
+  {
+    "base": "gastrodon",
+    "form": "gastrodon",
+    "label": "West Sea",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "West of map",
+    "display_name": "Gastrodon"
+  },
+  {
+    "base": "gastrodon",
+    "form": "gastrodon-east",
+    "label": "East Sea",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "East of map",
+    "display_name": "Gastrodon"
+  },
+  {
+    "base": "lopunny",
+    "form": "lopunny-mega",
+    "label": "Mega Lopunny",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Lopunny"
+  },
+  {
+    "base": "chimecho",
+    "form": "chimecho-mega",
+    "label": "Mega Chimecho",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Chimecho"
+  },
+  {
+    "base": "garchomp",
+    "form": "garchomp-mega",
+    "label": "Mega Garchomp",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Garchomp"
+  },
+  {
+    "base": "garchomp",
+    "form": "garchomp-mega-z",
+    "label": "Mega Garchomp Z",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Garchomp Z"
+  },
+  {
+    "base": "lucario",
+    "form": "lucario-mega",
+    "label": "Mega Lucario",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Lucario"
+  },
+  {
+    "base": "lucario",
+    "form": "lucario-mega-z",
+    "label": "Mega Lucario Z",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Lucario Z"
+  },
+  {
+    "base": "abomasnow",
+    "form": "abomasnow-mega",
+    "label": "Mega Abomasnow",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Abomasnow"
+  },
+  {
+    "base": "froslass",
+    "form": "froslass-mega",
+    "label": "Mega Froslass",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Froslass"
+  },
+  {
+    "base": "gallade",
+    "form": "gallade-mega",
+    "label": "Mega Gallade",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Gallade"
+  },
+  {
+    "base": "rotom",
+    "form": "rotom-heat",
+    "label": "Heat",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Form switch method varies by game",
+    "display_name": "Rotom Heat"
+  },
+  {
+    "base": "rotom",
+    "form": "rotom-wash",
+    "label": "Wash",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Form switch method varies by game",
+    "display_name": "Rotom Wash"
+  },
+  {
+    "base": "rotom",
+    "form": "rotom-frost",
+    "label": "Frost",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Form switch method varies by game",
+    "display_name": "Rotom Frost"
+  },
+  {
+    "base": "rotom",
+    "form": "rotom-fan",
+    "label": "Fan",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Form switch method varies by game",
+    "display_name": "Rotom Fan"
+  },
+  {
+    "base": "rotom",
+    "form": "rotom-mow",
+    "label": "Mow",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Form switch method varies by game",
+    "display_name": "Rotom Mow"
+  },
+  {
+    "base": "dialga",
+    "form": "dialga",
+    "label": "Dialga",
+    "form_type": "ORIGIN",
+    "region": null,
+    "notes": null,
+    "display_name": "Dialga"
+  },
+  {
+    "base": "dialga",
+    "form": "dialga-origin",
+    "label": "Origin Dialga",
+    "form_type": "ORIGIN",
+    "region": null,
+    "notes": null,
+    "display_name": "Origin Dialga"
+  },
+  {
+    "base": "palkia",
+    "form": "palkia",
+    "label": "Palkia",
+    "form_type": "ORIGIN",
+    "region": null,
+    "notes": null,
+    "display_name": "Palkia"
+  },
+  {
+    "base": "palkia",
+    "form": "palkia-origin",
+    "label": "Origin Palkia",
+    "form_type": "ORIGIN",
+    "region": null,
+    "notes": null,
+    "display_name": "Origin Palkia"
+  },
+  {
+    "base": "giratina",
+    "form": "giratina-altered",
+    "label": "Altered Giratina",
+    "form_type": "ORIGIN",
+    "region": null,
+    "notes": null,
+    "display_name": "Giratina"
+  },
+  {
+    "base": "giratina",
+    "form": "giratina-origin",
+    "label": "Origin Giratina",
+    "form_type": "ORIGIN",
+    "region": null,
+    "notes": null,
+    "display_name": "Origin Giratina"
+  },
+  {
+    "base": "heatran",
+    "form": "heatran-mega",
+    "label": "Mega Heatran",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Heatran"
+  },
+  {
+    "base": "shaymin",
+    "form": "shaymin-land",
+    "label": "Land",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Shaymin"
+  },
+  {
+    "base": "shaymin",
+    "form": "shaymin-sky",
+    "label": "Sky",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Use Gracidea flower during daytime",
+    "display_name": "Shaymin Sky"
+  },
+  {
+    "base": "darkrai",
+    "form": "darkrai-mega",
+    "label": "Mega Darkrai",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Darkrai"
+  },
+  {
+    "base": "emboar",
+    "form": "emboar-mega",
+    "label": "Mega Emboar",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Emboar"
+  },
+  {
+    "base": "samurott",
+    "form": "samurott",
+    "label": "Unovan Samurott",
+    "form_type": "REGIONAL",
+    "region": "UNOVA",
+    "notes": null,
+    "display_name": "Samurott"
+  },
+  {
+    "base": "samurott",
+    "form": "samurott-hisui",
+    "label": "Hisuian Samurott",
+    "form_type": "REGIONAL",
+    "region": "HISUI",
+    "notes": null,
+    "display_name": "Hisuian Samurott"
+  },
+  {
+    "base": "audino",
+    "form": "audino-mega",
+    "label": "Mega Audino",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Audino"
+  },
+  {
+    "base": "excadrill",
+    "form": "excadrill-mega",
+    "label": "Mega Excadrill",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Excadrill"
+  },
+  {
+    "base": "scolipede",
+    "form": "scolipede-mega",
+    "label": "Mega Scolipede",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Scolipede"
+  },
+  {
+    "base": "lilligant",
+    "form": "lilligant",
+    "label": "Unovan Lilligant",
+    "form_type": "REGIONAL",
+    "region": "UNOVA",
+    "notes": null,
+    "display_name": "Lilligant"
+  },
+  {
+    "base": "lilligant",
+    "form": "lilligant-hisui",
+    "label": "Hisuian Lilligant",
+    "form_type": "REGIONAL",
+    "region": "HISUI",
+    "notes": null,
+    "display_name": "Hisuian Lilligant"
+  },
+  {
+    "base": "basculin-red-striped",
+    "form": "basculin-red-striped",
+    "label": "Red-Striped",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Basculin"
+  },
+  {
+    "base": "basculin-red-striped",
+    "form": "basculin-blue-striped",
+    "label": "Blue-Striped",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Basculin"
+  },
+  {
+    "base": "basculin-red-striped",
+    "form": "basculin-white-striped",
+    "label": "White-Striped",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Only in Hisui and Paldea",
+    "display_name": "Basculin White-Striped"
+  },
+  {
+    "base": "darumaka",
+    "form": "darumaka",
+    "label": "Unovan Darumaka",
+    "form_type": "REGIONAL",
+    "region": "UNOVA",
+    "notes": null,
+    "display_name": "Darumaka"
+  },
+  {
+    "base": "darumaka",
+    "form": "darumaka-galar",
+    "label": "Galarian Darumaka",
+    "form_type": "REGIONAL",
+    "region": "GALAR",
+    "notes": null,
+    "display_name": "Galarian Darumaka"
+  },
+  {
+    "base": "darmanitan-standard",
+    "form": "darmanitan-standard",
+    "label": "Standard Mode",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Darmanitan"
+  },
+  {
+    "base": "darmanitan-standard",
+    "form": "darmanitan-zen",
+    "label": "Zen Mode",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Zen Mode Hidden Ability + HP <50% during battle",
+    "display_name": "Darmanitan Zen Mode"
+  },
+  {
+    "base": "darmanitan-standard",
+    "form": "darmanitan-galar-standard",
+    "label": "Galarian Darmanitan",
+    "form_type": "REGIONAL",
+    "region": "GALAR",
+    "notes": null,
+    "display_name": "Galarian Darmanitan"
+  },
+  {
+    "base": "darmanitan-standard",
+    "form": "darmanitan-galar-zen",
+    "label": "Galarian Darmanitan Zen Mode",
+    "form_type": "REGIONAL",
+    "region": "GALAR",
+    "notes": "Zen Mode Hidden Ability + HP <50% during battle",
+    "display_name": "Galarian Darmanitan Zen Mode"
+  },
+  {
+    "base": "scrafty",
+    "form": "scrafty-mega",
+    "label": "Mega Scrafty",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Scrafty"
+  },
+  {
+    "base": "zorua",
+    "form": "zorua",
+    "label": "Unovan Zorua",
+    "form_type": "REGIONAL",
+    "region": "UNOVA",
+    "notes": null,
+    "display_name": "Zorua"
+  },
+  {
+    "base": "zorua",
+    "form": "zorua-hisui",
+    "label": "Hisuian Zorua",
+    "form_type": "REGIONAL",
+    "region": "HISUI",
+    "notes": null,
+    "display_name": "Hisuian Zorua"
+  },
+  {
+    "base": "zoroark",
+    "form": "zoroark",
+    "label": "Unovan Zoroark",
+    "form_type": "REGIONAL",
+    "region": "UNOVA",
+    "notes": null,
+    "display_name": "Zoroark"
+  },
+  {
+    "base": "zoroark",
+    "form": "zoroark-hisui",
+    "label": "Hisuian Zoroark",
+    "form_type": "REGIONAL",
+    "region": "HISUI",
+    "notes": null,
+    "display_name": "Hisuian Zoroark"
+  },
+  {
+    "base": "deerling",
+    "form": "deerling",
+    "label": "Spring",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Deerling"
+  },
+  {
+    "base": "deerling",
+    "form": "deerling-summer",
+    "label": "Summer",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Unova during Summer season",
+    "display_name": "Deerling"
+  },
+  {
+    "base": "deerling",
+    "form": "deerling-autumn",
+    "label": "Autumn",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Unova during Autumn season",
+    "display_name": "Deerling"
+  },
+  {
+    "base": "deerling",
+    "form": "deerling-winter",
+    "label": "Winter",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Unova during Winter season",
+    "display_name": "Deerling"
+  },
+  {
+    "base": "sawsbuck",
+    "form": "sawsbuck",
+    "label": "Spring",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Unova during Spring season",
+    "display_name": "Sawsbuck"
+  },
+  {
+    "base": "sawsbuck",
+    "form": "sawsbuck-summer",
+    "label": "Summer",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Unova during Summer season",
+    "display_name": "Sawsbuck"
+  },
+  {
+    "base": "sawsbuck",
+    "form": "sawsbuck-autumn",
+    "label": "Autumn",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Unova during Autumn season",
+    "display_name": "Sawsbuck"
+  },
+  {
+    "base": "sawsbuck",
+    "form": "sawsbuck-winter",
+    "label": "Winter",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Unova during Winter season",
+    "display_name": "Sawsbuck"
+  },
+  {
+    "base": "eelektross",
+    "form": "eelektross-mega",
+    "label": "Mega Eelektross",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Eelektross"
+  },
+  {
+    "base": "chandelure",
+    "form": "chandelure-mega",
+    "label": "Mega Chandelure",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Chandelure"
+  },
+  {
+    "base": "stunfisk",
+    "form": "stunfisk",
+    "label": "Unovan Stunfisk",
+    "form_type": "REGIONAL",
+    "region": "UNOVA",
+    "notes": null,
+    "display_name": "Stunfisk"
+  },
+  {
+    "base": "stunfisk",
+    "form": "stunfisk-galar",
+    "label": "Galarian Stunfisk",
+    "form_type": "REGIONAL",
+    "region": "GALAR",
+    "notes": null,
+    "display_name": "Galarian Stunfisk"
+  },
+  {
+    "base": "golurk",
+    "form": "golurk-mega",
+    "label": "Mega Golurk",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Golurk"
+  },
+  {
+    "base": "braviary",
+    "form": "braviary",
+    "label": "Unovan Braviary",
+    "form_type": "REGIONAL",
+    "region": "UNOVA",
+    "notes": null,
+    "display_name": "Braviary"
+  },
+  {
+    "base": "braviary",
+    "form": "braviary-hisui",
+    "label": "Hisuian Braviary",
+    "form_type": "REGIONAL",
+    "region": "HISUI",
+    "notes": null,
+    "display_name": "Hisuian Braviary"
+  },
+  {
+    "base": "tornadus",
+    "form": "tornadus-incarnate",
+    "label": "Incarnate",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Tornadus"
+  },
+  {
+    "base": "tornadus",
+    "form": "tornadus-therian",
+    "label": "Therian",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Use Reveal Glass item",
+    "display_name": "Tornadus Therian"
+  },
+  {
+    "base": "thundurus",
+    "form": "thundurus-incarnate",
+    "label": "Incarnate",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Thundurus"
+  },
+  {
+    "base": "thundurus",
+    "form": "thundurus-therian",
+    "label": "Therian",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Use Reveal Glass item",
+    "display_name": "Thundurus Therian"
+  },
+  {
+    "base": "landorus",
+    "form": "landorus-incarnate",
+    "label": "Incarnate",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Landorus"
+  },
+  {
+    "base": "landorus",
+    "form": "landorus-therian",
+    "label": "Therian",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Use Reveal Glass item",
+    "display_name": "Landorus Therian"
+  },
+  {
+    "base": "enamorus",
+    "form": "enamorus-incarnate",
+    "label": "Incarnate",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Enamorus"
+  },
+  {
+    "base": "enamorus",
+    "form": "enamorus-therian",
+    "label": "Therian",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Use Reveal Glass item",
+    "display_name": "Enamorus Therian"
+  },
+  {
+    "base": "kyurem",
+    "form": "kyurem",
+    "label": "Kyurem",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Kyurem"
+  },
+  {
+    "base": "kyurem",
+    "form": "kyurem-white",
+    "label": "White",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Use DNA Splicers then select Reshiram",
+    "display_name": "Kyurem White"
+  },
+  {
+    "base": "kyurem",
+    "form": "kyurem-black",
+    "label": "Black",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Use DNA Splicers then select Zekrom",
+    "display_name": "Kyurem Black"
+  },
+  {
+    "base": "keldeo",
+    "form": "keldeo",
+    "label": "Ordinary",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Keldeo"
+  },
+  {
+    "base": "keldeo",
+    "form": "keldeo-resolute",
+    "label": "Resolute",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Learn Secret Sword at Pledge Grove",
+    "display_name": "Keldeo Resolute"
+  },
+  {
+    "base": "meloetta",
+    "form": "meloetta",
+    "label": "Aria",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Meloetta"
+  },
+  {
+    "base": "meloetta",
+    "form": "meloetta-pirouette",
+    "label": "Pirouette",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Use Relic Song move during battle",
+    "display_name": "Meloetta Pirouette"
+  },
+  {
+    "base": "chesnaught",
+    "form": "chesnaught-mega",
+    "label": "Mega Chesnaught",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Chesnaught"
+  },
+  {
+    "base": "delphox",
+    "form": "delphox-mega",
+    "label": "Mega Delphox",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Delphox"
+  },
+  {
+    "base": "greninja",
+    "form": "greninja-mega",
+    "label": "Mega Greninja",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Greninja"
+  },
+  {
+    "base": "greninja",
+    "form": "greninja-ash",
+    "label": "Ash's Greninja",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Battle Bond ability + knock out an opponent during battle (Only Gen 7 games)",
+    "display_name": "Ash-Greninja"
+  },
+  {
+    "base": "vivillon",
+    "form": "vivillon-icy-snow",
+    "label": "Icy Snow Pattern",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Set 3DS region to Far North.",
+    "display_name": "Vivillon"
+  },
+  {
+    "base": "vivillon",
+    "form": "vivillon-polar",
+    "label": "Polar Pattern",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Set 3DS region to Canada/Scandinavia.",
+    "display_name": "Vivillon"
+  },
+  {
+    "base": "vivillon",
+    "form": "vivillon-tundra",
+    "label": "Tundra Pattern",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Set 3DS region to Iceland/Norway.",
+    "display_name": "Vivillon"
+  },
+  {
+    "base": "vivillon",
+    "form": "vivillon-continental",
+    "label": "Continental Pattern",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Set 3DS region to Central Europe.",
+    "display_name": "Vivillon"
+  },
+  {
+    "base": "vivillon",
+    "form": "vivillon-garden",
+    "label": "Garden Pattern",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Set 3DS region to United Kingdom.",
+    "display_name": "Vivillon"
+  },
+  {
+    "base": "vivillon",
+    "form": "vivillon-elegant",
+    "label": "Elegant Pattern",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Set 3DS region to Japan.",
+    "display_name": "Vivillon"
+  },
+  {
+    "base": "vivillon",
+    "form": "vivillon-meadow",
+    "label": "Meadow Pattern",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Set 3DS region to France.",
+    "display_name": "Vivillon"
+  },
+  {
+    "base": "vivillon",
+    "form": "vivillon-modern",
+    "label": "Modern Pattern",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Set 3DS region to Eastern US.",
+    "display_name": "Vivillon"
+  },
+  {
+    "base": "vivillon",
+    "form": "vivillon-marine",
+    "label": "Marine Pattern",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Set 3DS region to coastal Europe.",
+    "display_name": "Vivillon"
+  },
+  {
+    "base": "vivillon",
+    "form": "vivillon-archipelago",
+    "label": "Archipelago Pattern",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Set 3DS region to Caribbean.",
+    "display_name": "Vivillon"
+  },
+  {
+    "base": "vivillon",
+    "form": "vivillon-high-plains",
+    "label": "High Plains Pattern",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Set 3DS region to Western US.",
+    "display_name": "Vivillon"
+  },
+  {
+    "base": "vivillon",
+    "form": "vivillon-sandstorm",
+    "label": "Sandstorm Pattern",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Set 3DS region to Middle East.",
+    "display_name": "Vivillon"
+  },
+  {
+    "base": "vivillon",
+    "form": "vivillon-river",
+    "label": "River Pattern",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Set 3DS region to Australia.",
+    "display_name": "Vivillon"
+  },
+  {
+    "base": "vivillon",
+    "form": "vivillon-monsoon",
+    "label": "Monsoon Pattern",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Set 3DS region to Southeast Asia.",
+    "display_name": "Vivillon"
+  },
+  {
+    "base": "vivillon",
+    "form": "vivillon-savanna",
+    "label": "Savanna Pattern",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Set 3DS region to Brazil.",
+    "display_name": "Vivillon"
+  },
+  {
+    "base": "vivillon",
+    "form": "vivillon-sun",
+    "label": "Sun Pattern",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Set 3DS region to Mexico.",
+    "display_name": "Vivillon"
+  },
+  {
+    "base": "vivillon",
+    "form": "vivillon-ocean",
+    "label": "Ocean Pattern",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Set 3DS region to Hawaii.",
+    "display_name": "Vivillon"
+  },
+  {
+    "base": "vivillon",
+    "form": "vivillon-jungle",
+    "label": "Jungle Pattern",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Set 3DS region to Colombia.",
+    "display_name": "Vivillon"
+  },
+  {
+    "base": "vivillon",
+    "form": "vivillon-fancy",
+    "label": "Fancy Pattern",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Catch wild in Paldea or receive Mystery Gift.",
+    "display_name": "Vivillon"
+  },
+  {
+    "base": "vivillon",
+    "form": "vivillon-poke-ball",
+    "label": "Poke Ball Pattern",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Receive special Mystery Gift event.",
+    "display_name": "Vivillon"
+  },
+  {
+    "base": "flabebe",
+    "form": "flabebe",
+    "label": "Red Flower",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Flabèbè"
+  },
+  {
+    "base": "flabebe",
+    "form": "flabebe-yellow",
+    "label": "Yellow Flower",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Flabèbè"
+  },
+  {
+    "base": "flabebe",
+    "form": "flabebe-orange",
+    "label": "Orange flower",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Flabèbè"
+  },
+  {
+    "base": "flabebe",
+    "form": "flabebe-blue",
+    "label": "Blue flower",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Flabèbè"
+  },
+  {
+    "base": "flabebe",
+    "form": "flabebe-white",
+    "label": "White flower",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Flabèbè"
+  },
+  {
+    "base": "floette",
+    "form": "floette",
+    "label": "Red flower",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Floette"
+  },
+  {
+    "base": "floette",
+    "form": "floette-yellow",
+    "label": "Yellow flower",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Floette"
+  },
+  {
+    "base": "floette",
+    "form": "floette-orange",
+    "label": "Orange flower",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Floette"
+  },
+  {
+    "base": "floette",
+    "form": "floette-blue",
+    "label": "Blue flower",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Floette"
+  },
+  {
+    "base": "floette",
+    "form": "floette-white",
+    "label": "White flower",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Floette"
+  },
+  {
+    "base": "floette",
+    "form": "floette-eternal",
+    "label": "Eternal Flower",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Unique form",
+    "display_name": "Eternal Flower Floette"
+  },
+  {
+    "base": "pyroar",
+    "form": "pyroar-mega",
+    "label": "Mega Pyroar",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Pyroar"
+  },
+  {
+    "base": "floette",
+    "form": "floette-eternal-mega",
+    "label": "Mega Eternal Flower Floette",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Eternal Flower Floette"
+  },
+  {
+    "base": "florges",
+    "form": "florges",
+    "label": "Red flower",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Florges"
+  },
+  {
+    "base": "florges",
+    "form": "florges-yellow",
+    "label": "Yellow flower",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Florges"
+  },
+  {
+    "base": "florges",
+    "form": "florges-orange",
+    "label": "Orange flower",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Florges"
+  },
+  {
+    "base": "florges",
+    "form": "florges-blue",
+    "label": "Blue flower",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Florges"
+  },
+  {
+    "base": "florges",
+    "form": "florges-white",
+    "label": "White flower",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Florges"
+  },
+  {
+    "base": "meowstic",
+    "form": "meowstic",
+    "label": "Male",
+    "form_type": "GENDER",
+    "region": null,
+    "notes": null,
+    "display_name": "Meowstic"
+  },
+  {
+    "base": "meowstic",
+    "form": "meowstic-female",
+    "label": "Female",
+    "form_type": "GENDER",
+    "region": null,
+    "notes": null,
+    "display_name": "Meowstic"
+  },
+  {
+    "base": "meowstic",
+    "form": "meowstic-mega",
+    "label": "Mega Meowstic",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Meowstic"
+  },
+  {
+    "base": "malamar",
+    "form": "malamar-mega",
+    "label": "Mega Malamar",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Malamar"
+  },
+  {
+    "base": "barbaracle",
+    "form": "barbaracle-mega",
+    "label": "Mega Barbaracle",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Barbaracle"
+  },
+  {
+    "base": "dragalge",
+    "form": "dragalge-mega",
+    "label": "Mega Dragalge",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Dragalge"
+  },
+  {
+    "base": "hawlucha",
+    "form": "hawlucha-mega",
+    "label": "Mega Hawlucha",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Hawlucha"
+  },
+  {
+    "base": "aegislash",
+    "form": "aegislash-shield",
+    "label": "Shield Stance",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Aegislash"
+  },
+  {
+    "base": "aegislash",
+    "form": "aegislash-blade",
+    "label": "Blade Stance",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Aegislash"
+  },
+  {
+    "base": "sliggoo",
+    "form": "sliggoo",
+    "label": "Kalosian Sliggoo",
+    "form_type": "REGIONAL",
+    "region": "KALOS",
+    "notes": null,
+    "display_name": "Sliggoo"
+  },
+  {
+    "base": "sliggoo",
+    "form": "sliggoo-hisui",
+    "label": "Hisuian Sliggoo",
+    "form_type": "REGIONAL",
+    "region": "HISUI",
+    "notes": null,
+    "display_name": "Hisuian Sliggoo"
+  },
+  {
+    "base": "goodra",
+    "form": "goodra",
+    "label": "Kalosian Goodra",
+    "form_type": "REGIONAL",
+    "region": "KALOS",
+    "notes": null,
+    "display_name": "Goodra"
+  },
+  {
+    "base": "goodra",
+    "form": "goodra-hisui",
+    "label": "Hisuian Goodra",
+    "form_type": "REGIONAL",
+    "region": "HISUI",
+    "notes": null,
+    "display_name": "Hisuian Goodra"
+  },
+  {
+    "base": "pumpkaboo",
+    "form": "pumpkaboo-small",
+    "label": "Small",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Pumpkaboo"
+  },
+  {
+    "base": "pumpkaboo",
+    "form": "pumpkaboo-average",
+    "label": "Average",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Pumpkaboo"
+  },
+  {
+    "base": "pumpkaboo",
+    "form": "pumpkaboo-large",
+    "label": "Large",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Pumpkaboo"
+  },
+  {
+    "base": "pumpkaboo",
+    "form": "pumpkaboo-super",
+    "label": "Super",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Pumpkaboo"
+  },
+  {
+    "base": "gourgeist",
+    "form": "gourgeist-small",
+    "label": "Small",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Gourgeist"
+  },
+  {
+    "base": "gourgeist",
+    "form": "gourgeist-average",
+    "label": "Average",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Gourgeist"
+  },
+  {
+    "base": "gourgeist",
+    "form": "gourgeist-large",
+    "label": "Large",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Gourgeist"
+  },
+  {
+    "base": "gourgeist",
+    "form": "gourgeist-super",
+    "label": "Super",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Gourgeist"
+  },
+  {
+    "base": "avalugg",
+    "form": "avalugg",
+    "label": "Kalosian Avalugg",
+    "form_type": "REGIONAL",
+    "region": "KALOS",
+    "notes": null,
+    "display_name": "Avalugg"
+  },
+  {
+    "base": "avalugg",
+    "form": "avalugg-hisui",
+    "label": "Hisuian Avalugg",
+    "form_type": "REGIONAL",
+    "region": "HISUI",
+    "notes": null,
+    "display_name": "Hisuian Avalugg"
+  },
+  {
+    "base": "furfrou",
+    "form": "furfrou",
+    "label": "Natural",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Furfrou"
+  },
+  {
+    "base": "furfrou",
+    "form": "furfrou-heart",
+    "label": "Heart Trim",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Visit salon (Default unlocked)",
+    "display_name": "Furfrou"
+  },
+  {
+    "base": "furfrou",
+    "form": "furfrou-star",
+    "label": "Star Trim",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Visit salon (Default unlocked)",
+    "display_name": "Furfrou"
+  },
+  {
+    "base": "furfrou",
+    "form": "furfrou-diamond",
+    "label": "Diamond Trim",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Visit salon (Default unlocked)",
+    "display_name": "Furfrou"
+  },
+  {
+    "base": "furfrou",
+    "form": "furfrou-debutante",
+    "label": "Debutante Trim",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Increase Lumiose stylishness rating",
+    "display_name": "Furfrou"
+  },
+  {
+    "base": "furfrou",
+    "form": "furfrou-matron",
+    "label": "Matron Trim",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Increase Lumiose stylishness rating",
+    "display_name": "Furfrou"
+  },
+  {
+    "base": "furfrou",
+    "form": "furfrou-dandy",
+    "label": "Dandy Trim",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Increase Lumiose stylishness rating",
+    "display_name": "Furfrou"
+  },
+  {
+    "base": "furfrou",
+    "form": "furfrou-la-reine",
+    "label": "La Reine Trim",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Maximize Lumiose stylishness rating",
+    "display_name": "Furfrou"
+  },
+  {
+    "base": "furfrou",
+    "form": "furfrou-kabuki",
+    "label": "Kabuki Trim",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Maximize Lumiose stylishness rating",
+    "display_name": "Furfrou"
+  },
+  {
+    "base": "furfrou",
+    "form": "furfrou-pharaoh",
+    "label": "Pharaoh Trim",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Maximize Lumiose stylishness rating",
+    "display_name": "Furfrou"
+  },
+  {
+    "base": "xerneas",
+    "form": "xerneas",
+    "label": "Neutral",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Xerneas"
+  },
+  {
+    "base": "xerneas",
+    "form": "xerneas-active",
+    "label": "Active",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Xerneas"
+  },
+  {
+    "base": "zygarde-50",
+    "form": "zygarde-10",
+    "label": "10%",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Use Zygarde Cube",
+    "display_name": "Zygarde 10%"
+  },
+  {
+    "base": "zygarde-50",
+    "form": "zygarde-50",
+    "label": "50%",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Use Zygarde Cube",
+    "display_name": "Zygarde"
+  },
+  {
+    "base": "zygarde-50",
+    "form": "zygarde-complete",
+    "label": "Complete (100%)",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Use Zygarde Cube",
+    "display_name": "Zygarde Complete"
+  },
+  {
+    "base": "zygarde",
+    "form": "zygarde-mega",
+    "label": "Mega Zygarde",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": "Mega evolves from Zygarde Complete (100%)",
+    "display_name": "Mega Zygarde"
+  },
+  {
+    "base": "diancie",
+    "form": "diancie-mega",
+    "label": "Mega Diancie",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Diancie"
+  },
+  {
+    "base": "hoopa",
+    "form": "hoopa",
+    "label": "Confined",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Hoopa"
+  },
+  {
+    "base": "hoopa",
+    "form": "hoopa-unbound",
+    "label": "Unbound",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Use Prison Bottle",
+    "display_name": "Hoopa Unbound"
+  },
+  {
+    "base": "decidueye",
+    "form": "decidueye",
+    "label": "Decidueye",
+    "form_type": "REGIONAL",
+    "region": "ALOLA",
+    "notes": null,
+    "display_name": "Decidueye"
+  },
+  {
+    "base": "decidueye",
+    "form": "decidueye-hisui",
+    "label": "Hisuian Decidueye",
+    "form_type": "REGIONAL",
+    "region": "HISUI",
+    "notes": null,
+    "display_name": "Hisuian Decidueye"
+  },
+  {
+    "base": "garbodor",
+    "form": "garbodor-gmax",
+    "label": "Gigantamax Garbodor",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Garbodor"
+  },
+  {
+    "base": "crabominable",
+    "form": "crabominable-mega",
+    "label": "Mega Crabominable",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Crabominable"
+  },
+  {
+    "base": "oricorio-baile",
+    "form": "oricorio-baile",
+    "label": "Baile",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Oricorio"
+  },
+  {
+    "base": "oricorio-baile",
+    "form": "oricorio-pom-pom",
+    "label": "Pom-Pom",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Oricorio"
+  },
+  {
+    "base": "oricorio-baile",
+    "form": "oricorio-pau",
+    "label": "Pau",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Oricorio"
+  },
+  {
+    "base": "oricorio-baile",
+    "form": "oricorio-sensu",
+    "label": "Sensu",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Oricorio"
+  },
+  {
+    "base": "lycanroc",
+    "form": "lycanroc-midday",
+    "label": "Midday",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Evolve Rockruff during daytime",
+    "display_name": "Lycanroc"
+  },
+  {
+    "base": "lycanroc",
+    "form": "lycanroc-midnight",
+    "label": "Midnight",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Evolve Rockruff during nightime",
+    "display_name": "Lycanroc"
+  },
+  {
+    "base": "lycanroc",
+    "form": "lycanroc-dusk",
+    "label": "Dusk",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Evolve Rockruff (with Own Tempo hidden ability) during dusk",
+    "display_name": "Lycanroc"
+  },
+  {
+    "base": "wishiwashi-solo",
+    "form": "wishiwashi-solo",
+    "label": "Solo",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Wishiwashi"
+  },
+  {
+    "base": "wishiwashi-solo",
+    "form": "wishiwashi-school",
+    "label": "School",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Level +20 + HP >25%",
+    "display_name": "Wishiwashi School"
+  },
+  {
+    "base": "golisopod",
+    "form": "golisopod-mega",
+    "label": "Mega Golisopod",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Golisopod"
+  },
+  {
+    "base": "minior-red-meteor",
+    "form": "minior-red",
+    "label": "Red Meteor",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "<50% HP to break core",
+    "display_name": "Minior"
+  },
+  {
+    "base": "minior-red-meteor",
+    "form": "minior-orange",
+    "label": "Orange Meteor",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "<50% HP to break core",
+    "display_name": "Minior"
+  },
+  {
+    "base": "minior-red-meteor",
+    "form": "minior-yellow",
+    "label": "Yellow Meteor",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "<50% HP to break core",
+    "display_name": "Minior"
+  },
+  {
+    "base": "minior-red-meteor",
+    "form": "minior-green",
+    "label": "Green Meteor",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "<50% HP to break core",
+    "display_name": "Minior"
+  },
+  {
+    "base": "minior-red-meteor",
+    "form": "minior-blue",
+    "label": "Blue Meteor",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "<50% HP to break core",
+    "display_name": "Minior"
+  },
+  {
+    "base": "minior-red-meteor",
+    "form": "minior-indigo",
+    "label": "Indigo Meteor",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "<50% HP to break core",
+    "display_name": "Minior"
+  },
+  {
+    "base": "minior-red-meteor",
+    "form": "minior-violet",
+    "label": "Violet Meteor",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "<50% HP to break core",
+    "display_name": "Minior"
+  },
+  {
+    "base": "minior-red-meteor",
+    "form": "minior-red-meteor",
+    "label": "Core (Red)",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Minior"
+  },
+  {
+    "base": "mimikyu",
+    "form": "mimikyu-disguised",
+    "label": "Disguised",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Mimikyu"
+  },
+  {
+    "base": "mimikyu",
+    "form": "mimikyu-busted",
+    "label": "Busted",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "After taking initial damage",
+    "display_name": "Mimikyu"
+  },
+  {
+    "base": "drampa",
+    "form": "drampa-mega",
+    "label": "Mega Drampa",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Drampa"
+  },
+  {
+    "base": "magearna",
+    "form": "magearna",
+    "label": "Magearna",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Magearna"
+  },
+  {
+    "base": "magearna",
+    "form": "magearna-original",
+    "label": "Original Color",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Complete National Pokedex (Bulbasaur to Eternatus) in Pokemon HOME",
+    "display_name": "Magearna"
+  },
+  {
+    "base": "magearna",
+    "form": "magearna-mega",
+    "label": "Mega Magearna",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Magearna"
+  },
+  {
+    "base": "magearna",
+    "form": "magearna-original-mega",
+    "label": "Mega Magearna Original Color",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": "Mega evolves from Original Color Magearna",
+    "display_name": "Mega Magearna Original Color"
+  },
+  {
+    "base": "necrozma",
+    "form": "necrozma",
+    "label": "Necrozma",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Necrozma"
+  },
+  {
+    "base": "necrozma",
+    "form": "necrozma-dusk",
+    "label": "Dusk Mane",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Use N-Solarizer on Necrozma and select Solgaleo",
+    "display_name": "Necrozma Dusk Mane"
+  },
+  {
+    "base": "necrozma",
+    "form": "necrozma-dawn",
+    "label": "Dawn Wings",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Use N-Lunarizer on Necrozma and select Lunala",
+    "display_name": "Necrozma Dawn Wings"
+  },
+  {
+    "base": "necrozma",
+    "form": "necrozma-ultra",
+    "label": "Ultra",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Fuse Necrozma + hold Ultranecrozium Z + and use Ultra Burst",
+    "display_name": "Ultra Necrozma"
+  },
+  {
+    "base": "zeraora",
+    "form": "zeraora-mega",
+    "label": "Mega Zeraora",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Zeraora"
+  },
+  {
+    "base": "melmetal",
+    "form": "melmetal-gmax",
+    "label": "Gigantamax Melmetal",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Melmetal"
+  },
+  {
+    "base": "rillaboom",
+    "form": "rillaboom-gmax",
+    "label": "Gigantamax Rillaboom",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Rillaboom"
+  },
+  {
+    "base": "cinderace",
+    "form": "cinderace-gmax",
+    "label": "Gigantamax Cinderace",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Cinderace"
+  },
+  {
+    "base": "inteleon",
+    "form": "inteleon-gmax",
+    "label": "Gigantamax Inteleon",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Inteleon"
+  },
+  {
+    "base": "corviknight",
+    "form": "corviknight-gmax",
+    "label": "Gigantamax Corviknight",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Corviknight"
+  },
+  {
+    "base": "orbeetle",
+    "form": "orbeetle-gmax",
+    "label": "Gigantamax Orbeetle",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Orbeetle"
+  },
+  {
+    "base": "drednaw",
+    "form": "drednaw-gmax",
+    "label": "Gigantamax Drednaw",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Drednaw"
+  },
+  {
+    "base": "coalossal",
+    "form": "coalossal-gmax",
+    "label": "Gigantamax Coalossal",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Coalossal"
+  },
+  {
+    "base": "flapple",
+    "form": "flapple-gmax",
+    "label": "Gigantamax Flapple",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Flapple"
+  },
+  {
+    "base": "appletun",
+    "form": "appletun-gmax",
+    "label": "Gigantamax Appletun",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Appletun"
+  },
+  {
+    "base": "sandaconda",
+    "form": "sandaconda-gmax",
+    "label": "Gigantamax Sandaconda",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Sandaconda"
+  },
+  {
+    "base": "centiskorch",
+    "form": "centiskorch-gmax",
+    "label": "Gigantamax Centiskorch",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Centiskorch"
+  },
+  {
+    "base": "cramorant",
+    "form": "cramorant-gulping",
+    "label": "Gulping",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Use Surf/Dive + HP >50%",
+    "display_name": "Cramorant"
+  },
+  {
+    "base": "cramorant",
+    "form": "cramorant-gorging",
+    "label": "Gorging",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Use Surf/Dive + HP <50%",
+    "display_name": "Cramorant"
+  },
+  {
+    "base": "toxtricity",
+    "form": "toxtricity-amped",
+    "label": "Amped Form",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Natures: Adamant, Naughty, Brave, Impish, Lax, Hasty, Jolly, Naive, Rash, Sassy, Quirky",
+    "display_name": "Toxtricity"
+  },
+  {
+    "base": "toxtricity",
+    "form": "toxtricity-low-key",
+    "label": "Low Key Form",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Natures: Lonely, Bold, Relaxed, Timid, Serious, Modest, Mild, Quiet, Bashful, Calm, Gentle, Careful",
+    "display_name": "Toxtricity"
+  },
+  {
+    "base": "toxtricity",
+    "form": "toxtricity-amped-gmax",
+    "label": "Gigantamax Toxtricity",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Toxtricity"
+  },
+  {
+    "base": "sinistea",
+    "form": "sinistea",
+    "label": "Phony",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Sinistea"
+  },
+  {
+    "base": "polteageist",
+    "form": "polteageist",
+    "label": "Phony",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Polteageist"
+  },
+  {
+    "base": "alcremie",
+    "form": "alcremie-gmax",
+    "label": "Gigantamax Alcremie",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Alcremie"
+  },
+  {
+    "base": "hatterene",
+    "form": "hatterene-gmax",
+    "label": "Gigantamax Hatterene",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Hatterene"
+  },
+  {
+    "base": "grimmsnarl",
+    "form": "grimmsnarl-gmax",
+    "label": "Gigantamax Grimmsnarl",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Grimmsnarl"
+  },
+  {
+    "base": "yamask",
+    "form": "yamask",
+    "label": "Unovan Yamask",
+    "form_type": "REGIONAL",
+    "region": "UNOVA",
+    "notes": null,
+    "display_name": "Yamask"
+  },
+  {
+    "base": "yamask",
+    "form": "yamask-galar",
+    "label": "Galarian Yamask",
+    "form_type": "REGIONAL",
+    "region": "GALAR",
+    "notes": null,
+    "display_name": "Galarian Yamask"
+  },
+  {
+    "base": "falinks",
+    "form": "falinks-mega",
+    "label": "Mega Falinks",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Falinks"
+  },
+  {
+    "base": "indeedee",
+    "form": "indeedee",
+    "label": "Male",
+    "form_type": "GENDER",
+    "region": null,
+    "notes": null,
+    "display_name": "Indeedee"
+  },
+  {
+    "base": "indeedee",
+    "form": "indeedee-female",
+    "label": "Female",
+    "form_type": "GENDER",
+    "region": null,
+    "notes": null,
+    "display_name": "Indeedee"
+  },
+  {
+    "base": "eiscue-ice",
+    "form": "eiscue",
+    "label": "Ice Face",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Eiscue"
+  },
+  {
+    "base": "eiscue-ice",
+    "form": "eiscue-noice",
+    "label": "Noice Face",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Recieve physical damage during battle",
+    "display_name": "Eiscue"
+  },
+  {
+    "base": "morpeko-full-belly",
+    "form": "morpeko-full-belly",
+    "label": "Full Belly",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Morpeko"
+  },
+  {
+    "base": "morpeko-full-belly",
+    "form": "morpeko-hangry",
+    "label": "Hangry",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "During battle after every other turn",
+    "display_name": "Morpeko"
+  },
+  {
+    "base": "copperajah",
+    "form": "copperajah-gmax",
+    "label": "Gigantamax Copperajah",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Copperajah"
+  },
+  {
+    "base": "duraludon",
+    "form": "duraludon-gmax",
+    "label": "Gigantamax Duraludon",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Duraludon"
+  },
+  {
+    "base": "zacian",
+    "form": "zacian",
+    "label": "Hero of Many Battles",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Zacian"
+  },
+  {
+    "base": "zacian",
+    "form": "zacian-crowned",
+    "label": "Crowned Sword",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Holding Rusted Sword item",
+    "display_name": "Zacian Crowned Sword"
+  },
+  {
+    "base": "zamazenta",
+    "form": "zamazenta",
+    "label": "Hero of Many Battles",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Zamazenta"
+  },
+  {
+    "base": "zamazenta",
+    "form": "zamazenta-crowned",
+    "label": "Crowned Shield",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Holding Rusted Shield item",
+    "display_name": "Zamazenta Crowned Shield"
+  },
+  {
+    "base": "eternatus",
+    "form": "eternatus-eternamax",
+    "label": "Eternamax Eternatus",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Eternamax Eternatus"
+  },
+  {
+    "base": "urshifu",
+    "form": "urshifu-single-strike",
+    "label": "Single Strike",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Urshifu"
+  },
+  {
+    "base": "urshifu",
+    "form": "urshifu-rapid-strike",
+    "label": "Rapid Strike",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Urshifu"
+  },
+  {
+    "base": "urshifu",
+    "form": "urshifu-single-strike-gmax",
+    "label": "Gigantamax Urshifu Single Strike",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Urshifu"
+  },
+  {
+    "base": "urshifu",
+    "form": "urshifu-rapid-strike-gmax",
+    "label": "Gigantamax Urshifu Rapid Strike",
+    "form_type": "GMAX",
+    "region": null,
+    "notes": null,
+    "display_name": "Gigantamax Urshifu"
+  },
+  {
+    "base": "zarude",
+    "form": "zarude-dada",
+    "label": "Dada",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Event distribution",
+    "display_name": "Dada Zarude"
+  },
+  {
+    "base": "calyrex",
+    "form": "calyrex",
+    "label": "Calyrex",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Calyrex"
+  },
+  {
+    "base": "calyrex",
+    "form": "calyrex-ice",
+    "label": "Ice Rider",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Use Reins of Unity item",
+    "display_name": "Calyrex Ice Rider"
+  },
+  {
+    "base": "calyrex",
+    "form": "calyrex-shadow",
+    "label": "Shadow Rider",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Use Reins of Unity item",
+    "display_name": "Calyrex Shadow Rider"
+  },
+  {
+    "base": "ursaluna",
+    "form": "ursaluna-bloodmoon",
+    "label": "Bloodmoon",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Unique form",
+    "display_name": "Ursaluna Bloodmoon"
+  },
+  {
+    "base": "maushold",
+    "form": "maushold-family-of-three",
+    "label": "Family of Three",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "1% chance",
+    "display_name": "Maushold"
+  },
+  {
+    "base": "maushold",
+    "form": "maushold-family-of-four",
+    "label": "Family of Four",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Maushold"
+  },
+  {
+    "base": "squawkabilly",
+    "form": "squawkabilly",
+    "label": "Green",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Squawkabilly"
+  },
+  {
+    "base": "squawkabilly",
+    "form": "squawkabilly-blue-plumage",
+    "label": "Blue",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Squawkabilly"
+  },
+  {
+    "base": "squawkabilly",
+    "form": "squawkabilly-yellow-plumage",
+    "label": "Yellow",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Squawkabilly"
+  },
+  {
+    "base": "squawkabilly",
+    "form": "squawkabilly-white-plumage",
+    "label": "White",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Squawkabilly"
+  },
+  {
+    "base": "scovillain",
+    "form": "scovillain-mega",
+    "label": "Mega Scovillain",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Scovillain"
+  },
+  {
+    "base": "palafin",
+    "form": "palafin",
+    "label": "Zero",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Palafin"
+  },
+  {
+    "base": "palafin",
+    "form": "palafin-hero",
+    "label": "Hero",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Switch Palafin out of battle and send in again",
+    "display_name": "Palafin Hero"
+  },
+  {
+    "base": "tatsugiri",
+    "form": "tatsugiri-curly-mega",
+    "label": "Mega Tatsugiri Curly",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Tatsugiri"
+  },
+  {
+    "base": "tatsugiri",
+    "form": "tatsugiri-droopy-mega",
+    "label": "Mega Tatsugiri Droopy",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Tatsugiri"
+  },
+  {
+    "base": "tatsugiri",
+    "form": "tatsugiri-stretchy-mega",
+    "label": "Mega Tatsugiri Stretchy",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Tatsugiri"
+  },
+  {
+    "base": "glimmora",
+    "form": "glimmora-mega",
+    "label": "Mega Glimmora",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Glimmora"
+  },
+  {
+    "base": "tatsugiri-curly",
+    "form": "tatsugiri-curly",
+    "label": "Curly",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Tatsugiri"
+  },
+  {
+    "base": "tatsugiri-curly",
+    "form": "tatsugiri-droopy",
+    "label": "Droopy",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Tatsugiri"
+  },
+  {
+    "base": "tatsugiri-curly",
+    "form": "tatsugiri-stretchy",
+    "label": "Stretchy",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Tatsugiri"
+  },
+  {
+    "base": "dudunsparce-two-segment",
+    "form": "dudunsparce-two-segment",
+    "label": "Two-Segment",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Dudunsparce"
+  },
+  {
+    "base": "dudunsparce-two-segment",
+    "form": "dudunsparce-three-segment",
+    "label": "Three-Segment",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "1% chance",
+    "display_name": "Dudunsparce"
+  },
+  {
+    "base": "baxcalibur",
+    "form": "baxcalibur-mega",
+    "label": "Mega Baxcalibur",
+    "form_type": "MEGA",
+    "region": null,
+    "notes": null,
+    "display_name": "Mega Baxcalibur"
+  },
+  {
+    "base": "gimmighoul",
+    "form": "gimmighoul",
+    "label": "Chest",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Gimmighoul"
+  },
+  {
+    "base": "gimmighoul",
+    "form": "gimmighoul-roaming",
+    "label": "Roaming",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Not usable in battle",
+    "display_name": "Gimmighoul"
+  },
+  {
+    "base": "poltchageist",
+    "form": "poltchageist",
+    "label": "Counterfeit",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Poltchageist"
+  },
+  {
+    "base": "sinistcha",
+    "form": "sinistcha",
+    "label": "Unremarkable",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Sinistcha"
+  },
+  {
+    "base": "ogerpon",
+    "form": "ogerpon",
+    "label": "Teal Mask",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Hold Teal Mask item",
+    "display_name": "Ogerpon"
+  },
+  {
+    "base": "ogerpon",
+    "form": "ogerpon-wellspring-mask",
+    "label": "Wellspring Mask",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Hold Wellspring Mask item",
+    "display_name": "Ogerpon Wellspring Mask"
+  },
+  {
+    "base": "ogerpon",
+    "form": "ogerpon-hearthflame-mask",
+    "label": "Hearthflame Mask",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Hold Hearthflame Mask item",
+    "display_name": "Ogerpon Hearthflame Mask"
+  },
+  {
+    "base": "ogerpon",
+    "form": "ogerpon-cornerstone-mask",
+    "label": "Cornerstone Mask",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "Hold Cornerstone Mask item",
+    "display_name": "Ogerpon Cornerstone Mask"
+  },
+  {
+    "base": "terapagos",
+    "form": "terapagos",
+    "label": "Normal",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": null,
+    "display_name": "Terapagos"
+  },
+  {
+    "base": "terapagos",
+    "form": "terapagos-terastal",
+    "label": "Terastal",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "With Tera Shift ability during battle",
+    "display_name": "Terapagos Terastal"
+  },
+  {
+    "base": "terapagos",
+    "form": "terapagos-stellar",
+    "label": "Stellar",
+    "form_type": "SPECIAL",
+    "region": null,
+    "notes": "With Tera Shift ability during battle + Terastallize",
+    "display_name": "Terapagos Stellar"
+  },
+  {
+    "base": "basculegion-male",
+    "form": "basculegion-male",
+    "label": "Male",
+    "form_type": "GENDER",
+    "region": null,
+    "notes": null,
+    "display_name": "Basculegion"
+  },
+  {
+    "base": "basculegion-female",
+    "form": "basculegion-female",
+    "label": "Female",
+    "form_type": "GENDER",
+    "region": null,
+    "notes": null,
+    "display_name": "Basculegion"
+  },
+  {
+    "base": "oinkologne",
+    "form": "oinkologne",
+    "label": "Male",
+    "form_type": "GENDER",
+    "region": null,
+    "notes": null,
+    "display_name": "Oinkologne"
+  },
+  {
+    "base": "oinkologne",
+    "form": "oinkologne-female",
+    "label": "Female",
+    "form_type": "GENDER",
+    "region": null,
+    "notes": null,
+    "display_name": "Oinkologne"
+  }
+]

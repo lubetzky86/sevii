@@ -1,0 +1,961 @@
+[
+  {
+    "chain_id": "pikachu-line",
+    "links": [
+      {
+        "pokemon": "pichu",
+        "evolves_into": "pikachu",
+        "method": "FRIENDSHIP",
+        "method_detail": null,
+        "notes": null
+      },
+      {
+        "pokemon": "pikachu",
+        "evolves_into": "raichu",
+        "method": "ITEM",
+        "method_detail": "Thunder Stone",
+        "notes": null
+      },
+      {
+        "pokemon": "pikachu",
+        "evolves_into": "raichu-alola",
+        "method": "ITEM",
+        "method_detail": "Thunder Stone in Alola",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "slowpoke-line",
+    "links": [
+      {
+        "pokemon": "slowpoke",
+        "evolves_into": "slowbro",
+        "method": "LEVEL",
+        "method_detail": "37",
+        "notes": null
+      },
+      {
+        "pokemon": "slowpoke",
+        "evolves_into": "slowking",
+        "method": "TRADE",
+        "method_detail": "Kings Rock",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "galarian-slowpoke-line",
+    "links": [
+      {
+        "pokemon": "slowpoke-galar",
+        "evolves_into": "slowbro-galar",
+        "method": "ITEM",
+        "method_detail": "Galarica Cuff",
+        "notes": null
+      },
+      {
+        "pokemon": "slowpoke-galar",
+        "evolves_into": "slowking-galar",
+        "method": "ITEM",
+        "method_detail": "Galarica Wreath",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "farfetchd-line",
+    "links": [
+      {
+        "pokemon": "farfetchd",
+        "evolves_into": null,
+        "method": "NONE",
+        "method_detail": null,
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "galarian-farfetchd-line",
+    "links": [
+      {
+        "pokemon": "farfetchd-galar",
+        "evolves_into": "sirfetchd",
+        "method": "SPECIAL",
+        "method_detail": "Land three critical hits in same battle",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "exeggcute-line",
+    "links": [
+      {
+        "pokemon": "exeggcute",
+        "evolves_into": "exeggutor",
+        "method": "ITEM",
+        "method_detail": "Leaf stone",
+        "notes": null
+      },
+      {
+        "pokemon": "exeggcute",
+        "evolves_into": "exeggutor-alola",
+        "method": "ITEM",
+        "method_detail": "Leaf stone in Alola",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "cubone-line",
+    "links": [
+      {
+        "pokemon": "cubone",
+        "evolves_into": "marowak",
+        "method": "LEVEL",
+        "method_detail": "28",
+        "notes": null
+      },
+      {
+        "pokemon": "cubone",
+        "evolves_into": "marowak-alola",
+        "method": "SPECIAL",
+        "method_detail": "Level 28 at nightime in Alola",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "koffing-line",
+    "links": [
+      {
+        "pokemon": "koffing",
+        "evolves_into": "weezing",
+        "method": "LEVEL",
+        "method_detail": "35",
+        "notes": null
+      },
+      {
+        "pokemon": "koffing",
+        "evolves_into": "weezing-galar",
+        "method": "LEVEL",
+        "method_detail": "35 in Galar",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "mime-jr-line",
+    "links": [
+      {
+        "pokemon": "mime-jr",
+        "evolves_into": "mr-mime",
+        "method": "SPECIAL",
+        "method_detail": "Level up knowing Mimic",
+        "notes": null
+      },
+      {
+        "pokemon": "mime-jr",
+        "evolves_into": "mr-mime-galar",
+        "method": "SPECIAL",
+        "method_detail": "Level up knowing Mimic in Galar",
+        "notes": null
+      },
+      {
+        "pokemon": "mr-mime-galar",
+        "evolves_into": "mr-rime",
+        "method": "LEVEL",
+        "method_detail": "42",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "cyndaquil-line",
+    "links": [
+      {
+        "pokemon": "cyndaquil",
+        "evolves_into": "quilava",
+        "method": "LEVEL",
+        "method_detail": "14",
+        "notes": null
+      },
+      {
+        "pokemon": "quilava",
+        "evolves_into": "typhlosion",
+        "method": "LEVEL",
+        "method_detail": "36",
+        "notes": null
+      },
+      {
+        "pokemon": "quilava",
+        "evolves_into": "typhlosion-hisui",
+        "method": "LEVEL",
+        "method_detail": "36 in Hisui",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "qwilfish-line",
+    "links": [
+      {
+        "pokemon": "qwilfish",
+        "evolves_into": null,
+        "method": "NONE",
+        "method_detail": null,
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "Qwilfish-hisui-line",
+    "links": [
+      {
+        "pokemon": "qwilfish-hisui",
+        "evolves_into": "overqwil",
+        "method": "SPECIAL",
+        "method_detail": "Use Barb Barrage 20 times in Strong Style",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "teddiursa-line",
+    "links": [
+      {
+        "pokemon": "teddiursa",
+        "evolves_into": "ursaring",
+        "method": "LEVEL",
+        "method_detail": "30",
+        "notes": null
+      },
+      {
+        "pokemon": "ursaring",
+        "evolves_into": "ursaluna",
+        "method": "SPECIAL",
+        "method_detail": "Use Peat Block during a full moon",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "corsola-line",
+    "links": [
+      {
+        "pokemon": "corsola",
+        "evolves_into": null,
+        "method": "NONE",
+        "method_detail": null,
+        "notes": null
+      },
+      {
+        "pokemon": "corsola-galar",
+        "evolves_into": "cursola",
+        "method": "LEVEL",
+        "method_detail": "38",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "mantyke-line",
+    "links": [
+      {
+        "pokemon": "mantyke",
+        "evolves_into": "mantine",
+        "method": "SPECIAL",
+        "method_detail": "Level up with Remoraid in party",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "zigzagoon-line",
+    "links": [
+      {
+        "pokemon": "zigzagoon",
+        "evolves_into": "linoone",
+        "method": "LEVEL",
+        "method_detail": "20",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "zigzagoon-galar-line",
+    "links": [
+      {
+        "pokemon": "zigzagoon-galar",
+        "evolves_into": "linoone-galar",
+        "method": "LEVEL",
+        "method_detail": "20",
+        "notes": null
+      },
+      {
+        "pokemon": "linoone-galar",
+        "evolves_into": "obstagoon",
+        "method": "LEVEL",
+        "method_detail": "35 at nightime",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "ralts-line",
+    "links": [
+      {
+        "pokemon": "ralts",
+        "evolves_into": "kirlia",
+        "method": "LEVEL",
+        "method_detail": "20",
+        "notes": null
+      },
+      {
+        "pokemon": "kirlia",
+        "evolves_into": "gardevoir",
+        "method": "LEVEL",
+        "method_detail": "30",
+        "notes": null
+      },
+      {
+        "pokemon": "kirlia",
+        "evolves_into": "gallade",
+        "method": "ITEM",
+        "method_detail": "Use Dawn Stone on Male",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "nincada-line",
+    "links": [
+      {
+        "pokemon": "nincada",
+        "evolves_into": "ninjask",
+        "method": "LEVEL",
+        "method_detail": "20",
+        "notes": null
+      },
+      {
+        "pokemon": "nincada",
+        "evolves_into": "shedinja",
+        "method": "SPECIAL",
+        "method_detail": "Level 20 with empty spot in party and Pokeball in bag",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "nosepass-line",
+    "links": [
+      {
+        "pokemon": "nosepass",
+        "evolves_into": "probopass",
+        "method": "SPECIAL",
+        "method_detail": "Level up in a Magnetic Field",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "feebas-line",
+    "links": [
+      {
+        "pokemon": "feebas",
+        "evolves_into": "milotic",
+        "method": "SPECIAL",
+        "method_detail": "Beauty or Trade holding Prism Scale",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "snorunt-line",
+    "links": [
+      {
+        "pokemon": "snorunt",
+        "evolves_into": "glalie",
+        "method": "LEVEL",
+        "method_detail": "42",
+        "notes": null
+      },
+      {
+        "pokemon": "snorunt",
+        "evolves_into": "froslass",
+        "method": "ITEM",
+        "method_detail": "Use Dawn Stone on Female",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "combee-line",
+    "links": [
+      {
+        "pokemon": "combee",
+        "evolves_into": "vespiquen",
+        "method": "LEVEL",
+        "method_detail": "21 if female",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "phione-line",
+    "links": [
+      {
+        "pokemon": "phione",
+        "evolves_into": null,
+        "method": "NONE",
+        "method_detail": "Hatches from Manaphy egg (Manaphy + Ditto)",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "manaphy-line",
+    "links": [
+      {
+        "pokemon": "manaphy",
+        "evolves_into": null,
+        "method": "NONE",
+        "method_detail": null,
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "oshawott-line",
+    "links": [
+      {
+        "pokemon": "oshawott",
+        "evolves_into": "dewott",
+        "method": "LEVEL",
+        "method_detail": "17",
+        "notes": null
+      },
+      {
+        "pokemon": "dewott",
+        "evolves_into": "samurott",
+        "method": "LEVEL",
+        "method_detail": "36",
+        "notes": null
+      },
+      {
+        "pokemon": "dewott",
+        "evolves_into": "samurott-hisui",
+        "method": "LEVEL",
+        "method_detail": "36 in Hisui",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "petilil-line",
+    "links": [
+      {
+        "pokemon": "petilil",
+        "evolves_into": "lilligant",
+        "method": "ITEM",
+        "method_detail": "Use Sun Stone",
+        "notes": null
+      },
+      {
+        "pokemon": "petilil",
+        "evolves_into": "lilligant-hisui",
+        "method": "ITEM",
+        "method_detail": "Use Sun Stone in Hisui",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "basculin-line",
+    "links": [
+      {
+        "pokemon": "basculin-white-striped",
+        "evolves_into": "basculegion",
+        "method": "SPECIAL",
+        "method_detail": "Take 294 recoil damage without fainting if male",
+        "notes": null
+      },
+      {
+        "pokemon": "basculin-white-striped",
+        "evolves_into": "basculegion-female",
+        "method": "SPECIAL",
+        "method_detail": "Take 294 recoil damage without fainting if female",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "karrablast-line",
+    "links": [
+      {
+        "pokemon": "karrablast",
+        "evolves_into": "escavalier",
+        "method": "TRADE",
+        "method_detail": "Trade Karrablast with Shelmet",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "shelmet-line",
+    "links": [
+      {
+        "pokemon": "shelmet",
+        "evolves_into": "accelgor",
+        "method": "TRADE",
+        "method_detail": "Trade Shelmet with Karrablast",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "rowlet-line",
+    "links": [
+      {
+        "pokemon": "rowlet",
+        "evolves_into": "dartrix",
+        "method": "LEVEL",
+        "method_detail": "17",
+        "notes": null
+      },
+      {
+        "pokemon": "dartrix",
+        "evolves_into": "decidueye",
+        "method": "LEVEL",
+        "method_detail": "34",
+        "notes": null
+      },
+      {
+        "pokemon": "dartrix",
+        "evolves_into": "decidueye-hisui",
+        "method": "LEVEL",
+        "method_detail": "34 in Hisui",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "grubbin-line",
+    "links": [
+      {
+        "pokemon": "grubbin",
+        "evolves_into": "charjabug",
+        "method": "LEVEL",
+        "method_detail": "20",
+        "notes": null
+      },
+      {
+        "pokemon": "charjabug",
+        "evolves_into": "vikavolt",
+        "method": "ITEM",
+        "method_detail": "Use Thunder Stone",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "crabrawler-line",
+    "links": [
+      {
+        "pokemon": "crabrawler",
+        "evolves_into": "crabominable",
+        "method": "SPECIAL",
+        "method_detail": "Level up in Mount Lanakila",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "salandit-line",
+    "links": [
+      {
+        "pokemon": "salandit",
+        "evolves_into": "salazzle",
+        "method": "LEVEL",
+        "method_detail": "33 if female",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "bounsweet-line",
+    "links": [
+      {
+        "pokemon": "bounsweet",
+        "evolves_into": "steenee",
+        "method": "LEVEL",
+        "method_detail": "18",
+        "notes": null
+      },
+      {
+        "pokemon": "steenee",
+        "evolves_into": "tsareena",
+        "method": "SPECIAL",
+        "method_detail": "Level up knowing Stomp",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "poipole-line",
+    "links": [
+      {
+        "pokemon": "poipole",
+        "evolves_into": "naganadel",
+        "method": "SPECIAL",
+        "method_detail": "Level up knowing Dragon Pulse",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "meltan-line",
+    "links": [
+      {
+        "pokemon": "meltan",
+        "evolves_into": "melmetal",
+        "method": "SPECIAL",
+        "method_detail": "400 candy in Pokemon GO",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "applin-line",
+    "links": [
+      {
+        "pokemon": "applin",
+        "evolves_into": "flapple",
+        "method": "ITEM",
+        "method_detail": "Use Tart Apple",
+        "notes": null
+      },
+      {
+        "pokemon": "applin",
+        "evolves_into": "appletun",
+        "method": "ITEM",
+        "method_detail": "Use Sweet Apple",
+        "notes": null
+      },
+      {
+        "pokemon": "applin",
+        "evolves_into": "dipplin",
+        "method": "ITEM",
+        "method_detail": "Use Syrupy Apple",
+        "notes": null
+      },
+      {
+        "pokemon": "dipplin",
+        "evolves_into": "hydrapple",
+        "method": "SPECIAL",
+        "method_detail": "Level up knowing Dragon Cheer",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "yamask-galar-line",
+    "links": [
+      {
+        "pokemon": "yamask-galar",
+        "evolves_into": "runerigus",
+        "method": "SPECIAL",
+        "method_detail": "take at least 49 damage without fainting, + walk under stone arch in Dusty Bowl",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "milcery-line",
+    "links": [
+      {
+        "pokemon": "milcery",
+        "evolves_into": "alcremie",
+        "method": "SPECIAL",
+        "method_detail": "Hold Sweet item + rotate character in game",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "pawmi-line",
+    "links": [
+      {
+        "pokemon": "pawmi",
+        "evolves_into": "pawmo",
+        "method": "LEVEL",
+        "method_detail": "18",
+        "notes": null
+      },
+      {
+        "pokemon": "pawmo",
+        "evolves_into": "pawmot",
+        "method": "SPECIAL",
+        "method_detail": "Walk 1000 steps in Let's Go mode",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "bramblin-line",
+    "links": [
+      {
+        "pokemon": "bramblin",
+        "evolves_into": "brambleghast",
+        "method": "SPECIAL",
+        "method_detail": "Walk 1000 steps in Let's Go mode",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "rellor-line",
+    "links": [
+      {
+        "pokemon": "rellor",
+        "evolves_into": "rabsca",
+        "method": "SPECIAL",
+        "method_detail": "Walk 1000 steps in Let's Go mode",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "finizen-line",
+    "links": [
+      {
+        "pokemon": "finizen",
+        "evolves_into": "palafin-zero",
+        "method": "SPECIAL",
+        "method_detail": "Level 38 while in Union Circle (Multiplayer)",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "mankey-line",
+    "links": [
+      {
+        "pokemon": "mankey",
+        "evolves_into": "primeape",
+        "method": "LEVEL",
+        "method_detail": "28",
+        "notes": null
+      },
+      {
+        "pokemon": "primeape",
+        "evolves_into": "annihilape",
+        "method": "SPECIAL",
+        "method_detail": "Use Rage Fist 20 times",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "girafarig-line",
+    "links": [
+      {
+        "pokemon": "girafarig",
+        "evolves_into": "farigiraf",
+        "method": "SPECIAL",
+        "method_detail": "Level up knowing Twin Beam",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "dunsparce-line",
+    "links": [
+      {
+        "pokemon": "dunsparce",
+        "evolves_into": "dudunsparce",
+        "method": "SPECIAL",
+        "method_detail": "Level up knowing Hyper Drill",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "gimmighoul-line",
+    "links": [
+      {
+        "pokemon": "gimmighoul",
+        "evolves_into": "gholdengo",
+        "method": "SPECIAL",
+        "method_detail": "Collect 999 Gimmighoul coins",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "burmy-line",
+    "links": [
+      {
+        "pokemon": "burmy",
+        "evolves_into": "wormadam-plant",
+        "method": "SPECIAL",
+        "method_detail": "Level 20 if female",
+        "notes": null
+      },
+      {
+        "pokemon": "burmy",
+        "evolves_into": "mothim",
+        "method": "SPECIAL",
+        "method_detail": "Level 20 if male",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "burmy-sandy-line",
+    "links": [
+      {
+        "pokemon": "burmy",
+        "evolves_into": "wormadam-sandy",
+        "method": "SPECIAL",
+        "method_detail": "Level 20 if female",
+        "notes": null
+      },
+      {
+        "pokemon": "burmy",
+        "evolves_into": "mothim",
+        "method": "SPECIAL",
+        "method_detail": "Level 20 if male",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "burmy-trash-line",
+    "links": [
+      {
+        "pokemon": "burmy",
+        "evolves_into": "wormadam-trash",
+        "method": "SPECIAL",
+        "method_detail": "Level 20 if female",
+        "notes": null
+      },
+      {
+        "pokemon": "burmy",
+        "evolves_into": "mothim",
+        "method": "SPECIAL",
+        "method_detail": "Level 20 if male",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "honedge-line",
+    "links": [
+      {
+        "pokemon": "honedge",
+        "evolves_into": "doublade",
+        "method": "LEVEL",
+        "method_detail": "35",
+        "notes": null
+      },
+      {
+        "pokemon": "doublade",
+        "evolves_into": "aegislash-shield",
+        "method": "ITEM",
+        "method_detail": "Use Dusk Stone",
+        "notes": null
+      },
+      {
+        "pokemon": "aegislash-shield",
+        "evolves_into": "aegislash-blade",
+        "method": "SPECIAL",
+        "method_detail": "Use Stance Change ability in battle or use King's Shield move",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "rockruff-line",
+    "links": [
+      {
+        "pokemon": "rockruff",
+        "evolves_into": "lycanroc-midday",
+        "method": "LEVEL",
+        "method_detail": "25 at Daytime",
+        "notes": null
+      },
+      {
+        "pokemon": "rockruff",
+        "evolves_into": "lycanroc-midnight",
+        "method": "LEVEL",
+        "method_detail": "25 at Nightime",
+        "notes": null
+      },
+      {
+        "pokemon": "rockruff",
+        "evolves_into": "lycanroc-dusk",
+        "method": "LEVEL",
+        "method_detail": "25 at Dusk + Own Tempo ability",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "kubfu-line",
+    "links": [
+      {
+        "pokemon": "kubfu",
+        "evolves_into": "urshifu-single-strike",
+        "method": "ITEM",
+        "method_detail": "Use Scroll of Darkness",
+        "notes": null
+      },
+      {
+        "pokemon": "kubfu",
+        "evolves_into": "urshifu-rapid-strike",
+        "method": "ITEM",
+        "method_detail": "Use Scroll of Waters",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "darumaka-line",
+    "links": [
+      {
+        "pokemon": "darumaka",
+        "evolves_into": "darmanitan-standard",
+        "method": "LEVEL",
+        "method_detail": "35",
+        "notes": null
+      },
+      {
+        "pokemon": "darmanitan-standard",
+        "evolves_into": "darmanitan-zen",
+        "method": "SPECIAL",
+        "method_detail": "Zen Mode Hidden Ability + HP <50% during battle",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "darumaka-galar-line",
+    "links": [
+      {
+        "pokemon": "darumaka-galar",
+        "evolves_into": "darmanitan-galar-standard",
+        "method": "LEVEL",
+        "method_detail": "35",
+        "notes": null
+      },
+      {
+        "pokemon": "darmanitan-galar-standard",
+        "evolves_into": "darmanitan-galar-zen",
+        "method": "SPECIAL",
+        "method_detail": "Zen Mode Hidden Ability + HP <50% during battle",
+        "notes": null
+      }
+    ]
+  }
+]
