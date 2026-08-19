@@ -1132,11 +1132,14 @@
     .obtain-modal-close:hover { background: rgba(255,255,255,0.4); }
     /* ── Body layout: two independent columns ── */
     .obtain-body { display: flex; flex: 1; overflow: hidden; min-height: 0; }
-    .obtain-games-column { width: 110px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; padding: 8px 6px 8px 6px; gap: 5px; overflow: hidden; transition: background 0.3s; }
-    .obtain-in-label { font-size: 11px; font-weight: 800; color: rgba(0,0,0,0.5); text-transform: uppercase; letter-spacing: 0.4px; width: 100%; padding: 0 2px; }
-    .obtain-games-panel { flex: 1; width: 100%; display: flex; flex-direction: column; gap: 3px; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
+    .obtain-games-column { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; padding: 8px 6px 8px 6px; gap: 5px; overflow: hidden; transition: background 0.3s; }
+    .obtain-in-label { font-size: 11px; font-weight: 800; color: rgba(0,0,0,0.5); text-transform: uppercase; letter-spacing: 0.4px; width: 100%; padding: 0 2px; text-align: center; }
+    .obtain-games-panel { flex: 1; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 3px; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
     .obtain-games-panel::-webkit-scrollbar { display: none; }
-    .obtain-gen-label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercase; letter-spacing: 0.4px; padding: 5px 2px 2px 2px; margin-top: 4px; }
+    .obtain-gen-block { display: flex; flex-direction: column; align-items: center; gap: 3px; width: 100%; }
+    .obtain-gen-label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercase; letter-spacing: 0.4px; padding: 5px 2px 2px 2px; margin-top: 4px; text-align: center; }
+    .obtain-game-row { display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 8px; width: 100%; }
+    .obtain-breeding-note { font-size: 12px; line-height: 1.5; color: #777; background: rgba(0,0,0,0.04); border-radius: 10px; padding: 10px 12px; margin: 0 0 8px; text-align: center; }
     .obtain-divider { width: 1px; background: rgba(0,0,0,0.1); flex-shrink: 0; }
     /* Mobile-only bottom-sheet trigger for the games list — inert/invisible on desktop by default,
        same pattern used for the Types/Generations/Lore sheets on the main grid. */
@@ -1333,9 +1336,9 @@
        alone, centered, matched to the same chip size. Every chip shares one fixed min-height so
        the two icon-based chips (Type/Category) and the three text-based ones (Power/Acc/PP)
        line up instead of each sizing to its own content. */
-    .move-stats-row-top { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; }
-    .move-stats-row-bottom { display: flex; justify-content: center; margin-top: 8px; }
-    .move-stats-row-bottom .move-stat-chip { min-width: 96px; }
+    .move-stats-row-top { display: flex; justify-content: center; gap: 28px; margin-bottom: 10px; }
+    .move-stats-row-bottom { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
+    .move-stat-plain { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 44px; }
     .move-stat-chip { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; background: rgba(0,0,0,0.05); border-radius: 10px; padding: 8px 6px; min-height: 60px; }
     .move-stat-label { font-family: 'Archivo Black', sans-serif; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; color: var(--theme-dark, #555); white-space: nowrap; }
     .move-stat-value { font-size: 15px; font-weight: 700; color: #1a1a1a; }
@@ -1868,12 +1871,13 @@
               <div class="obtain-games-panel" id="obtain-games-panel"></div>
             </div>
             <div class="obtain-games-backdrop" id="obtain-games-backdrop"></div>
-            <div class="obtain-divider"></div>
+            <div class="obtain-divider" id="obtain-divider"></div>
             <div class="obtain-right-panel">
               <div class="obtain-tabs">
                 <button class="obtain-tab active" id="obtain-tab-catching">Hunt</button>
                 <button class="obtain-tab inactive" id="obtain-tab-breeding">Breed</button>
               </div>
+              <div class="obtain-breeding-note" id="obtain-breeding-note" style="display:none;"></div>
               <div class="obtain-content-panel" id="obtain-content-panel"></div>
             </div>
           </div>
@@ -5062,7 +5066,8 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
     // matchups-modal-close listener is attached dynamically in openMatchupsModal
     document.getElementById('matchups-modal-backdrop').addEventListener('click',e=>{if(e.target===document.getElementById('matchups-modal-backdrop'))closeMatchupsModal();});
 
-    const GAME_LIST=[{gen:1,games:[{id:'red',name:'Red'},{id:'blue',name:'Blue'},{id:'yellow',name:'Yellow'}]},{gen:2,games:[{id:'gold',name:'Gold'},{id:'silver',name:'Silver'},{id:'crystal',name:'Crystal'}]},{gen:3,games:[{id:'ruby',name:'Ruby'},{id:'sapphire',name:'Sapphire'},{id:'emerald',name:'Emerald'},{id:'firered',name:'FireRed'},{id:'leafgreen',name:'LeafGreen'}]},{gen:4,games:[{id:'diamond',name:'Diamond'},{id:'pearl',name:'Pearl'},{id:'platinum',name:'Platinum'},{id:'heartgold',name:'HeartGold'},{id:'soulsilver',name:'SoulSilver'}]},{gen:5,games:[{id:'black',name:'Black'},{id:'white',name:'White'},{id:'black-2',name:'Black 2'},{id:'white-2',name:'White 2'}]},{gen:6,games:[{id:'x',name:'X'},{id:'y',name:'Y'},{id:'omega-ruby',name:'Omega Ruby'},{id:'alpha-sapphire',name:'Alpha Sapphire'}]},{gen:7,games:[{id:'sun',name:'Sun'},{id:'moon',name:'Moon'},{id:'ultra-sun',name:'Ultra Sun'},{id:'ultra-moon',name:'Ultra Moon'},{id:'lets-go-pikachu',name:"Let's Go Pikachu"},{id:'lets-go-eevee',name:"Let's Go Eevee"}]},{gen:8,games:[{id:'sword',name:'Sword'},{id:'shield',name:'Shield'},{id:'legends-arceus',name:'Legends: Arceus'},{id:'brilliant-diamond',name:'Brilliant Diamond'},{id:'shining-pearl',name:'Shining Pearl'}]},{gen:9,games:[{id:'scarlet',name:'Scarlet'},{id:'violet',name:'Violet'},{id:'legends-za',name:'Legends: Z-A'}]}];
+    const GAME_LIST=[{gen:1,games:[{id:'red',name:'Red'},{id:'blue',name:'Blue'},{id:'yellow',name:'Yellow'}]},{gen:2,games:[{id:'gold',name:'Gold'},{id:'silver',name:'Silver'},{id:'crystal',name:'Crystal'}]},{gen:3,games:[{id:'ruby',name:'Ruby'},{id:'sapphire',name:'Sapphire'},{id:'emerald',name:'Emerald'},{id:'firered',name:'FireRed'},{id:'leafgreen',name:'LeafGreen'}]},{gen:4,games:[{id:'diamond',name:'Diamond'},{id:'pearl',name:'Pearl'},{id:'platinum',name:'Platinum'},{id:'heartgold',name:'HeartGold'},{id:'soulsilver',name:'SoulSilver'}]},{gen:5,games:[{id:'black',name:'Black'},{id:'white',name:'White'},{id:'black-2',name:'Black 2'},{id:'white-2',name:'White 2'}]},{gen:6,games:[{id:'x',name:'X'},{id:'y',name:'Y'},{id:'omega-ruby',name:'Omega Ruby'},{id:'alpha-sapphire',name:'Alpha Sapphire'}]},{gen:7,games:[{id:'sun',name:'Sun'},{id:'moon',name:'Moon'},{id:'ultra-sun',name:'Ultra Sun'},{id:'ultra-moon',name:'Ultra Moon'},{id:'lets-go-pikachu',name:"Let's Go Pikachu"},{id:'lets-go-eevee',name:"Let's Go Eevee"}]},{gen:8,games:[{id:'sword',name:'Sword'},{id:'shield',name:'Shield'},{id:'brilliant-diamond',name:'Brilliant Diamond'},{id:'shining-pearl',name:'Shining Pearl'},{id:'legends-arceus',name:'Legends: Arceus'}]},{gen:9,games:[{id:'scarlet',name:'Scarlet'},{id:'violet',name:'Violet'},{id:'legends-za',name:'Legends: Z-A'}]}];
+    const GAME_ROW_SIZES={1:[3],2:[3],3:[3,2],4:[3,2],5:[2,2],6:[2,2],7:[2,2,2],8:[2,2,1],9:[2,1]};
     let obtainActiveTab='catching',obtainSelectedGame=null,obtainEncounterData=null,obtainSpeciesData=null,obtainModalShiny=false,obtainValidGames=new Set(),obtainEvoChain=null;
     let breedingData=null;
     async function loadBreedingData(){if(breedingData)return breedingData;try{const r=await fetch('data/breeding.json');breedingData=await r.json();}catch(e){console.warn('breeding.json not loaded, using PokéAPI fallback');}return breedingData;}
@@ -5122,9 +5127,43 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
 
     function buildObtainGames(){
       const panel=document.getElementById('obtain-games-panel');panel.innerHTML='';const ib=obtainActiveTab==='breeding';
-      const lbl=document.getElementById('obtain-in-label');if(lbl)lbl.textContent=ib?'Breedable in:':'Obtainable in:';
-      GAME_LIST.forEach(({gen,games})=>{if(ib&&gen===1)return;const vg=games.filter(g=>obtainValidGames.has(g.id));if(vg.length===0)return;const gl=document.createElement('div');gl.className='obtain-gen-label';gl.textContent=`Gen ${gen}`;panel.appendChild(gl);
-      vg.forEach(game=>{const btn=document.createElement('button');btn.className=`obtain-game-btn${obtainActiveTab==='breeding'?' disabled':''}`;btn.dataset.gameId=game.id;btn.title=game.name;const ie=document.createElement('div');ie.className='obtain-game-icon';ie.textContent=game.name;const img=document.createElement('img');img.className='obtain-game-img';img.src=`icons/games/${game.id}.png`;img.alt=game.name;img.onerror=()=>{img.replaceWith(ie);};btn.appendChild(img);if(obtainActiveTab==='catching'){btn.addEventListener('click',()=>{if(obtainSelectedGame===game.id){obtainSelectedGame=null;btn.classList.remove('selected');document.getElementById('obtain-games-panel').classList.remove('has-selection');}else{obtainSelectedGame=game.id;document.querySelectorAll('.obtain-game-btn').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');document.getElementById('obtain-games-panel').classList.add('has-selection');}renderObtainContent();});}panel.appendChild(btn);});});
+      const lbl=document.getElementById('obtain-in-label');if(lbl)lbl.textContent='Obtainable in:';
+      const lblMobile=document.getElementById('obtain-in-label-mobile');if(lblMobile)lblMobile.textContent='Obtainable in';
+      // Breeding has no game-by-game filter to apply (breed compatibility isn't per-version), so
+      // the entire games sidebar/sheet is hidden on that tab and replaced with a plain note instead.
+      const trigger=document.getElementById('obtain-games-trigger');
+      const column=document.getElementById('obtain-games-column');
+      const divider=document.getElementById('obtain-divider');
+      const backdrop=document.getElementById('obtain-games-backdrop');
+      const note=document.getElementById('obtain-breeding-note');
+      if(trigger)trigger.style.display=ib?'none':'';
+      if(column)column.style.display=ib?'none':'';
+      if(divider)divider.style.display=ib?'none':'';
+      if(backdrop&&ib){backdrop.classList.remove('open');}
+      if(column&&ib){column.classList.remove('open');}
+      if(note){
+        note.style.display=ib?'':'none';
+        const pname=selectedPokemon?.name?getDisplayName(selectedPokemon.name):'This Pokémon';
+        note.textContent=`${pname} is breedable in games where it is available, except for Gen 1 games.`;
+      }
+      if(ib)return;
+      // Games render as horizontal rows within each generation (e.g. Ruby/Sapphire/Emerald on one
+      // row, FireRed/LeafGreen on the next) rather than one long vertical list — GAME_ROW_SIZES
+      // defines how many games sit on each row per gen, in GAME_LIST's per-gen order.
+      GAME_LIST.forEach(({gen,games})=>{const vg=games.filter(g=>obtainValidGames.has(g.id));if(vg.length===0)return;
+      const block=document.createElement('div');block.className='obtain-gen-block';
+      const gl=document.createElement('div');gl.className='obtain-gen-label';gl.textContent=`Gen ${gen}`;block.appendChild(gl);
+      const rowSizes=GAME_ROW_SIZES[gen]||[vg.length];
+      let idx=0;
+      rowSizes.forEach(size=>{
+        const rowGames=vg.slice(idx,idx+size);idx+=size;
+        if(rowGames.length===0)return;
+        const row=document.createElement('div');row.className='obtain-game-row';
+        rowGames.forEach(game=>{const btn=document.createElement('button');btn.className='obtain-game-btn';btn.dataset.gameId=game.id;btn.title=game.name;const ie=document.createElement('div');ie.className='obtain-game-icon';ie.textContent=game.name;const img=document.createElement('img');img.className='obtain-game-img';img.src=`icons/games/${game.id}.png`;img.alt=game.name;img.onerror=()=>{img.replaceWith(ie);};btn.appendChild(img);btn.addEventListener('click',()=>{if(obtainSelectedGame===game.id){obtainSelectedGame=null;btn.classList.remove('selected');document.getElementById('obtain-games-panel').classList.remove('has-selection');}else{obtainSelectedGame=game.id;document.querySelectorAll('.obtain-game-btn').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');document.getElementById('obtain-games-panel').classList.add('has-selection');}renderObtainContent();});row.appendChild(btn);});
+        block.appendChild(row);
+      });
+      panel.appendChild(block);
+      });
     }
     function renderObtainContent(){const panel=document.getElementById('obtain-content-panel');panel.innerHTML='';if(obtainActiveTab==='catching')renderCatchingContent(panel);else renderBreedingContent(panel);}
 
@@ -5716,19 +5755,19 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       statsTitle.style.color = p.dark;
       statsSection.appendChild(statsTitle);
 
-      // Two explicit rows rather than one flex-wrap row: a top row of up to 4 equal-width
-      // chips (Type, Category, Power, Accuracy), and Power's little sibling PP centered
-      // alone underneath. Building it this way — instead of letting flex-wrap decide where
-      // the break falls — is what keeps 4-then-1 consistent regardless of which chips exist,
-      // and every chip shares one fixed min-height so icon chips and text chips line up.
+      // Two explicit rows rather than one flex-wrap row: a top row holding Type and
+      // Category as plain (non-pill) icon+label pairs, and a bottom row of three equal
+      // pills for Power, Accuracy, PP. Building it this way — instead of letting flex-wrap
+      // decide where the break falls — keeps the split consistent regardless of which
+      // chips exist, and every chip in a row shares one fixed min-height so they line up.
       const statsRowTop = document.createElement('div');
       statsRowTop.className = 'move-stats-row-top';
       const statsRowBottom = document.createElement('div');
       statsRowBottom.className = 'move-stats-row-bottom';
 
-      function makeStatChip(label, {img, imgAlt, val}) {
+      function makeStatChip(label, {img, imgAlt, val, plain}) {
         const chip = document.createElement('div');
-        chip.className = 'move-stat-chip';
+        chip.className = plain ? 'move-stat-plain' : 'move-stat-chip';
         const lbl = document.createElement('div');
         lbl.className = 'move-stat-label';
         lbl.style.color = p.dark;
@@ -5751,13 +5790,13 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       }
 
       const typeName = data.type?.name;
-      if (typeName) statsRowTop.appendChild(makeStatChip('Type', {img: `${BUTTON_PATH}/${typeName}.png`, imgAlt: typeName}));
+      if (typeName) statsRowTop.appendChild(makeStatChip('Type', {img: `${BUTTON_PATH}/${typeName}.png`, imgAlt: typeName, plain: true}));
 
       const catName = data.damage_class?.name;
-      if (catName) statsRowTop.appendChild(makeStatChip('Category', {img: `icons/moves/${catName}.png`, imgAlt: catName}));
+      if (catName) statsRowTop.appendChild(makeStatChip('Category', {img: `icons/moves/${catName}.png`, imgAlt: catName, plain: true}));
 
-      statsRowTop.appendChild(makeStatChip('Power', {val: data.power ?? '—'}));
-      statsRowTop.appendChild(makeStatChip('Accuracy', {val: data.accuracy != null ? data.accuracy + '%' : '—'}));
+      statsRowBottom.appendChild(makeStatChip('Power', {val: data.power ?? '—'}));
+      statsRowBottom.appendChild(makeStatChip('Accuracy', {val: data.accuracy != null ? data.accuracy + '%' : '—'}));
       statsRowBottom.appendChild(makeStatChip('PP', {val: data.pp ?? '—'}));
 
       statsSection.appendChild(statsRowTop);
