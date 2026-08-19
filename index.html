@@ -594,6 +594,19 @@
       display: inline-block;
     }
 
+    .info-controls-left {
+      flex: 1; display: flex; align-items: center; gap: 8px;
+    }
+    .info-mini-btn {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 13px; color: white; transition: background 0.15s, color 0.15s;
+      flex-shrink: 0; padding: 0; line-height: 1;
+    }
+    .info-mini-btn:hover { background: rgba(255,255,255,0.3); }
+    .info-mini-btn#info-fav-btn.on { color: #f8d030; background: rgba(248,208,48,0.22); border-color: rgba(248,208,48,0.5); }
+
     .info-close-btn {
       margin-left: auto; width: 26px; height: 26px; border-radius: 50%;
       background: rgba(255,255,255,0.25); border: none;
@@ -1370,6 +1383,42 @@
     .moveset-footer-btn { width: 130px; padding: 8px 0; border-radius: 24px; border: 2px solid var(--moveset-theme-dark, #888); background: transparent; font-size: 13px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--moveset-theme-dark, #555); cursor: pointer; transition: opacity 0.15s; }
     .moveset-footer-btn:hover:not(:disabled) { opacity: 0.7; }
     .moveset-footer-btn-inactive { opacity: 0.35; cursor: default; }
+    .addlist-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 500;
+      display: none; align-items: flex-end; justify-content: center;
+    }
+    .addlist-backdrop.visible { display: flex; }
+    .addlist-sheet {
+      background: #fff; width: 100%; max-width: 460px; border-radius: 18px 18px 0 0;
+      padding: 16px 18px 20px; max-height: 70vh; overflow-y: auto;
+      transform: translateY(100%); transition: transform 0.25s ease;
+    }
+    .addlist-backdrop.visible .addlist-sheet { transform: translateY(0); }
+    .addlist-sheet-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .addlist-sheet-title { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: #333; }
+    .addlist-sheet-close { width: 30px; height: 30px; border-radius: 50%; border: none; background: #f0efe9; font-size: 13px; color: #555; cursor: pointer; flex-shrink: 0; }
+    .addlist-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 4px; border-bottom: 1px solid #f0efe9;
+      font-size: 13px; font-weight: 600; color: #222; cursor: pointer; user-select: none;
+    }
+    .addlist-item:last-child { border-bottom: none; }
+    .addlist-check {
+      width: 20px; height: 20px; border-radius: 5px; border: 2px solid #ccc;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; color: #fff; flex-shrink: 0; transition: background 0.15s, border-color 0.15s;
+    }
+    .addlist-check.on { background: #1a1a1a; border-color: #1a1a1a; }
+    .addlist-create-row { display: flex; gap: 8px; margin-top: 14px; }
+    .addlist-create-row input {
+      flex: 1; min-width: 0; padding: 9px 12px; border-radius: 20px; border: 1px solid #ddd;
+      font-size: 12px; font-family: inherit;
+    }
+    .addlist-create-row button {
+      padding: 9px 16px; border-radius: 20px; border: none; background: #1a1a1a; color: #fff;
+      font-size: 11px; font-weight: 700; cursor: pointer; flex-shrink: 0;
+    }
+
     .ability-modal-backdrop {
       position: absolute; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.6);
@@ -2104,6 +2153,21 @@
         </div>
       </div>
 
+      <!-- ── ADD TO LIST SHEET ── -->
+      <div class="addlist-backdrop" id="addlist-backdrop">
+        <div class="addlist-sheet" id="addlist-sheet">
+          <div class="addlist-sheet-header">
+            <div class="addlist-sheet-title">Add to List</div>
+            <button class="addlist-sheet-close" id="addlist-sheet-close">✕</button>
+          </div>
+          <div class="addlist-list" id="addlist-list"></div>
+          <div class="addlist-create-row">
+            <input type="text" id="addlist-new-name" placeholder="New list name" maxlength="40">
+            <button id="addlist-create-btn">Create</button>
+          </div>
+        </div>
+      </div>
+
       <!-- ── ABILITY POPUP ── -->
       <div class="ability-modal-backdrop" id="ability-modal-backdrop">
         <div class="ability-modal" id="ability-modal">
@@ -2144,7 +2208,10 @@
 
           <!-- Row 1: [spacer] | Shiny | Close — Favorite/Lists removed until those features are built -->
           <div class="info-controls-bar">
-            <div style="flex:1;"></div>
+            <div class="info-controls-left">
+              <button class="info-mini-btn" id="info-fav-btn" title="Add to Favorites">★</button>
+              <button class="info-mini-btn" id="info-addlist-btn" title="Add to List">+</button>
+            </div>
             <div class="obtain-shiny-btn" id="info-shiny-control" title="Toggle Shiny">
               <span class="obtain-shiny-emoji">✨</span>
               <div class="obtain-shiny-track" id="info-shiny-toggle">
@@ -3379,6 +3446,74 @@
     }
     function syncShinyBody(){}
     let allPokemon=[],activeTypes=new Set(),activeGen='1',sortAscending=true,selectedPokemon=null,isShiny=false,isGlobalShiny=false,isFemale=false,currentSpeciesData=null;
+
+    // ── Lists / Favorites data layer — localStorage-backed, no server. Each list is
+    // { id, name, isDefault, items:[{name,id}] }. Favorites is auto-created on first run and
+    // can't be deleted or renamed. Everything else (star button, Add-to-List sheet, the Lists
+    // section) reads/writes through the functions below rather than touching localStorage
+    // directly, so the storage shape can change later without hunting down every call site. ──
+    const LISTS_STORAGE_KEY = 'sevii_lists_v1';
+    let listsData = null;
+    function loadListsData(){
+      if(listsData) return listsData;
+      try{
+        const raw = localStorage.getItem(LISTS_STORAGE_KEY);
+        if(raw){ listsData = JSON.parse(raw); if(listsData && Array.isArray(listsData.lists)) return listsData; }
+      }catch(e){}
+      listsData = { version:1, lists:[ { id:'favorites', name:'Favorites', isDefault:true, items:[] } ] };
+      saveListsData();
+      return listsData;
+    }
+    function saveListsData(){
+      try{ localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(listsData)); }catch(e){}
+    }
+    function getLists(){ return loadListsData().lists; }
+    function getList(id){ return getLists().find(l=>l.id===id); }
+    function isPokemonInList(listId, name){ const l=getList(listId); return !!l && l.items.some(it=>it.name===name); }
+    function isFavorite(name){ return isPokemonInList('favorites', name); }
+    function addToList(listId, pokemon){
+      const l=getList(listId); if(!l||!pokemon?.name) return;
+      if(!l.items.some(it=>it.name===pokemon.name)){ l.items.push({name:pokemon.name,id:pokemon.id}); saveListsData(); }
+    }
+    function removeFromList(listId, name){
+      const l=getList(listId); if(!l) return;
+      const before=l.items.length;
+      l.items=l.items.filter(it=>it.name!==name);
+      if(l.items.length!==before) saveListsData();
+    }
+    function toggleListMembership(listId, pokemon){
+      if(isPokemonInList(listId, pokemon.name)) removeFromList(listId, pokemon.name);
+      else addToList(listId, pokemon);
+    }
+    function toggleFavorite(pokemon){
+      if(!pokemon) return;
+      toggleListMembership('favorites', pokemon);
+      syncFavoriteButton();
+    }
+    function createList(name){
+      const trimmed=(name||'').trim().slice(0,40);
+      if(!trimmed) return null;
+      const list={ id:'list_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7), name:trimmed, isDefault:false, items:[] };
+      getLists().push(list);
+      saveListsData();
+      return list;
+    }
+    function renameList(id, newName){
+      const l=getList(id); if(!l||l.isDefault) return;
+      const trimmed=(newName||'').trim().slice(0,40);
+      if(!trimmed) return;
+      l.name=trimmed; saveListsData();
+    }
+    function deleteList(id){
+      const l=getList(id); if(!l||l.isDefault) return;
+      listsData.lists = listsData.lists.filter(x=>x.id!==id);
+      saveListsData();
+    }
+    function syncFavoriteButton(){
+      const btn=document.getElementById('info-fav-btn');
+      if(!btn||!selectedPokemon) return;
+      btn.classList.toggle('on', isFavorite(selectedPokemon.name));
+    }
     let loreFilterCat=null;
     // Per-category selections stored separately for AND logic + persistence
     const loreSelections = { classification: new Set(), badge: new Set(), hazard: new Set() };
@@ -3891,7 +4026,41 @@
       if(isInfoShiny){const s=new Audio('https://play.pokemonshowdown.com/audio/cries/shinypokemon.mp3');s.volume=0.6;s.play().catch(()=>{});}
     });
 
-    // Favorite/Lists buttons removed (were placeholders, not yet built) — see info-controls-bar above.
+    // Favorite star + Add-to-List sheet
+    document.getElementById('info-fav-btn').addEventListener('click',()=>{ toggleFavorite(selectedPokemon); });
+    document.getElementById('info-addlist-btn').addEventListener('click',()=>{ openAddListSheet(); });
+    function openAddListSheet(){
+      if(!selectedPokemon) return;
+      renderAddListSheet();
+      document.getElementById('addlist-backdrop').classList.add('visible');
+    }
+    function closeAddListSheet(){ document.getElementById('addlist-backdrop').classList.remove('visible'); }
+    function renderAddListSheet(){
+      const wrap=document.getElementById('addlist-list'); wrap.innerHTML='';
+      getLists().forEach(l=>{
+        const inList=isPokemonInList(l.id, selectedPokemon.name);
+        const row=document.createElement('div'); row.className='addlist-item';
+        const label=document.createElement('span'); label.textContent=l.name+(l.items.length?` (${l.items.length})`:'');
+        const check=document.createElement('span'); check.className='addlist-check'+(inList?' on':''); check.textContent=inList?'✓':'';
+        row.appendChild(label); row.appendChild(check);
+        row.addEventListener('click',()=>{
+          toggleListMembership(l.id, selectedPokemon);
+          if(l.id==='favorites') syncFavoriteButton();
+          renderAddListSheet();
+        });
+        wrap.appendChild(row);
+      });
+    }
+    document.getElementById('addlist-sheet-close').addEventListener('click',closeAddListSheet);
+    document.getElementById('addlist-backdrop').addEventListener('click',e=>{ if(e.target===document.getElementById('addlist-backdrop')) closeAddListSheet(); });
+    document.getElementById('addlist-create-btn').addEventListener('click',()=>{
+      const input=document.getElementById('addlist-new-name');
+      const list=createList(input.value);
+      if(list){ input.value=''; if(selectedPokemon) addToList(list.id, selectedPokemon); renderAddListSheet(); }
+    });
+    document.getElementById('addlist-new-name').addEventListener('keydown',e=>{
+      if(e.key==='Enter') document.getElementById('addlist-create-btn').click();
+    });
 
     // Cry button with 3-second cooldown
     let currentAudio=null;let cryCooldown=false;
@@ -3931,6 +4100,7 @@
       document.getElementById('info-dex-game').textContent='';
       document.getElementById('info-alt-forms-section').style.display='none';
       updateInfoHeader(pokemon);
+      syncFavoriteButton();
       openPanel();
       try{
         const speciesUrl=pokemon.species?.url||`https://pokeapi.co/api/v2/pokemon-species/${pokemon.id}`;
