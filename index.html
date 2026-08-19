@@ -1104,7 +1104,8 @@
     .matchup-ability-track.on { background: #f8d030; }
     .matchup-ability-thumb { width: 11px; height: 11px; border-radius: 50%; background: white; position: absolute; top: 2px; left: 2px; transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
     .matchup-ability-track.on .matchup-ability-thumb { left: 13px; }
-    .matchups-modal-body { flex: 1; overflow-y: hidden; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+    .matchups-modal-body { flex: 1; overflow-y: auto; padding: 10px 12px 20px; display: flex; flex-direction: column; gap: 8px; scrollbar-width: none; -ms-overflow-style: none; }
+    .matchups-modal-body::-webkit-scrollbar { display: none; }
     .matchup-accordion { display: flex; flex-direction: column; gap: 8px; height: 100%; }
     .matchup-section { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); background: white; flex-shrink: 0; }
     .matchup-section-header { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; cursor: pointer; user-select: none; transition: background 0.15s; }
@@ -1149,9 +1150,6 @@
        3-game row produce identically sized buttons — only a flexible row (flex:1 per item)
        would make a 2-item row's buttons bigger than a 3-item row's, which read as inconsistent. */
     .obtain-game-row { display: flex; flex-direction: row; align-items: stretch; justify-content: flex-start; gap: 8px; width: 100%; }
-    /* Fixed height + visibility toggle (not display) — see the HTML comment above this element
-       for why: it must occupy the same space whether shown or not, so nothing below it moves. */
-    .obtain-breeding-note { flex-shrink: 0; box-sizing: border-box; font-size: 12px; line-height: 1.4; color: #777; background: rgba(0,0,0,0.04); border-radius: 0; padding: 8px 14px; margin: 0; text-align: center; min-height: 34px; display: flex; align-items: center; justify-content: center; visibility: hidden; }
     .obtain-divider { width: 1px; background: rgba(0,0,0,0.1); flex-shrink: 0; }
     /* Mobile-only bottom-sheet trigger for the games list — inert/invisible on desktop by default,
        same pattern used for the Types/Generations/Lore sheets on the main grid. */
@@ -1163,7 +1161,8 @@
     .obtain-tab { flex: 1; padding: 9px 10px; border-radius: 30px; border: 2px solid transparent; font-size: 14px; font-weight: 600; text-transform: none; letter-spacing: 0; cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s; }
     .obtain-tab.active { color: white; border-color: transparent; }
     .obtain-tab.inactive { background: transparent; color: #888; border-color: #ccc; }
-    .obtain-content-panel { flex: 1; display: flex; flex-direction: column; gap: 7px; overflow-y: hidden; padding: 8px 12px 8px 10px; }
+    .obtain-content-panel { flex: 1; display: flex; flex-direction: column; gap: 7px; overflow-y: auto; padding: 8px 12px 20px 10px; scrollbar-width: none; -ms-overflow-style: none; }
+    .obtain-content-panel::-webkit-scrollbar { display: none; }
     .obtain-content-panel::-webkit-scrollbar { display: none; }
     /* ── Game buttons ── */
     .obtain-game-btn { display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 0; border-radius: 7px; border: none; cursor: pointer; background: transparent; width: calc((100% - 16px) / 3); flex: 0 0 auto; height: 38px; overflow: hidden; transition: opacity 0.15s, box-shadow 0.15s, transform 0.1s; }
@@ -1634,7 +1633,11 @@
          Sidebar becomes a bottom sheet, freeing the full width for content. ── */
       .obtain-body { flex-direction: column; }
       .obtain-divider { display: none; }
-      .obtain-games-trigger { display: flex; align-items: center; justify-content: space-between; margin: 8px 12px 0; padding: 0 14px; height: 40px; border-radius: 8px; border: 1.5px solid #e2ddd0; background: #f7f5f0; font-family: 'Archivo Black', sans-serif; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; color: #43656e; cursor: pointer; }
+      .obtain-games-trigger { display: flex; align-items: center; justify-content: space-between; margin: 8px 12px 0; padding: 0 14px; min-height: 40px; border-radius: 8px; border: 1.5px solid #e2ddd0; background: #f7f5f0; font-family: 'Archivo Black', sans-serif; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; color: #43656e; cursor: pointer; box-sizing: border-box; }
+      /* Breed-tab state: same button, same slot — just repainted as a plain, non-interactive note
+         instead of hidden outright, which is what kept leaving a gap or causing a jump before. */
+      .obtain-games-trigger.as-note { flex-direction: column; align-items: center; justify-content: center; gap: 0; padding: 7px 14px; cursor: default; background: transparent; border-color: transparent; }
+      .obtain-games-trigger.as-note #obtain-games-trigger-label { font-family: inherit; font-size: 11px; font-weight: 600; text-transform: none; letter-spacing: 0; color: #777; line-height: 1.35; text-align: center; white-space: normal; }
       .obtain-games-trigger-chevron { color: #999; font-size: 12px; }
       .obtain-games-column {
         position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 401;
@@ -1885,17 +1888,15 @@
               <button class="obtain-modal-close" id="obtain-modal-close">✕</button>
             </div>
           </div>
-          <!-- Always rendered (never added/removed from the flow) with a fixed min-height, and
-               toggled with visibility rather than display — this is what keeps the Hunt/Breed tabs
-               pinned to one exact spot regardless of which tab is active, instead of jumping up and
-               down as this note's height came and went. -->
-          <div class="obtain-breeding-note" id="obtain-breeding-note"></div>
           <div class="obtain-body">
             <!-- Mobile-only: replaces the always-visible vertical game list, which on a phone-width
                  screen left almost no room for the actual content (the source of the horizontal
-                 scrolling/cut-off text). Desktop keeps the sidebar exactly as it was. -->
+                 scrolling/cut-off text). Desktop keeps the sidebar exactly as it was.
+                 On the Breed tab this same button is repurposed to show the breeding note instead
+                 of being hidden/replaced — one slot, one height, so nothing above the tabs ever
+                 grows, shrinks, or leaves a gap when switching tabs. -->
             <button class="obtain-games-trigger" id="obtain-games-trigger" aria-expanded="false">
-              <span id="obtain-games-trigger-label">Select a game</span><span class="obtain-games-trigger-chevron">▾</span>
+              <span id="obtain-games-trigger-label">Select a game</span><span class="obtain-games-trigger-chevron" id="obtain-games-trigger-chevron">▾</span>
             </button>
             <div class="obtain-games-column" id="obtain-games-column">
               <div class="obtain-games-sheet-header" id="obtain-games-sheet-header">
@@ -5170,26 +5171,33 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       const lbl=document.getElementById('obtain-in-label');if(lbl)lbl.textContent='Obtainable in:';
       const lblMobile=document.getElementById('obtain-in-label-mobile');if(lblMobile)lblMobile.textContent='Obtainable in';
       // Breeding has no game-by-game filter to apply (breed compatibility isn't per-version), so
-      // the entire games sidebar/sheet is hidden on that tab and replaced with a plain note instead.
+      // the games sidebar/sheet is hidden on that tab. The trigger button itself is repurposed —
+      // not hidden — to show the breeding note in the exact same slot, at the exact same height,
+      // so nothing above the tabs ever changes size and no gap or jump appears either way.
       const trigger=document.getElementById('obtain-games-trigger');
+      const triggerLabel=document.getElementById('obtain-games-trigger-label');
+      const triggerChevron=document.getElementById('obtain-games-trigger-chevron');
       const column=document.getElementById('obtain-games-column');
       const divider=document.getElementById('obtain-divider');
       const backdrop=document.getElementById('obtain-games-backdrop');
-      const note=document.getElementById('obtain-breeding-note');
-      // visibility:hidden (not display:none) on the trigger — hiding it outright removed its
-      // height from the mobile layout, which made the Hunt/Breed tabs (positioned right below it)
-      // visibly jump up and down every time the tab switched. visibility:hidden keeps the same
-      // slot reserved so nothing below it moves, while still being invisible and untappable.
-      if(trigger)trigger.style.visibility=ib?'hidden':'visible';
+      if(trigger){
+        trigger.classList.toggle('as-note',ib);
+        trigger.disabled=ib;
+        trigger.setAttribute('aria-expanded','false');
+      }
+      if(triggerChevron)triggerChevron.style.display=ib?'none':'';
+      if(triggerLabel){
+        if(ib){
+          const pname=selectedPokemon?.name?getDisplayName(selectedPokemon.name):'This Pokémon';
+          triggerLabel.textContent=`${pname} is breedable in games where it is available, except for Gen 1 games.`;
+        }else{
+          triggerLabel.textContent=obtainSelectedGame?(GAME_LIST.flatMap(g=>g.games).find(g=>g.id===obtainSelectedGame)?.name||'Select a game'):'Select a game';
+        }
+      }
       if(column)column.style.display=ib?'none':'';
       if(divider)divider.style.display=ib?'none':'';
       if(backdrop&&ib){backdrop.classList.remove('open');}
       if(column&&ib){column.classList.remove('open');}
-      if(note){
-        note.style.visibility=ib?'visible':'hidden';
-        const pname=selectedPokemon?.name?getDisplayName(selectedPokemon.name):'This Pokémon';
-        note.textContent=`${pname} is breedable in games where it is available, except for Gen 1 games.`;
-      }
       if(ib)return;
       // Games render as horizontal rows within each generation (e.g. Ruby/Sapphire/Emerald on one
       // row, FireRed/LeafGreen on the next) rather than one long vertical list — GAME_ROW_SIZES
