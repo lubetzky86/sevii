@@ -324,26 +324,8 @@
     .lore-observation-text { font-size: 12.5px; color: #333; line-height: 1.6; padding-top: 2px; }
     .lore-observation-dash { display: none; }
 
-    /* ── ARSENAL + CAPABILITIES — clean two-block layout, no pills ───── */
-    .lore-powers-section { display: flex; flex-direction: column; gap: 14px; }
-    .lore-powers-block-label {
-      font-family: 'Archivo Black', sans-serif; font-size: 9px; font-weight: 900;
-      text-transform: uppercase; letter-spacing: 0.8px;
-      color: var(--lore-theme-color, #666); margin-bottom: 6px;
-    }
-    .lore-powers-assets {
-      display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px;
-    }
-    .lore-powers-asset-item {
-      display: flex; gap: 8px; align-items: flex-start;
-      font-size: 12px; color: #333; line-height: 1.5;
-    }
-    .lore-powers-asset-dot {
-      color: var(--lore-theme-color, #888); flex-shrink: 0; margin-top: 5px; font-size: 7px;
-    }
-    .lore-powers-para { font-size: 12px; color: #444; line-height: 1.6; margin-bottom: 5px; }
-    .lore-powers-para:last-child { margin-bottom: 0; }
-    .lore-powers-divider { border: none; border-top: 1px solid rgba(0,0,0,0.08); margin: 4px 0; }
+    /* ── ARSENAL + CAPABILITIES ── (block/chip/header rules defined further below,
+       alongside .lore-powers-grid, since the whole section is always rendered as a grid) */
 
     /* Signature feat */
     .lore-signature-feat {
@@ -377,25 +359,49 @@
     .lore-acc-v2-body { display: none; padding: 4px 14px 14px; background: white; }
     .lore-acc-v2.open .lore-acc-v2-body { display: block; }
 
-    /* Two-column layout inside arsenal accordion */
+    /* Two-column layout inside arsenal accordion — each side is now its own tinted card so the
+       eye immediately registers "two things being compared" instead of one long column of text.
+       Traits render as small chips (a quick, scannable inventory) and the descriptive sentences
+       are visually demoted to italic "field notes" underneath, so a reader can tell at a glance
+       which part is the list to skim and which part is the prose to actually read. */
     .lore-powers-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 10px;
       margin-bottom: 12px;
+      align-items: start;
     }
+    .lore-powers-block {
+      background: color-mix(in srgb, var(--lore-theme-color, #888) 6%, white);
+      border: 1px solid color-mix(in srgb, var(--lore-theme-color, #888) 14%, white);
+      border-radius: 10px;
+      padding: 10px 10px 11px;
+      min-width: 0;
+    }
+    .lore-powers-block-header {
+      display: flex; align-items: center; gap: 5px; margin-bottom: 8px;
+    }
+    .lore-powers-block-icon {
+      width: 14px; height: 14px; flex-shrink: 0; color: var(--lore-theme-color, #666);
+    }
+    .lore-powers-block-icon svg { display: block; width: 100%; height: 100%; }
     .lore-powers-block-label {
       font-family: 'Archivo Black', sans-serif; font-size: 9px; font-weight: 900;
-      text-transform: uppercase; letter-spacing: 0.8px;
-      color: var(--lore-theme-color, #666); margin-bottom: 8px;
+      text-transform: uppercase; letter-spacing: 0.6px;
+      color: var(--lore-theme-color, #666); margin-bottom: 0;
     }
-    .lore-powers-assets { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+    .lore-powers-assets { display: flex; flex-direction: row; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
     .lore-powers-asset-item {
-      display: flex; gap: 7px; align-items: flex-start;
-      font-size: 12px; color: #333; line-height: 1.5;
+      display: flex; gap: 4px; align-items: center;
+      font-size: 10.5px; font-weight: 700; color: var(--lore-theme-color, #444);
+      background: color-mix(in srgb, var(--lore-theme-color, #888) 14%, white);
+      border-radius: 20px; padding: 4px 9px 4px 8px; line-height: 1.3;
     }
-    .lore-powers-asset-dot { color: var(--lore-theme-color, #888); flex-shrink: 0; margin-top: 4px; font-size: 7px; }
-    .lore-powers-para { font-size: 12px; color: #444; line-height: 1.6; margin-bottom: 6px; }
+    .lore-powers-asset-dot { color: inherit; flex-shrink: 0; font-size: 6px; opacity: 0.7; }
+    .lore-powers-para {
+      font-size: 11.5px; font-style: italic; color: #555; line-height: 1.55; margin: 0 0 6px;
+      padding-left: 8px; border-left: 2px solid color-mix(in srgb, var(--lore-theme-color, #888) 30%, white);
+    }
     .lore-powers-para:last-child { margin-bottom: 0; }
     .lore-powers-divider { display: none; }
 
@@ -1143,7 +1149,9 @@
        3-game row produce identically sized buttons — only a flexible row (flex:1 per item)
        would make a 2-item row's buttons bigger than a 3-item row's, which read as inconsistent. */
     .obtain-game-row { display: flex; flex-direction: row; align-items: stretch; justify-content: flex-start; gap: 8px; width: 100%; }
-    .obtain-breeding-note { font-size: 12px; line-height: 1.5; color: #777; background: rgba(0,0,0,0.04); border-radius: 10px; padding: 10px 12px; margin: 0 0 8px; text-align: center; }
+    /* Fixed height + visibility toggle (not display) — see the HTML comment above this element
+       for why: it must occupy the same space whether shown or not, so nothing below it moves. */
+    .obtain-breeding-note { flex-shrink: 0; box-sizing: border-box; font-size: 12px; line-height: 1.4; color: #777; background: rgba(0,0,0,0.04); border-radius: 0; padding: 8px 14px; margin: 0; text-align: center; min-height: 34px; display: flex; align-items: center; justify-content: center; visibility: hidden; }
     .obtain-divider { width: 1px; background: rgba(0,0,0,0.1); flex-shrink: 0; }
     /* Mobile-only bottom-sheet trigger for the games list — inert/invisible on desktop by default,
        same pattern used for the Types/Generations/Lore sheets on the main grid. */
@@ -1877,6 +1885,11 @@
               <button class="obtain-modal-close" id="obtain-modal-close">✕</button>
             </div>
           </div>
+          <!-- Always rendered (never added/removed from the flow) with a fixed min-height, and
+               toggled with visibility rather than display — this is what keeps the Hunt/Breed tabs
+               pinned to one exact spot regardless of which tab is active, instead of jumping up and
+               down as this note's height came and went. -->
+          <div class="obtain-breeding-note" id="obtain-breeding-note"></div>
           <div class="obtain-body">
             <!-- Mobile-only: replaces the always-visible vertical game list, which on a phone-width
                  screen left almost no room for the actual content (the source of the horizontal
@@ -1895,7 +1908,6 @@
             <div class="obtain-games-backdrop" id="obtain-games-backdrop"></div>
             <div class="obtain-divider" id="obtain-divider"></div>
             <div class="obtain-right-panel">
-              <div class="obtain-breeding-note" id="obtain-breeding-note" style="display:none;"></div>
               <div class="obtain-tabs">
                 <button class="obtain-tab active" id="obtain-tab-catching">Hunt</button>
                 <button class="obtain-tab inactive" id="obtain-tab-breeding">Breed</button>
@@ -5174,7 +5186,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       if(backdrop&&ib){backdrop.classList.remove('open');}
       if(column&&ib){column.classList.remove('open');}
       if(note){
-        note.style.display=ib?'':'none';
+        note.style.visibility=ib?'visible':'hidden';
         const pname=selectedPokemon?.name?getDisplayName(selectedPokemon.name):'This Pokémon';
         note.textContent=`${pname} is breedable in games where it is available, except for Gen 1 games.`;
       }
@@ -6253,59 +6265,40 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       const pa = pt.physical_arsenal || {};
       const sc = pt.special_capabilities || {};
 
-      // Two-column grid: Physical Arsenal | Special Capabilities
+      const ICON_PHYSICAL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="m13 19 6-6"/><path d="m16 16 4 4"/><path d="m19 21 2-2"/></svg>';
+      const ICON_SPECIAL = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>';
+
+      function makeBlock(label, icon, items, paras) {
+        const col = document.createElement('div'); col.className = 'lore-powers-block';
+        const header = document.createElement('div'); header.className = 'lore-powers-block-header';
+        const iconEl = document.createElement('span'); iconEl.className = 'lore-powers-block-icon'; iconEl.innerHTML = icon;
+        const labelEl = document.createElement('div'); labelEl.className = 'lore-powers-block-label'; labelEl.textContent = label;
+        header.appendChild(iconEl); header.appendChild(labelEl);
+        col.appendChild(header);
+        if (items.length) {
+          const assetList = document.createElement('div'); assetList.className = 'lore-powers-assets';
+          items.forEach(a => {
+            const item = document.createElement('div'); item.className = 'lore-powers-asset-item';
+            const dot = document.createElement('span'); dot.className = 'lore-powers-asset-dot'; dot.textContent = '●';
+            const txt = document.createElement('span'); txt.textContent = a;
+            item.appendChild(dot); item.appendChild(txt);
+            assetList.appendChild(item);
+          });
+          col.appendChild(assetList);
+        }
+        paras.filter(Boolean).forEach(txt => {
+          const p = document.createElement('p'); p.className = 'lore-powers-para'; p.textContent = txt;
+          col.appendChild(p);
+        });
+        return col;
+      }
+
+      // Two-column grid: Physical Arsenal | Special Capabilities — each its own tinted card with
+      // an icon header, chip-style traits (scan first), and italic "field note" prose (read second).
       const grid = document.createElement('div');
       grid.className = 'lore-powers-grid';
-
-      // ── Left: Physical Arsenal ──
-      const leftCol = document.createElement('div');
-      const leftLabel = document.createElement('div');
-      leftLabel.className = 'lore-powers-block-label'; leftLabel.textContent = 'Physical Arsenal';
-      leftCol.appendChild(leftLabel);
-
-      if ((pa.primary_assets || []).length) {
-        const assetList = document.createElement('div'); assetList.className = 'lore-powers-assets';
-        pa.primary_assets.forEach(a => {
-          const item = document.createElement('div'); item.className = 'lore-powers-asset-item';
-          const dot = document.createElement('span'); dot.className = 'lore-powers-asset-dot'; dot.textContent = '◆';
-          const txt = document.createElement('span'); txt.textContent = a;
-          item.appendChild(dot); item.appendChild(txt);
-          assetList.appendChild(item);
-        });
-        leftCol.appendChild(assetList);
-      }
-      if (pa.field_utility) {
-        const p = document.createElement('p'); p.className = 'lore-powers-para'; p.textContent = pa.field_utility;
-        leftCol.appendChild(p);
-      }
-      if (pa.combat_application) {
-        const p = document.createElement('p'); p.className = 'lore-powers-para'; p.textContent = pa.combat_application;
-        leftCol.appendChild(p);
-      }
-
-      // ── Right: Special Capabilities ──
-      const rightCol = document.createElement('div');
-      const rightLabel = document.createElement('div');
-      rightLabel.className = 'lore-powers-block-label'; rightLabel.textContent = 'Special Capabilities';
-      rightCol.appendChild(rightLabel);
-
-      if ((sc.innate_powers || []).length) {
-        const assetList = document.createElement('div'); assetList.className = 'lore-powers-assets';
-        sc.innate_powers.forEach(pw => {
-          const item = document.createElement('div'); item.className = 'lore-powers-asset-item';
-          const dot = document.createElement('span'); dot.className = 'lore-powers-asset-dot'; dot.textContent = '◆';
-          const txt = document.createElement('span'); txt.textContent = pw;
-          item.appendChild(dot); item.appendChild(txt);
-          assetList.appendChild(item);
-        });
-        rightCol.appendChild(assetList);
-      }
-      if (sc.environmental_impact) {
-        const p = document.createElement('p'); p.className = 'lore-powers-para'; p.textContent = sc.environmental_impact;
-        rightCol.appendChild(p);
-      }
-
-      grid.appendChild(leftCol); grid.appendChild(rightCol);
+      grid.appendChild(makeBlock('Physical Arsenal', ICON_PHYSICAL, pa.primary_assets || [], [pa.field_utility, pa.combat_application]));
+      grid.appendChild(makeBlock('Special Capabilities', ICON_SPECIAL, sc.innate_powers || [], [sc.environmental_impact]));
       body.appendChild(grid);
 
       // Signature feat — full width below the grid
