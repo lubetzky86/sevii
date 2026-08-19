@@ -1444,7 +1444,7 @@
     .ability-loading { font-size: 13px; color: #aaa; text-align: center; padding: 24px; }
     @media (max-width: 900px) {
       .app-header { padding: 0 8px; gap: 6px; }
-      .app-header-logo img { height: 28px; }
+      .app-header-brand { height: 28px; }
       .app-header-search { max-width: 180px; }
       .filters-bar, .ab-filter-bar, .mv-filter-bar { padding: 5px 8px 5px; gap: 5px; }
       .filter-row { gap: 3px; }
@@ -1453,22 +1453,37 @@
       .lore-cat-btn { height: 26px; }
       .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; padding: 10px; }
       .card { min-height: 155px; }
-      .sprite { max-height: 72px; }
+      .card img.sprite { width: 72px; height: 72px; }
       .card-name { font-size: 11px; }
       #right-panel { width: 55%; }
     }
     @media (max-width: 600px) {
-      .app-header-logo img { height: 22px; }
-      .app-header-search { max-width: 140px; }
-      .hamburger-btn { width: 32px; height: 32px; font-size: 16px; }
-      .gen-strip { flex-wrap: wrap; }
-      .gen-pill { flex: 0 0 calc(20% - 3px); height: 26px; }
-      .type-filter-strip { flex-wrap: wrap; min-height: 60px; align-content: flex-start; }
+      /* Header wraps to two rows: [hamburger | brand | shiny] then full-width search */
+      .app-header { flex-wrap: wrap; height: auto; min-height: 56px; padding: 8px 10px; row-gap: 8px; }
+      .app-header-brand { height: 24px; }
+      .app-header-center { position: static; transform: none; flex: 1; display: flex; justify-content: center; }
+      .app-header-search { order: 5; flex-basis: 100%; max-width: none; margin: 0; }
+      .app-header-search input { height: 40px; font-size: 14px; }
+      .hamburger-btn { width: 44px; height: 44px; align-items: center; justify-content: center; }
+      .hamburger-bar { width: 22px; }
+      .global-shiny { padding: 6px 10px; }
+
+      /* Filter rows: horizontal scroll instead of squashing/wrapping into unreadable slivers */
+      .filters-bar { padding: 6px 8px; }
+      .type-filter-strip { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; padding-bottom: 2px; }
+      .type-filter-strip::-webkit-scrollbar { display: none; }
+      .type-pill { flex: 0 0 44px; width: 44px; height: 40px; scroll-snap-align: start; }
+      .gen-strip { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; padding-bottom: 2px; }
+      .gen-strip::-webkit-scrollbar { display: none; }
+      .gen-pill { flex: 0 0 52px; width: 52px; height: 44px; scroll-snap-align: start; }
+      .lore-cat-btn { height: 40px; }
+      .grid-sort-wrapper select, .grid-sort-dir { min-height: 32px; }
+
       #right-panel { width: 100%; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100; }
       .ab-right-panel { width: 100%; }
       .grid { grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 8px; }
       .card { min-height: 140px; }
-      .sprite { max-height: 64px; }
+      .card img.sprite { width: 64px; height: 64px; }
       .lore-icon-grid { width: 100%; }
       .lore-icon-btn { width: calc(25% - 8px); }
       .lore-icon-btn img { width: 52px; height: 52px; }
@@ -3257,6 +3272,9 @@
         si.src=getSprite(pokemon,isGlobalShiny);
         si.alt=pokemon.name;
         si.className='sprite';
+        si.loading='lazy';
+        si.decoding='async';
+        si.width=88;si.height=88;
         const spriteZone=document.createElement('div');
         spriteZone.className='card-sprite-zone';
         spriteZone.appendChild(si);
