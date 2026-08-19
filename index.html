@@ -821,6 +821,7 @@
     .lore-thesis-arc { position: absolute; top: 8px; right: 10px; width: 28px; height: 28px; object-fit: contain; opacity: 0.8; pointer-events: none; }
     .lore-thesis-label { font-family: 'Archivo Black', sans-serif; font-size: 11px; font-weight: 900; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 7px; }
     .lore-thesis-text { font-size: 13px; color: rgba(255,255,255,0.94); line-height: 1.7; }
+    .lore-thesis-toggle { display: none; }
 
     /* ── Accordion shared ── */
     .lore-acc { border-radius: 12px; overflow: hidden; background: white; flex-shrink: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
@@ -1649,6 +1650,26 @@
       .obtain-info-pills { flex-wrap: wrap; }
       .obtain-info-pill { flex: 1 1 calc(50% - 4px); }
       .obtain-egg-grid { grid-template-columns: repeat(4, 1fr) !important; }
+
+      /* ── Lore modal: the seals row (up to 5 icon+label buttons, wrapping to 2 rows) plus the
+         full-height field report together could eat most of a phone screen before the user ever
+         saw an accordion header — the "top half is fixed" complaint. Two changes fix this without
+         losing the field-notes feel: the seals become one horizontally-scrollable strip (a common,
+         compact pattern for badge collections) instead of wrapping, and the field report clamps to
+         3 lines with a "Read more" toggle so it only takes its full height when the user asks for it. ── */
+      .lore-seals-section { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; gap: 8px; padding: 6px 2px 4px; scrollbar-width: none; -ms-overflow-style: none; }
+      .lore-seals-section::-webkit-scrollbar { display: none; }
+      .lore-seal-btn { width: 62px; flex-shrink: 0; padding: 6px 4px 4px; }
+      .lore-seal-btn img { width: 40px; height: 40px; }
+      .lore-seal-btn span { font-size: 7px; }
+      .lore-thesis-block { padding: 10px 13px; }
+      .lore-thesis-text { font-size: 12.5px; line-height: 1.55; }
+      .lore-thesis-text.clamped { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+      .lore-thesis-toggle {
+        display: block; margin-top: 6px; padding: 0; border: none; background: none;
+        font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.75);
+        text-decoration: underline; cursor: pointer;
+      }
     }
   </style>
 </head>
@@ -1874,11 +1895,11 @@
             <div class="obtain-games-backdrop" id="obtain-games-backdrop"></div>
             <div class="obtain-divider" id="obtain-divider"></div>
             <div class="obtain-right-panel">
+              <div class="obtain-breeding-note" id="obtain-breeding-note" style="display:none;"></div>
               <div class="obtain-tabs">
                 <button class="obtain-tab active" id="obtain-tab-catching">Hunt</button>
                 <button class="obtain-tab inactive" id="obtain-tab-breeding">Breed</button>
               </div>
-              <div class="obtain-breeding-note" id="obtain-breeding-note" style="display:none;"></div>
               <div class="obtain-content-panel" id="obtain-content-panel"></div>
             </div>
           </div>
@@ -1946,6 +1967,7 @@
             <div class="lore-thesis-block" id="lore-thesis-block">
               <div class="lore-thesis-label">Professor's Field Report</div>
               <div class="lore-thesis-text" id="lore-thesis-text"></div>
+              <button class="lore-thesis-toggle" id="lore-thesis-toggle" style="display:none;">Read more</button>
             </div>
 
             <!-- KEY OBSERVATIONS — accordion -->
@@ -5098,6 +5120,11 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       modal.style.setProperty('--obtain-theme-bg',p.bg);
       document.getElementById('obtain-modal-header').style.background=p.dark;
       document.getElementById('obtain-tab-catching').style.background=p.dark;
+      // Every open resets to the Hunt tab (see obtainActiveTab reset below), so the Breed tab's
+      // inline background — set only while it was the active tab last time — must be cleared here
+      // too. Otherwise it's left with the previous Pokémon's color and never repainted until the
+      // user clicks it again, which is what caused the stale color bug.
+      document.getElementById('obtain-tab-breeding').style.background='';
 
       // Name with auto-shrink
       const nameEl=document.getElementById('obtain-modal-name');
@@ -5137,7 +5164,11 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       const divider=document.getElementById('obtain-divider');
       const backdrop=document.getElementById('obtain-games-backdrop');
       const note=document.getElementById('obtain-breeding-note');
-      if(trigger)trigger.style.display=ib?'none':'';
+      // visibility:hidden (not display:none) on the trigger — hiding it outright removed its
+      // height from the mobile layout, which made the Hunt/Breed tabs (positioned right below it)
+      // visibly jump up and down every time the tab switched. visibility:hidden keeps the same
+      // slot reserved so nothing below it moves, while still being invisible and untappable.
+      if(trigger)trigger.style.visibility=ib?'hidden':'visible';
       if(column)column.style.display=ib?'none':'';
       if(divider)divider.style.display=ib?'none':'';
       if(backdrop&&ib){backdrop.classList.remove('open');}
@@ -6162,10 +6193,30 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
     function renderLoreThesis(entry) {
       const block = document.getElementById('lore-thesis-block');
       const el = document.getElementById('lore-thesis-text');
+      const toggle = document.getElementById('lore-thesis-toggle');
       const thesis = entry?.overview?.field_thesis;
       if (!thesis) { block.style.display = 'none'; return; }
       block.style.display = '';
       el.textContent = thesis;
+      el.classList.remove('clamped');
+      toggle.style.display = 'none';
+      toggle.textContent = 'Read more';
+      // Mobile-only: clamp to 3 lines with a Read more toggle so the report doesn't dominate the
+      // screen before the accordions are even visible. Only shown when the text actually overflows.
+      if (window.innerWidth <= 600) {
+        requestAnimationFrame(() => {
+          el.classList.add('clamped');
+          if (el.scrollHeight > el.clientHeight + 2) {
+            toggle.style.display = 'block';
+            toggle.onclick = () => {
+              const expanded = el.classList.toggle('clamped') === false;
+              toggle.textContent = expanded ? 'Read less' : 'Read more';
+            };
+          } else {
+            el.classList.remove('clamped');
+          }
+        });
+      }
     }
 
     // ── KEY OBSERVATIONS ────────────────────────
