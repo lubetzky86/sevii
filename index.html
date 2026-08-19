@@ -1138,6 +1138,11 @@
     .obtain-games-panel::-webkit-scrollbar { display: none; }
     .obtain-gen-label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercase; letter-spacing: 0.4px; padding: 5px 2px 2px 2px; margin-top: 4px; }
     .obtain-divider { width: 1px; background: rgba(0,0,0,0.1); flex-shrink: 0; }
+    /* Mobile-only bottom-sheet trigger for the games list — inert/invisible on desktop by default,
+       same pattern used for the Types/Generations/Lore sheets on the main grid. */
+    .obtain-games-trigger { display: none; }
+    .obtain-games-sheet-header { display: none; }
+    .obtain-games-backdrop { display: none; }
     .obtain-right-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
     .obtain-tabs { display: flex; gap: 10px; padding: 10px 14px 8px; flex-shrink: 0; justify-content: center; }
     .obtain-tab { flex: 1; padding: 9px 10px; border-radius: 30px; border: 2px solid transparent; font-size: 14px; font-weight: 600; text-transform: none; letter-spacing: 0; cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s; }
@@ -1323,12 +1328,18 @@
     /* Body */
     .moveset-move-popup-body { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 20px 20px 24px; display: flex; flex-direction: column; gap: 20px; background: var(--theme-bg, #fafafa); transition: background 0.3s; scrollbar-width: none; }
     .moveset-move-popup-body::-webkit-scrollbar { display: none; }
-    /* Stats row */
-    .move-stats-row { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
-    .move-stat-chip { display: flex; flex-direction: column; align-items: center; gap: 4px; background: rgba(0,0,0,0.05); border-radius: 10px; padding: 8px 14px; min-width: 52px; }
-    .move-stat-label { font-family: 'Archivo Black', sans-serif; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.6px; color: var(--theme-dark, #555); }
+    /* Stats row — top row: up to 4 equal-width chips (Type/Category/Power/Accuracy) in a grid,
+       so every column is exactly as wide as the others regardless of content. Bottom row: PP
+       alone, centered, matched to the same chip size. Every chip shares one fixed min-height so
+       the two icon-based chips (Type/Category) and the three text-based ones (Power/Acc/PP)
+       line up instead of each sizing to its own content. */
+    .move-stats-row-top { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; }
+    .move-stats-row-bottom { display: flex; justify-content: center; margin-top: 8px; }
+    .move-stats-row-bottom .move-stat-chip { min-width: 96px; }
+    .move-stat-chip { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; background: rgba(0,0,0,0.05); border-radius: 10px; padding: 8px 6px; min-height: 60px; }
+    .move-stat-label { font-family: 'Archivo Black', sans-serif; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; color: var(--theme-dark, #555); white-space: nowrap; }
     .move-stat-value { font-size: 15px; font-weight: 700; color: #1a1a1a; }
-    .move-stat-icon { width: 28px; height: 28px; object-fit: contain; }
+    .move-stat-icon { width: 24px; height: 24px; object-fit: contain; }
     /* Section header */
     .move-section-title { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: var(--theme-dark, #606070); text-align: center; }
     /* Description */
@@ -1603,6 +1614,37 @@
       .moveset-table thead th.col-type { width: 26px; }
       .moveset-table thead th.col-cat { width: 30px; }
       .moveset-table thead th.col-move { width: 140px; }
+
+      /* ── Obtain modal: the always-visible 110px vertical game list left almost no width for
+         the actual content, which is what caused the horizontal scrolling and cut-off text
+         (fixed-column-count grids and unwrapped pill rows both need real width to lay out).
+         Sidebar becomes a bottom sheet, freeing the full width for content. ── */
+      .obtain-body { flex-direction: column; }
+      .obtain-divider { display: none; }
+      .obtain-games-trigger { display: flex; align-items: center; justify-content: space-between; margin: 8px 12px 0; padding: 0 14px; height: 40px; border-radius: 8px; border: 1.5px solid #e2ddd0; background: #f7f5f0; font-family: 'Archivo Black', sans-serif; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; color: #43656e; cursor: pointer; }
+      .obtain-games-trigger-chevron { color: #999; font-size: 12px; }
+      .obtain-games-column {
+        position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 401;
+        width: auto; height: auto; max-height: 65vh; flex-direction: column; align-items: stretch;
+        background: white; border-radius: 16px 16px 0 0; padding: 14px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+        transform: translateY(100%); transition: transform 0.25s ease; box-shadow: 0 -6px 24px rgba(0,0,0,0.2);
+        overflow: hidden;
+      }
+      .obtain-games-column.open { transform: translateY(0); }
+      .obtain-games-sheet-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0; }
+      .obtain-games-sheet-title { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: #333; }
+      .obtain-games-sheet-close { width: 30px; height: 30px; border-radius: 50%; border: none; background: #f0efe9; font-size: 13px; color: #555; cursor: pointer; flex-shrink: 0; }
+      .obtain-in-label { display: none; } /* replaced by the sheet's own title */
+      .obtain-games-panel { max-height: calc(65vh - 60px); }
+      .obtain-games-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 400; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+      .obtain-games-backdrop.open { display: block; opacity: 1; pointer-events: all; }
+
+      /* Pills and the egg-group grid were both hard-coded for the wide desktop layout
+         (3-in-a-row / 5 fixed columns) — now that the sidebar isn't stealing width, these
+         still need to flex/wrap rather than force a fixed count that no longer fits either. */
+      .obtain-info-pills { flex-wrap: wrap; }
+      .obtain-info-pill { flex: 1 1 calc(50% - 4px); }
+      .obtain-egg-grid { grid-template-columns: repeat(4, 1fr) !important; }
     }
   </style>
 </head>
@@ -1811,10 +1853,21 @@
             </div>
           </div>
           <div class="obtain-body">
+            <!-- Mobile-only: replaces the always-visible vertical game list, which on a phone-width
+                 screen left almost no room for the actual content (the source of the horizontal
+                 scrolling/cut-off text). Desktop keeps the sidebar exactly as it was. -->
+            <button class="obtain-games-trigger" id="obtain-games-trigger" aria-expanded="false">
+              <span id="obtain-games-trigger-label">Select a game</span><span class="obtain-games-trigger-chevron">▾</span>
+            </button>
             <div class="obtain-games-column" id="obtain-games-column">
+              <div class="obtain-games-sheet-header" id="obtain-games-sheet-header">
+                <span class="obtain-games-sheet-title" id="obtain-in-label-mobile">Obtainable in</span>
+                <button class="obtain-games-sheet-close" id="obtain-games-sheet-close">✕</button>
+              </div>
               <div class="obtain-in-label" id="obtain-in-label">Obtainable in:</div>
               <div class="obtain-games-panel" id="obtain-games-panel"></div>
             </div>
+            <div class="obtain-games-backdrop" id="obtain-games-backdrop"></div>
             <div class="obtain-divider"></div>
             <div class="obtain-right-panel">
               <div class="obtain-tabs">
@@ -3351,6 +3404,28 @@
     setupMobileSheet('mobile-types-trigger','type-filter-row','type-sheet-backdrop','type-sheet-close');
     setupMobileSheet('mobile-gens-trigger','gen-filter-row','gen-sheet-backdrop','gen-sheet-close');
     setupMobileSheet('mobile-sort-trigger','grid-sort-wrapper','sort-sheet-backdrop','sort-sheet-close');
+    setupMobileSheet('obtain-games-trigger','obtain-games-column','obtain-games-backdrop','obtain-games-sheet-close');
+    (function(){
+      const panel=document.getElementById('obtain-games-panel');
+      const label=document.getElementById('obtain-games-trigger-label');
+      const sheet=document.getElementById('obtain-games-column');
+      const backdrop=document.getElementById('obtain-games-backdrop');
+      const trigger=document.getElementById('obtain-games-trigger');
+      if(!panel)return;
+      panel.addEventListener('click',(e)=>{
+        const btn=e.target.closest('.obtain-game-btn');
+        if(!btn)return;
+        if(label){
+          const isSelected=btn.classList.contains('active')||btn.classList.contains('selected');
+          label.textContent = isSelected ? (btn.title||btn.textContent.trim()||'Select a game') : 'Select a game';
+        }
+        if(window.innerWidth<=600){
+          sheet?.classList.remove('open');
+          backdrop?.classList.remove('open');
+          trigger?.setAttribute('aria-expanded','false');
+        }
+      });
+    })();
 
     // ── Mobile-only: Clear all (types + lore selections; generation resets to the Kanto default) ──
     document.getElementById('mobile-clear-all-btn')?.addEventListener('click',()=>{
@@ -5641,69 +5716,52 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       statsTitle.style.color = p.dark;
       statsSection.appendChild(statsTitle);
 
-      const statsRow = document.createElement('div');
-      statsRow.className = 'move-stats-row';
+      // Two explicit rows rather than one flex-wrap row: a top row of up to 4 equal-width
+      // chips (Type, Category, Power, Accuracy), and Power's little sibling PP centered
+      // alone underneath. Building it this way — instead of letting flex-wrap decide where
+      // the break falls — is what keeps 4-then-1 consistent regardless of which chips exist,
+      // and every chip shares one fixed min-height so icon chips and text chips line up.
+      const statsRowTop = document.createElement('div');
+      statsRowTop.className = 'move-stats-row-top';
+      const statsRowBottom = document.createElement('div');
+      statsRowBottom.className = 'move-stats-row-bottom';
 
-      // Type chip
-      const typeName = data.type?.name;
-      if (typeName) {
-        const typeChip = document.createElement('div');
-        typeChip.className = 'move-stat-chip';
-        const typeLabel = document.createElement('div');
-        typeLabel.className = 'move-stat-label';
-        typeLabel.style.color = p.dark;
-        typeLabel.textContent = 'Type';
-        const typeImg = document.createElement('img');
-        typeImg.className = 'move-stat-icon';
-        typeImg.src = `${BUTTON_PATH}/${typeName}.png`;
-        typeImg.alt = typeName;
-        typeImg.width = 28; typeImg.height = 28;
-        typeChip.appendChild(typeLabel);
-        typeChip.appendChild(typeImg);
-        statsRow.appendChild(typeChip);
-      }
-
-      // Category chip
-      const catName = data.damage_class?.name;
-      if (catName) {
-        const catChip = document.createElement('div');
-        catChip.className = 'move-stat-chip';
-        const catLabel = document.createElement('div');
-        catLabel.className = 'move-stat-label';
-        catLabel.style.color = p.dark;
-        catLabel.textContent = 'Category';
-        const catImg = document.createElement('img');
-        catImg.className = 'move-stat-icon';
-        catImg.src = `icons/moves/${catName}.png`;
-        catImg.alt = catName;
-        catImg.width = 28; catImg.height = 28;
-        catImg.onerror = () => { catImg.style.display = 'none'; };
-        catChip.appendChild(catLabel);
-        catChip.appendChild(catImg);
-        statsRow.appendChild(catChip);
-      }
-
-      // Power, Accuracy, PP
-      [
-        { label: 'Power',    val: data.power    ?? '—' },
-        { label: 'Accuracy', val: data.accuracy != null ? data.accuracy + '%' : '—' },
-        { label: 'PP',       val: data.pp       ?? '—' },
-      ].forEach(({ label, val }) => {
+      function makeStatChip(label, {img, imgAlt, val}) {
         const chip = document.createElement('div');
         chip.className = 'move-stat-chip';
         const lbl = document.createElement('div');
         lbl.className = 'move-stat-label';
         lbl.style.color = p.dark;
         lbl.textContent = label;
-        const vl = document.createElement('div');
-        vl.className = 'move-stat-value';
-        vl.textContent = val;
         chip.appendChild(lbl);
-        chip.appendChild(vl);
-        statsRow.appendChild(chip);
-      });
+        if (img) {
+          const im = document.createElement('img');
+          im.className = 'move-stat-icon';
+          im.src = img; im.alt = imgAlt || label;
+          im.width = 24; im.height = 24;
+          im.onerror = () => { im.style.display = 'none'; };
+          chip.appendChild(im);
+        } else {
+          const vl = document.createElement('div');
+          vl.className = 'move-stat-value';
+          vl.textContent = val;
+          chip.appendChild(vl);
+        }
+        return chip;
+      }
 
-      statsSection.appendChild(statsRow);
+      const typeName = data.type?.name;
+      if (typeName) statsRowTop.appendChild(makeStatChip('Type', {img: `${BUTTON_PATH}/${typeName}.png`, imgAlt: typeName}));
+
+      const catName = data.damage_class?.name;
+      if (catName) statsRowTop.appendChild(makeStatChip('Category', {img: `icons/moves/${catName}.png`, imgAlt: catName}));
+
+      statsRowTop.appendChild(makeStatChip('Power', {val: data.power ?? '—'}));
+      statsRowTop.appendChild(makeStatChip('Accuracy', {val: data.accuracy != null ? data.accuracy + '%' : '—'}));
+      statsRowBottom.appendChild(makeStatChip('PP', {val: data.pp ?? '—'}));
+
+      statsSection.appendChild(statsRowTop);
+      statsSection.appendChild(statsRowBottom);
       body.appendChild(statsSection);
 
       // ── Effect / Description ──
