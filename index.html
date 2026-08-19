@@ -1565,7 +1565,7 @@
       .ab-right-panel { width: 100%; }
 
       /* 3-column grid, edge padding trimmed so cards use the full width */
-      .grid-inner { padding: 8px 8px 10px; }
+      .grid-inner { padding: 8px 8px calc(24px + env(safe-area-inset-bottom, 0px)); }
       .grid { grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 0; }
       .card { min-height: 122px; padding: 8px 4px 8px; }
       .card img.sprite { width: 52px; height: 52px; }
