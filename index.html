@@ -1132,13 +1132,13 @@
     .obtain-modal-close:hover { background: rgba(255,255,255,0.4); }
     /* ── Body layout: two independent columns ── */
     .obtain-body { display: flex; flex: 1; overflow: hidden; min-height: 0; }
-    .obtain-games-column { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; padding: 8px 6px 8px 6px; gap: 5px; overflow: hidden; transition: background 0.3s; }
-    .obtain-in-label { font-size: 11px; font-weight: 800; color: rgba(0,0,0,0.5); text-transform: uppercase; letter-spacing: 0.4px; width: 100%; padding: 0 2px; text-align: center; }
-    .obtain-games-panel { flex: 1; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 3px; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
+    .obtain-games-column { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; padding: 8px 10px 8px 10px; gap: 5px; overflow: hidden; transition: background 0.3s; }
+    .obtain-in-label { font-size: 11px; font-weight: 800; color: rgba(0,0,0,0.5); text-transform: uppercase; letter-spacing: 0.4px; width: 100%; padding: 0 2px; text-align: left; }
+    .obtain-games-panel { flex: 1; width: 100%; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; padding-top: 4px; }
     .obtain-games-panel::-webkit-scrollbar { display: none; }
-    .obtain-gen-block { display: flex; flex-direction: column; align-items: center; gap: 3px; width: 100%; }
-    .obtain-gen-label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercase; letter-spacing: 0.4px; padding: 5px 2px 2px 2px; margin-top: 4px; text-align: center; }
-    .obtain-game-row { display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 8px; width: 100%; }
+    .obtain-gen-block { display: flex; flex-direction: column; gap: 7px; width: 100%; }
+    .obtain-gen-label { font-size: 10px; font-weight: 800; color: #999; text-transform: uppercase; letter-spacing: 0.6px; padding: 0 0 5px; margin: 0; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.08); }
+    .obtain-game-row { display: flex; flex-direction: row; align-items: stretch; gap: 8px; width: 100%; }
     .obtain-breeding-note { font-size: 12px; line-height: 1.5; color: #777; background: rgba(0,0,0,0.04); border-radius: 10px; padding: 10px 12px; margin: 0 0 8px; text-align: center; }
     .obtain-divider { width: 1px; background: rgba(0,0,0,0.1); flex-shrink: 0; }
     /* Mobile-only bottom-sheet trigger for the games list — inert/invisible on desktop by default,
@@ -1154,14 +1154,12 @@
     .obtain-content-panel { flex: 1; display: flex; flex-direction: column; gap: 7px; overflow-y: hidden; padding: 8px 12px 8px 10px; }
     .obtain-content-panel::-webkit-scrollbar { display: none; }
     /* ── Game buttons ── */
-    .obtain-game-btn { display: flex; align-items: center; justify-content: center; padding: 0; border-radius: 6px; border: none; cursor: pointer; background: transparent; width: 88px; height: 30px; margin: 0 auto; overflow: hidden; flex-shrink: 0; transition: opacity 0.15s, width 0.12s, height 0.12s; }
-    .obtain-game-btn:hover { width: 94px; height: 32px; }
-    .obtain-game-btn.selected { opacity: 1; }
+    .obtain-game-btn { display: flex; align-items: center; justify-content: center; padding: 3px; border-radius: 8px; border: 1.5px solid rgba(0,0,0,0.07); cursor: pointer; background: #f7f6f2; flex: 1 1 0; min-width: 0; height: 40px; overflow: hidden; transition: opacity 0.15s, border-color 0.15s, background 0.15s, transform 0.1s; }
+    .obtain-game-btn:hover { border-color: rgba(0,0,0,0.16); transform: translateY(-1px); }
+    .obtain-game-btn.selected { opacity: 1; border-color: rgba(0,0,0,0.35); background: #efede6; }
     .obtain-games-panel.has-selection .obtain-game-btn:not(.selected) { opacity: 0.35; }
-    .obtain-games-panel.has-selection .obtain-game-btn:not(.selected):hover { opacity: 0.55; }
-    .obtain-game-btn.disabled { cursor: default; }
-    .obtain-game-btn.disabled:hover { width: 88px; height: 30px; }
-    .obtain-game-img { width: 100%; height: 100%; object-fit: contain; border-radius: 6px; }
+    .obtain-games-panel.has-selection .obtain-game-btn:not(.selected):hover { opacity: 0.6; }
+    .obtain-game-img { width: 100%; height: 100%; object-fit: contain; border-radius: 5px; }
     .obtain-game-icon { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; color: rgba(0,0,0,0.4); text-align: center; padding: 4px; line-height: 1.3; }
     /* ── Info pills ── */
     .obtain-info-pills { display: flex; gap: 8px; flex-shrink: 0; align-items: stretch; }
