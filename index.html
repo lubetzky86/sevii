@@ -1290,6 +1290,12 @@
     .moveset-table tbody td.right { text-align: right; padding-right: 10px; color: #555; font-size: 13px; }
     .moveset-move-name { font-weight: 600; color: #1a1a1a; }
     .moveset-type-icon { width: 36px; height: 36px; object-fit: contain; display: block; }
+    /* Sortable column headers — click to sort, click again to reverse. Applies to all 3
+       move tables (Level Up / TM / Egg Moves) since they all render through buildMoveTable(). */
+    .moveset-table thead th.sortable { cursor: pointer; user-select: none; }
+    .moveset-table thead th.sortable:hover { color: #555; }
+    .moveset-table thead th.sort-asc::after { content: '\25B2'; font-size: 7px; margin-left: 3px; vertical-align: middle; }
+    .moveset-table thead th.sort-desc::after { content: '\25BC'; font-size: 7px; margin-left: 3px; vertical-align: middle; }
     /* Category tags */
     .moveset-cat { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; letter-spacing: 0.3px; }
     .moveset-cat.physical { background: #fde8d8; color: #b94a10; }
@@ -1489,7 +1495,10 @@
       .hamburger-bar { width: 22px; }
       .app-header-center { grid-column: 2; grid-row: 1; justify-self: center; position: static; transform: none; }
       .global-shiny { grid-column: 3; grid-row: 1; justify-self: end; padding: 6px 10px; }
-      .app-header-search { grid-column: 1 / -1; grid-row: 2; position: static; max-width: none; margin: 0; }
+      /* position stays "relative" (not "static") — the clear button (X) is absolutely positioned
+         against this element; overriding to static made it anchor to the header instead, which is
+         why it rendered outside the search box entirely. */
+      .app-header-search { grid-column: 1 / -1; grid-row: 2; position: relative; max-width: none; margin: 0; }
       .app-header-search input { height: 40px; font-size: 14px; }
 
       /* ── Filters bar: toolbar + a permanently visible trigger row (Types / Generations / Lore / Sort).
@@ -1580,6 +1589,18 @@
       .card-name { font-size: 10px; margin-bottom: 4px; }
       .type-badges { min-height: 24px; gap: 3px; }
       .type-badge-img { width: 22px; height: 22px; }
+
+      /* ── Moveset modal table: icons were disproportionately large and the Power/Acc/PP
+         columns' font ate space the Move name column badly needed (hence the "…" truncation). ── */
+      .moveset-type-icon { width: 18px; height: 18px; }
+      .moveset-table thead th.right { font-size: 9px; width: 26px; padding-right: 4px; }
+      .moveset-table tbody td.right { font-size: 11px; padding-right: 4px; }
+      .moveset-table thead th:first-child { width: 26px; }
+      .moveset-table thead th.col-type { width: 24px; }
+      .moveset-table thead th.col-cat { width: 28px; }
+      /* No fixed width here — table-layout:fixed hands whatever's left over (after the columns
+         above claim their space) to this one, which is exactly the room the move name needed. */
+      .moveset-table thead th.col-move { width: auto; }
     }
   </style>
 </head>
@@ -4758,7 +4779,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
         const types=groups[key];if(!types||!types.length)return;
         const group=document.createElement('div');group.className='matchup-group';
         const gl=document.createElement('div');gl.className='matchup-group-label';gl.textContent=label;group.appendChild(gl);
-        const BADGES_PER_ROW=4;
+        const BADGES_PER_ROW=window.innerWidth<=600?3:4; // 4-per-row badges (each a wide pill, not a square) overflow the modal on phones
         for(let i=0;i<types.length;i+=BADGES_PER_ROW){
           const row=document.createElement('div');row.className='matchup-type-row';
           types.slice(i,i+BADGES_PER_ROW).forEach(type=>{
@@ -5409,6 +5430,36 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       });
     }
 
+    // Generic click-to-sort for the 3 move tables (Level Up / TM / Egg Moves — all built through
+    // buildMoveTable). Reads sortable values off each row's dataset rather than parsing rendered
+    // text, so it works correctly once the async move-detail fetch has filled them in.
+    function attachTableSort(table,tbody){
+      const ths=table.querySelectorAll('thead th[data-sort-key]');
+      ths.forEach(th=>{
+        th.classList.add('sortable');
+        th.addEventListener('click',()=>{
+          const key=th.dataset.sortKey;
+          const type=th.dataset.sortType||'string';
+          const dir=(table.dataset.sortKey===key&&table.dataset.sortDir==='asc')?'desc':'asc';
+          table.dataset.sortKey=key;table.dataset.sortDir=dir;
+          ths.forEach(t=>t.classList.remove('sort-asc','sort-desc'));
+          th.classList.add(dir==='asc'?'sort-asc':'sort-desc');
+          const rows=Array.from(tbody.querySelectorAll('tr'));
+          rows.sort((a,b)=>{
+            let va=a.dataset[key],vb=b.dataset[key];
+            if(type==='number'){
+              va=parseFloat(va);vb=parseFloat(vb);
+              if(isNaN(va))va=-1;if(isNaN(vb))vb=-1;
+              return dir==='asc'?va-vb:vb-va;
+            }
+            va=(va||'').toLowerCase();vb=(vb||'').toLowerCase();
+            return dir==='asc'?va.localeCompare(vb):vb.localeCompare(va);
+          });
+          rows.forEach(r=>tbody.appendChild(r));
+        });
+      });
+    }
+
     function buildMoveTable(moves,method,col){
       const wrap=document.createElement('div');
       const isLevelUp=method==='level-up';
@@ -5416,19 +5467,21 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       const table=document.createElement('table');
       table.className='moveset-table';
       table.innerHTML=`<thead><tr>
-        ${showNum?`<th style="${isLevelUp?'width:36px':'width:44px'}">${col}</th>`:''}
-        <th class="col-move">Move</th>
-        <th class="col-type">Type</th>
-        <th class="col-cat">Cat.</th>
-        <th class="right">Power</th>
-        <th class="right">Acc.</th>
-        <th class="right">PP</th>
+        ${showNum?`<th data-sort-key="num" data-sort-type="number" style="${isLevelUp?'width:36px':'width:44px'}">${col}</th>`:''}
+        <th class="col-move" data-sort-key="name" data-sort-type="string">Move</th>
+        <th class="col-type" data-sort-key="type" data-sort-type="string">Type</th>
+        <th class="col-cat" data-sort-key="cat" data-sort-type="string">Cat.</th>
+        <th class="right" data-sort-key="power" data-sort-type="number">Power</th>
+        <th class="right" data-sort-key="acc" data-sort-type="number">Acc.</th>
+        <th class="right" data-sort-key="pp" data-sort-type="number">PP</th>
       </tr></thead>`;
       const tbody=document.createElement('tbody');
       moves.forEach(m=>{
         const tr=document.createElement('tr');
         tr.dataset.moveName=m.name;
         tr.dataset.moveUrl=m.url;
+        tr.dataset.name=toTitleCase(m.name.replace(/-/g,' '));
+        tr.dataset.num=isLevelUp?(m.level||0):'';
         let numCell='';
         if(isLevelUp) numCell=`<td>${m.level||'—'}</td>`;
         else if(showNum) numCell=`<td class="moveset-tm-cell" data-move="${m.name}">—</td>`;
@@ -5444,6 +5497,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       });
       table.appendChild(tbody);
       wrap.appendChild(table);
+      attachTableSort(table,tbody);
       fetchMoveDetails(moves,tbody,method,col,wrap);
       return wrap;
     }
@@ -5482,6 +5536,13 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
         cells[offset+3].textContent=power!==null?power:'—';cells[offset+3].className='right';
         cells[offset+4].textContent=acc!==null?acc+'%':'—';cells[offset+4].className='right';
         cells[offset+5].textContent=pp!==null?pp:'—';cells[offset+5].className='right';
+        // Sortable values — kept separate from the rendered text (e.g. "85%") so sorting
+        // reads clean numbers/strings regardless of how a cell is displayed.
+        tr.dataset.type=typeName||'';
+        tr.dataset.cat=catName||'';
+        tr.dataset.power=power!==null?power:-1;
+        tr.dataset.acc=acc!==null?acc:-1;
+        tr.dataset.pp=pp!==null?pp:-1;
 
         // TM number: fetch from machines array for the active version group
         if(showNum&&!isLevelUp&&det?.machines?.length){
@@ -5500,12 +5561,15 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
               const tmNum=numMatch?parseInt(numMatch[0],10).toString():'—';
               const tmCell=tr.querySelector('.moveset-tm-cell');
               if(tmCell)tmCell.textContent=tmNum;
+              tr.dataset.num=numMatch?parseInt(numMatch[0],10):-1;
             }catch(e){}
           }
         }
       }
-      // After all TM numbers resolved, re-sort non-levelup tables by TM number ascending
-      if(showNum&&!isLevelUp){
+      // After all TM numbers resolved, re-sort non-levelup tables by TM number ascending —
+      // but only if the user hasn't already picked a different sort column by clicking a header.
+      const sortTable=wrap.querySelector('table');
+      if(showNum&&!isLevelUp&&!sortTable?.dataset.sortKey){
         const rows=Array.from(tbody.querySelectorAll('tr'));
         rows.sort((a,b)=>{
           const ca=a.querySelector('.moveset-tm-cell');
