@@ -263,9 +263,13 @@
        so none of this changes the desktop experience. ── */
     .mobile-filters-toolbar { display: none; }
     .mobile-clear-all-btn { display: none; }
-    .mobile-accordion-toggle { display: none; }
+    .mobile-filter-buttons-row { display: none; }
+    .mobile-trigger-count { display: none; }
+    .mobile-sheet-header { display: none; }
+    .mobile-sheet-backdrop { display: none; }
     .lore-filter-backdrop { display: none; }
     .lore-filter-panel-header { display: none; }
+    .lore-filter-tabs { display: none; }
 
     /* ── NEW LORE PANEL SECTIONS ───────────────────────────────────────── */
 
@@ -1467,17 +1471,19 @@
       #right-panel { width: 55%; }
     }
     @media (max-width: 600px) {
-      /* Header wraps to two rows: [hamburger | brand | shiny] then full-width search */
-      .app-header { flex-wrap: wrap; height: auto; min-height: 56px; padding: 8px 10px; row-gap: 8px; }
+      /* Header: 3-column grid so the logo is genuinely centered no matter how wide
+         the hamburger vs. shiny toggle are (equal 1fr tracks on each side). */
+      .app-header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; column-gap: 8px; row-gap: 8px; height: auto; min-height: 56px; padding: 8px 10px; }
       .app-header-brand { height: 24px; }
-      .app-header-center { position: static; transform: none; flex: 1; display: flex; justify-content: center; }
-      .app-header-search { order: 5; flex-basis: 100%; max-width: none; margin: 0; }
-      .app-header-search input { height: 40px; font-size: 14px; }
-      .hamburger-btn { width: 44px; height: 44px; align-items: center; justify-content: center; }
+      .hamburger-btn { grid-column: 1; justify-self: start; width: 44px; height: 44px; align-items: center; justify-content: center; }
       .hamburger-bar { width: 22px; }
-      .global-shiny { padding: 6px 10px; }
+      .app-header-center { grid-column: 2; justify-self: center; position: static; transform: none; }
+      .global-shiny { grid-column: 3; justify-self: end; padding: 6px 10px; }
+      .app-header-search { grid-column: 1 / -1; position: static; max-width: none; margin: 0; }
+      .app-header-search input { height: 40px; font-size: 14px; }
 
-      /* ── Filters: collapsed accordions instead of 3 competing rows ── */
+      /* ── Filters bar: toolbar + a permanently visible trigger row (Types / Generations / Lore / Sort).
+         Nothing here scrolls away — filters-bar sits above the scrollable grid at all times. ── */
       .filters-bar { padding: 8px 10px; gap: 8px; }
 
       .mobile-filters-toolbar { display: flex; align-items: center; justify-content: space-between; }
@@ -1485,36 +1491,59 @@
       .mobile-clear-all-btn { display: inline-block; height: 30px; padding: 0 12px; border-radius: 20px; border: 1.5px solid #d8d2c6; background: white; font-size: 11px; font-weight: 700; color: #43656e; cursor: pointer; }
       .mobile-clear-all-btn:active { background: #f0f0ee; }
 
-      .filter-row { flex-direction: column; align-items: stretch; gap: 0; }
-      .mobile-accordion-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; height: 40px; padding: 0 12px; border-radius: 8px; border: none; background: #f5f3ee; cursor: pointer; }
-      .mobile-accordion-label { font-family: 'Archivo Black', sans-serif; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: #43656e; }
-      .mobile-accordion-count { display: none; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: #43656e; color: white; font-size: 10px; font-weight: 800; align-items: center; justify-content: center; margin-left: 6px; }
-      .mobile-accordion-chevron { margin-left: auto; color: #999; font-size: 12px; transition: transform 0.15s; }
+      .mobile-filter-buttons-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+      .mobile-filter-trigger { display: flex; align-items: center; justify-content: center; gap: 5px; height: 40px; border-radius: 8px; border: 1.5px solid #e2ddd0; background: #f7f5f0; font-family: 'Archivo Black', sans-serif; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; color: #43656e; cursor: pointer; }
+      .mobile-filter-trigger.has-selection { border-color: #43656e; background: #eef4f3; }
+      .mobile-trigger-count { display: none; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #43656e; color: white; font-size: 9px; font-weight: 800; align-items: center; justify-content: center; }
+      .mobile-sort-trigger #mobile-sort-icon { font-size: 12px; }
 
-      /* Type + Gen strips: hidden until accordion opened, then wrap into a full readable grid (no horizontal scroll) */
-      #type-filters, #gen-filters { display: none; flex-wrap: wrap; overflow: visible; gap: 6px; padding: 8px 2px 2px; }
-      #type-filters.mobile-open, #gen-filters.mobile-open { display: flex; }
-      #type-filters.mobile-open .type-pill { flex: 0 0 calc(20% - 5px); width: auto; height: 44px; }
-      #gen-filters.mobile-open .gen-pill { flex: 0 0 calc(20% - 5px); height: 44px; }
+      /* Original desktop rows: hidden on mobile, replaced by the trigger row above.
+         Their content (pill grids / lore buttons) is re-purposed as bottom sheets below. */
+      #type-filter-row > .type-filter-strip, #gen-filter-row > .gen-strip { display: none; }
+      .lore-filter-row { display: none; }
 
-      .lore-filter-row { gap: 4px; }
-      .lore-cat-btn { height: 40px; }
-      .grid-sort-wrapper select, .grid-sort-dir { min-height: 32px; }
+      /* ── Generic bottom sheet mechanics, shared by Types / Generations / Lore / Sort ── */
+      .mobile-sheet-backdrop { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 400; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+      .mobile-sheet-backdrop.open { opacity: 1; pointer-events: all; }
+      #type-filter-row, #gen-filter-row, #grid-sort-wrapper {
+        position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 401;
+        display: flex; flex-direction: column; background: white; border-radius: 16px 16px 0 0;
+        max-height: 65vh; overflow-y: auto; padding: 14px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+        transform: translateY(100%); transition: transform 0.25s ease; box-shadow: 0 -6px 24px rgba(0,0,0,0.2);
+      }
+      #type-filter-row.open, #gen-filter-row.open, #grid-sort-wrapper.open { transform: translateY(0); }
+      .mobile-sheet-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0; }
+      .mobile-sheet-title { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: #333; }
+      .mobile-sheet-close { width: 30px; height: 30px; border-radius: 50%; border: none; background: #f0efe9; font-size: 13px; color: #555; cursor: pointer; }
 
-      /* Lore sub-filters: bottom sheet overlay instead of pushing the grid off-screen */
-      .lore-filter-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 400; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
-      .lore-filter-backdrop.open { display: block; opacity: 1; pointer-events: all; }
+      #type-filter-row.open .type-filter-strip, #gen-filter-row.open .gen-strip { display: flex; flex-wrap: wrap; overflow: visible; gap: 8px; }
+      #type-filter-row.open .type-pill { flex: 0 0 calc(25% - 6px); width: auto; height: 64px; }
+      #gen-filter-row.open .gen-pill { flex: 0 0 calc(33.333% - 6px); height: 64px; }
+
+      /* Lore: single "Lore" trigger opens one sheet with 3 tabs (Classification / Behavior / Danger Level) */
+      .lore-filter-backdrop { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 400; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+      .lore-filter-backdrop.open { opacity: 1; pointer-events: all; }
       .lore-filter-panel { display: flex; position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 401; flex-direction: column; background: white; border-radius: 16px 16px 0 0; max-height: 65vh; overflow-y: auto; padding: 14px 14px calc(14px + env(safe-area-inset-bottom, 0px)); transform: translateY(100%); transition: transform 0.25s ease; box-shadow: 0 -6px 24px rgba(0,0,0,0.2); justify-content: flex-start; }
       .lore-filter-panel.open { transform: translateY(0); }
       .lore-filter-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0; }
       .lore-filter-panel-title { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: #333; }
       .lore-filter-panel-close { width: 30px; height: 30px; border-radius: 50%; border: none; background: #f0efe9; font-size: 13px; color: #555; cursor: pointer; }
+      .lore-filter-tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-shrink: 0; }
+      .lore-filter-tab { flex: 1; height: 36px; border-radius: 8px; border: 1.5px solid #e2ddd0; background: #f7f5f0; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; color: #666; cursor: pointer; }
+      .lore-filter-tab.active { border-color: #43656e; background: #43656e; color: white; }
       .lore-icon-grid { width: 100%; }
       .lore-icon-btn { width: calc(25% - 8px); }
       .lore-icon-btn img { width: 52px; height: 52px; }
 
-      /* Result/sort bar scrolls away with the grid instead of pinning over cards */
-      .grid-top-bar { position: static; }
+      /* Sort: reuses the existing select + direction button inside its own bottom sheet.
+         grid-top-bar itself collapses to nothing (display:contents keeps its fixed-positioned
+         child working — a plain display:none would hide that child too). */
+      .grid-top-bar { display: contents; }
+      .result-count { display: none; }
+      #grid-sort-wrapper { align-items: stretch; gap: 10px; }
+      #grid-sort-wrapper label { display: none; }
+      #grid-sort-wrapper select { height: 44px; font-size: 14px; width: 100%; }
+      #grid-sort-wrapper .grid-sort-dir { width: 100%; height: 40px; border-radius: 8px; font-size: 16px; }
 
       #right-panel { width: 100%; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100; }
       .ab-right-panel { width: 100%; }
@@ -1603,21 +1632,36 @@
           <button class="mobile-clear-all-btn" id="mobile-clear-all-btn">Clear all</button>
         </div>
 
-        <div class="filter-row">
-          <button class="mobile-accordion-toggle" id="type-accordion-toggle" aria-expanded="false">
-            <span class="mobile-accordion-label">Types</span>
-            <span class="mobile-accordion-count" id="type-accordion-count">0</span>
-            <span class="mobile-accordion-chevron" id="type-accordion-chevron">▾</span>
+        <!-- Mobile-only trigger row: Types / Generations / Lore / Sort, always visible above the grid -->
+        <div class="mobile-filter-buttons-row" id="mobile-filter-buttons-row">
+          <button class="mobile-filter-trigger" id="mobile-types-trigger" aria-expanded="false">
+            Types<span class="mobile-trigger-count" id="mobile-types-count">0</span>
           </button>
-          <div class="type-filter-strip" id="type-filters"></div>
+          <button class="mobile-filter-trigger" id="mobile-gens-trigger" aria-expanded="false">
+            Gens<span class="mobile-trigger-count" id="mobile-gens-count">0</span>
+          </button>
+          <button class="mobile-filter-trigger" id="mobile-lore-trigger" aria-expanded="false">
+            Lore<span class="mobile-trigger-count" id="mobile-lore-count">0</span>
+          </button>
+          <button class="mobile-filter-trigger mobile-sort-trigger" id="mobile-sort-trigger" aria-expanded="false">
+            <span id="mobile-sort-icon">↑</span> Sort
+          </button>
         </div>
 
-        <div class="filter-row">
-          <button class="mobile-accordion-toggle" id="gen-accordion-toggle" aria-expanded="false">
-            <span class="mobile-accordion-label">Generations</span>
-            <span class="mobile-accordion-count" id="gen-accordion-count">0</span>
-            <span class="mobile-accordion-chevron" id="gen-accordion-chevron">▾</span>
-          </button>
+        <div class="filter-row" id="type-filter-row">
+          <div class="mobile-sheet-header">
+            <span class="mobile-sheet-title">Types</span>
+            <button class="mobile-sheet-close" id="type-sheet-close">✕</button>
+          </div>
+          <div class="type-filter-strip" id="type-filters"></div>
+        </div>
+        <div class="mobile-sheet-backdrop" id="type-sheet-backdrop"></div>
+
+        <div class="filter-row" id="gen-filter-row">
+          <div class="mobile-sheet-header">
+            <span class="mobile-sheet-title">Generations</span>
+            <button class="mobile-sheet-close" id="gen-sheet-close">✕</button>
+          </div>
           <div class="gen-strip gen-pills" id="gen-filters">
             <div class="gen-pill" data-gen="1"><img src="icons/generations/1.png" alt="Gen I"></div>
             <div class="gen-pill" data-gen="2"><img src="icons/generations/2.png" alt="Gen II"></div>
@@ -1630,8 +1674,10 @@
             <div class="gen-pill" data-gen="9"><img src="icons/generations/9.png" alt="Gen IX"></div>
           </div>
         </div>
+        <div class="mobile-sheet-backdrop" id="gen-sheet-backdrop"></div>
 
-        <!-- Lore filter row: 3 equal centered buttons, no label -->
+        <!-- Lore filter row: desktop-only — 3 equal centered buttons, no label. Hidden on mobile,
+             replaced by the single "Lore" trigger above + in-sheet tabs below. -->
         <div class="lore-filter-row">
           <button class="lore-cat-btn" id="lore-cat-classification" data-cat="classification">
             <img src="icons/tabs/classification.png" alt="Classification">
@@ -1655,6 +1701,13 @@
             <span class="lore-filter-panel-title" id="lore-filter-panel-title"></span>
             <button class="lore-filter-panel-close" id="lore-filter-panel-close">✕</button>
           </div>
+          <!-- Mobile-only tabs, mirror the 3 lore-cat-btn buttons above so the whole category
+               switcher lives inside the sheet instead of a separate always-visible row -->
+          <div class="lore-filter-tabs" id="lore-filter-tabs">
+            <button class="lore-filter-tab" id="lore-tab-classification" data-cat="classification">Classification</button>
+            <button class="lore-filter-tab" id="lore-tab-badge" data-cat="badge">Behavior</button>
+            <button class="lore-filter-tab" id="lore-tab-hazard" data-cat="hazard">Danger Level</button>
+          </div>
           <div class="lore-icon-grid" id="lore-filter-options"></div>
         </div>
       </div>
@@ -1663,7 +1716,11 @@
       <div class="grid-wrapper">
         <div class="grid-top-bar">
           <div class="result-count" id="result-count"></div>
-          <div class="grid-sort-wrapper">
+          <div class="grid-sort-wrapper" id="grid-sort-wrapper">
+            <div class="mobile-sheet-header">
+              <span class="mobile-sheet-title">Sort by</span>
+              <button class="mobile-sheet-close" id="sort-sheet-close">✕</button>
+            </div>
             <label for="sort-select">Sort by</label>
             <select id="sort-select">
                 <option value="number">Pokédex number</option>
@@ -1685,6 +1742,7 @@
             <div class="grid-sort-dir" id="sort-dir-btn">↑</div>
           </div>
         </div>
+        <div class="mobile-sheet-backdrop" id="sort-sheet-backdrop"></div>
         <div class="grid-inner">
           <div id="grid" class="grid"><div class="loading">Loading Pokémon...</div></div>
         </div>
@@ -3055,22 +3113,37 @@
     const loreSelections = { classification: new Set(), badge: new Set(), hazard: new Set() };
 
     function updateLoreBadges(){
+      const panelOpen=document.getElementById('lore-filter-panel').classList.contains('open');
       ['classification','badge','hazard'].forEach(cat=>{
         const badge=document.getElementById(`lore-badge-${cat}`);
         const btn=document.getElementById(`lore-cat-${cat}`);
         const count=loreSelections[cat].size;
         if(count>0){ badge.textContent=count; badge.style.display='inline-flex'; btn.classList.add('has-filter'); }
         else { badge.style.display='none'; btn.classList.remove('has-filter'); }
-        btn.classList.toggle('active', loreFilterCat===cat && document.getElementById('lore-filter-panel').classList.contains('open'));
+        btn.classList.toggle('active', loreFilterCat===cat && panelOpen);
+        // Mirror onto the mobile in-sheet tabs
+        document.getElementById(`lore-tab-${cat}`)?.classList.toggle('active', loreFilterCat===cat && panelOpen);
       });
+      updateMobileAccordionCounts();
     }
 
-    // ── Mobile-only accordion badge counts (Types / Generations toggle rows) ──
+    // ── Mobile-only trigger badge counts (Types / Generations / Lore buttons) ──
     function updateMobileAccordionCounts(){
-      const tCount=document.getElementById('type-accordion-count');
+      const tCount=document.getElementById('mobile-types-count');
+      const tTrigger=document.getElementById('mobile-types-trigger');
       if(tCount){ tCount.style.display=activeTypes.size>0?'inline-flex':'none'; tCount.textContent=activeTypes.size; }
-      const gCount=document.getElementById('gen-accordion-count');
+      tTrigger?.classList.toggle('has-selection',activeTypes.size>0);
+
+      const gCount=document.getElementById('mobile-gens-count');
+      const gTrigger=document.getElementById('mobile-gens-trigger');
       if(gCount){ gCount.style.display=activeGen!=='all'?'inline-flex':'none'; gCount.textContent='1'; }
+      gTrigger?.classList.toggle('has-selection',activeGen!=='all');
+
+      const loreTotal=loreSelections.classification.size+loreSelections.badge.size+loreSelections.hazard.size;
+      const lCount=document.getElementById('mobile-lore-count');
+      const lTrigger=document.getElementById('mobile-lore-trigger');
+      if(lCount){ lCount.style.display=loreTotal>0?'inline-flex':'none'; lCount.textContent=loreTotal; }
+      lTrigger?.classList.toggle('has-selection',loreTotal>0);
     }
 
     const LORE_CAT_LABELS={classification:'Classification',badge:'Behavior',hazard:'Danger Level'};
@@ -3131,6 +3204,14 @@
 
     ['classification','badge','hazard'].forEach(cat=>{
       document.getElementById(`lore-cat-${cat}`).addEventListener('click',()=>openLorePanel(cat));
+      // Mobile in-sheet tab mirrors the same desktop button's behavior
+      document.getElementById(`lore-tab-${cat}`)?.addEventListener('click',()=>openLorePanel(cat));
+    });
+    // Mobile-only "Lore" trigger: opens the sheet on the last-used category (or Classification by default)
+    document.getElementById('mobile-lore-trigger')?.addEventListener('click',()=>{
+      const panel=document.getElementById('lore-filter-panel');
+      if(panel.classList.contains('open')){ closeLorePanel(); }
+      else { openLorePanel(loreFilterCat||'classification'); }
     });
 
     const evoIdCache={};let evoCacheReady=false;
@@ -3201,20 +3282,34 @@
       });
     });
 
-    // ── Mobile-only: Types/Generations accordion toggles ──
-    function setupMobileAccordion(toggleId,targetId,chevronId){
-      const toggle=document.getElementById(toggleId);
-      const target=document.getElementById(targetId);
-      const chevron=document.getElementById(chevronId);
-      if(!toggle||!target)return;
-      toggle.addEventListener('click',()=>{
-        const open=target.classList.toggle('mobile-open');
-        toggle.setAttribute('aria-expanded',open?'true':'false');
-        if(chevron)chevron.textContent=open?'▴':'▾';
+    // ── Mobile-only: generic bottom-sheet open/close (Types, Generations, Sort) ──
+    // sheetId is the element that gets position:fixed + slides up (via .open); triggerId opens/closes it;
+    // backdropId dims the grid behind it; closeId is an explicit ✕ button inside the sheet header.
+    function setupMobileSheet(triggerId,sheetId,backdropId,closeId){
+      const trigger=document.getElementById(triggerId);
+      const sheet=document.getElementById(sheetId);
+      const backdrop=document.getElementById(backdropId);
+      const closeBtn=closeId?document.getElementById(closeId):null;
+      if(!sheet)return;
+      const close=()=>{
+        sheet.classList.remove('open');
+        backdrop?.classList.remove('open');
+        trigger?.setAttribute('aria-expanded','false');
+      };
+      const open=()=>{
+        sheet.classList.add('open');
+        backdrop?.classList.add('open');
+        trigger?.setAttribute('aria-expanded','true');
+      };
+      trigger?.addEventListener('click',()=>{
+        sheet.classList.contains('open')?close():open();
       });
+      backdrop?.addEventListener('click',close);
+      closeBtn?.addEventListener('click',close);
     }
-    setupMobileAccordion('type-accordion-toggle','type-filters','type-accordion-chevron');
-    setupMobileAccordion('gen-accordion-toggle','gen-filters','gen-accordion-chevron');
+    setupMobileSheet('mobile-types-trigger','type-filter-row','type-sheet-backdrop','type-sheet-close');
+    setupMobileSheet('mobile-gens-trigger','gen-filter-row','gen-sheet-backdrop','gen-sheet-close');
+    setupMobileSheet('mobile-sort-trigger','grid-sort-wrapper','sort-sheet-backdrop','sort-sheet-close');
 
     // ── Mobile-only: Clear all (types + lore selections; generation resets to the Kanto default) ──
     document.getElementById('mobile-clear-all-btn')?.addEventListener('click',()=>{
@@ -3240,7 +3335,7 @@
       renderGrid();
       if(isGlobalShiny)requestAnimationFrame(()=>showSparkleAll('.grid .card'));
     });
-    document.getElementById('sort-dir-btn').addEventListener('click',()=>{sortAscending=!sortAscending;document.getElementById('sort-dir-btn').textContent=sortAscending?'↑':'↓';renderGrid();});
+    document.getElementById('sort-dir-btn').addEventListener('click',()=>{sortAscending=!sortAscending;const dir=sortAscending?'↑':'↓';document.getElementById('sort-dir-btn').textContent=dir;const mIcon=document.getElementById('mobile-sort-icon');if(mIcon)mIcon.textContent=dir;renderGrid();});
     // ── Stat cache ─────────────────────────────────────────────────────
     // Keyed by pokemon id. Populated lazily when a stat sort is first selected.
     const statCache = {}; // { [id]: { bst, hp, attack, defense, spatk, spdef, speed, weight, height } }
