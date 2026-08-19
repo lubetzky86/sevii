@@ -1134,11 +1134,14 @@
     .obtain-body { display: flex; flex: 1; overflow: hidden; min-height: 0; }
     .obtain-games-column { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; padding: 8px 10px 8px 10px; gap: 5px; overflow: hidden; transition: background 0.3s; }
     .obtain-in-label { font-size: 11px; font-weight: 800; color: rgba(0,0,0,0.5); text-transform: uppercase; letter-spacing: 0.4px; width: 100%; padding: 0 2px; text-align: left; }
-    .obtain-games-panel { flex: 1; width: 100%; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; padding-top: 4px; }
+    .obtain-games-panel { flex: 1; width: 100%; display: flex; flex-direction: column; gap: 18px; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; padding-top: 4px; }
     .obtain-games-panel::-webkit-scrollbar { display: none; }
-    .obtain-gen-block { display: flex; flex-direction: column; gap: 7px; width: 100%; }
-    .obtain-gen-label { font-size: 10px; font-weight: 800; color: #999; text-transform: uppercase; letter-spacing: 0.6px; padding: 0 0 5px; margin: 0; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.08); }
-    .obtain-game-row { display: flex; flex-direction: row; align-items: stretch; gap: 8px; width: 100%; }
+    .obtain-gen-block { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+    .obtain-gen-label { font-size: 13px; font-weight: 800; color: #3a3a3a; letter-spacing: 0.2px; padding: 0; margin: 0; text-align: left; }
+    /* Every row within a generation shares the SAME 3-slot grid, so a 2-game row and a
+       3-game row produce identically sized buttons — only a flexible row (flex:1 per item)
+       would make a 2-item row's buttons bigger than a 3-item row's, which read as inconsistent. */
+    .obtain-game-row { display: flex; flex-direction: row; align-items: stretch; justify-content: flex-start; gap: 8px; width: 100%; }
     .obtain-breeding-note { font-size: 12px; line-height: 1.5; color: #777; background: rgba(0,0,0,0.04); border-radius: 10px; padding: 10px 12px; margin: 0 0 8px; text-align: center; }
     .obtain-divider { width: 1px; background: rgba(0,0,0,0.1); flex-shrink: 0; }
     /* Mobile-only bottom-sheet trigger for the games list — inert/invisible on desktop by default,
@@ -1154,12 +1157,12 @@
     .obtain-content-panel { flex: 1; display: flex; flex-direction: column; gap: 7px; overflow-y: hidden; padding: 8px 12px 8px 10px; }
     .obtain-content-panel::-webkit-scrollbar { display: none; }
     /* ── Game buttons ── */
-    .obtain-game-btn { display: flex; align-items: center; justify-content: center; padding: 3px; border-radius: 8px; border: 1.5px solid rgba(0,0,0,0.07); cursor: pointer; background: #f7f6f2; flex: 1 1 0; min-width: 0; height: 40px; overflow: hidden; transition: opacity 0.15s, border-color 0.15s, background 0.15s, transform 0.1s; }
-    .obtain-game-btn:hover { border-color: rgba(0,0,0,0.16); transform: translateY(-1px); }
-    .obtain-game-btn.selected { opacity: 1; border-color: rgba(0,0,0,0.35); background: #efede6; }
+    .obtain-game-btn { display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 0; border-radius: 7px; border: none; cursor: pointer; background: transparent; width: calc((100% - 16px) / 3); flex: 0 0 auto; height: 38px; overflow: hidden; transition: opacity 0.15s, box-shadow 0.15s, transform 0.1s; }
+    .obtain-game-btn:hover { transform: translateY(-1px); }
+    .obtain-game-btn.selected { opacity: 1; box-shadow: 0 0 0 2px rgba(0,0,0,0.55); }
     .obtain-games-panel.has-selection .obtain-game-btn:not(.selected) { opacity: 0.35; }
     .obtain-games-panel.has-selection .obtain-game-btn:not(.selected):hover { opacity: 0.6; }
-    .obtain-game-img { width: 100%; height: 100%; object-fit: contain; border-radius: 5px; }
+    .obtain-game-img { width: 100%; height: 100%; object-fit: contain; border-radius: 6px; }
     .obtain-game-icon { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; color: rgba(0,0,0,0.4); text-align: center; padding: 4px; line-height: 1.3; }
     /* ── Info pills ── */
     .obtain-info-pills { display: flex; gap: 8px; flex-shrink: 0; align-items: stretch; }
