@@ -1534,33 +1534,53 @@
       .mobile-clear-all-btn:active { background: #f0f0ee; }
 
       .mobile-filter-buttons-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+      /* Abilities only has 3 filter/sort triggers (Gens / Kind / Sort) instead of Pokémon's 4 —
+         same trigger row, same button styling, just one fewer column. */
+      .mobile-filter-buttons-row.cols-3 { grid-template-columns: repeat(3, 1fr); }
       .mobile-filter-trigger { display: flex; align-items: center; justify-content: center; gap: 5px; height: 40px; border-radius: 8px; border: 1.5px solid #e2ddd0; background: #f7f5f0; font-family: 'Archivo Black', sans-serif; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; color: #43656e; cursor: pointer; }
       .mobile-filter-trigger.has-selection { border-color: #43656e; background: #eef4f3; }
       .mobile-trigger-count { display: none; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #43656e; color: white; font-size: 9px; font-weight: 800; align-items: center; justify-content: center; }
-      .mobile-sort-trigger #mobile-sort-icon { font-size: 12px; }
+      .mobile-sort-trigger span:first-child { font-size: 12px; }
 
       /* Original desktop rows: hidden on mobile, replaced by the trigger row above.
-         Their content (pill grids / lore buttons) is re-purposed as bottom sheets below. */
-      #type-filter-row > .type-filter-strip, #gen-filter-row > .gen-strip { display: none; }
+         Their content (pill grids / lore buttons / kind+category buttons) is re-purposed as
+         bottom sheets below. Same mechanism reused verbatim for Abilities and Moves so all three
+         sections' filter drawers behave identically. */
+      #type-filter-row > .type-filter-strip, #gen-filter-row > .gen-strip,
+      #ab-gen-filter-row > .gen-strip, #ab-hidden-filter-row > #ab-hidden-row,
+      #mv-type-filter-row > #mv-type-filter, #mv-gen-filter-row > .gen-strip,
+      #mv-cat-filter-row > #mv-cat-row { display: none; }
       .lore-filter-row { display: none; }
 
-      /* ── Generic bottom sheet mechanics, shared by Types / Generations / Lore / Sort ── */
+      /* ── Generic bottom sheet mechanics, shared by every filter/sort trigger across all three
+         sections (Pokémon: Types/Generations/Sort; Abilities: Generations/Kind/Sort; Moves:
+         Type/Generations/Category/Sort). One mechanism, reused by ID list, same as the Lore
+         sheet reuses it below. ── */
       .mobile-sheet-backdrop { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 400; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
       .mobile-sheet-backdrop.open { opacity: 1; pointer-events: all; }
-      #type-filter-row, #gen-filter-row, #grid-sort-wrapper {
+      #type-filter-row, #gen-filter-row, #grid-sort-wrapper,
+      #ab-gen-filter-row, #ab-hidden-filter-row, #ab-sort-wrap,
+      #mv-type-filter-row, #mv-gen-filter-row, #mv-cat-filter-row, #mv-sort-wrap {
         position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 401;
         display: flex; flex-direction: column; background: white; border-radius: 16px 16px 0 0;
         max-height: 65vh; overflow-y: auto; padding: 14px 14px calc(14px + env(safe-area-inset-bottom, 0px));
         transform: translateY(100%); transition: transform 0.25s ease; box-shadow: 0 -6px 24px rgba(0,0,0,0.2);
       }
-      #type-filter-row.open, #gen-filter-row.open, #grid-sort-wrapper.open { transform: translateY(0); }
+      #type-filter-row.open, #gen-filter-row.open, #grid-sort-wrapper.open,
+      #ab-gen-filter-row.open, #ab-hidden-filter-row.open, #ab-sort-wrap.open,
+      #mv-type-filter-row.open, #mv-gen-filter-row.open, #mv-cat-filter-row.open, #mv-sort-wrap.open { transform: translateY(0); }
       .mobile-sheet-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0; }
       .mobile-sheet-title { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: #333; }
       .mobile-sheet-close { width: 30px; height: 30px; border-radius: 50%; border: none; background: #f0efe9; font-size: 13px; color: #555; cursor: pointer; }
 
-      #type-filter-row.open .type-filter-strip, #gen-filter-row.open .gen-strip { display: flex; flex-wrap: wrap; overflow: visible; gap: 8px; }
-      #type-filter-row.open .type-pill { flex: 0 0 calc(25% - 6px); width: auto; height: 64px; }
-      #gen-filter-row.open .gen-pill { flex: 0 0 calc(33.333% - 6px); height: 64px; }
+      #type-filter-row.open .type-filter-strip, #gen-filter-row.open .gen-strip,
+      #ab-gen-filter-row.open .gen-strip, #mv-gen-filter-row.open .gen-strip,
+      #mv-type-filter-row.open #mv-type-filter { display: flex; flex-wrap: wrap; overflow: visible; gap: 8px; }
+      #ab-hidden-filter-row.open #ab-hidden-row, #mv-cat-filter-row.open #mv-cat-row { display: flex; flex-wrap: wrap; overflow: visible; gap: 8px; justify-content: center; }
+      #type-filter-row.open .type-pill, #mv-type-filter-row.open .type-pill { flex: 0 0 calc(25% - 6px); width: auto; height: 64px; }
+      #gen-filter-row.open .gen-pill, #ab-gen-filter-row.open .gen-pill, #mv-gen-filter-row.open .gen-pill { flex: 0 0 calc(33.333% - 6px); height: 64px; }
+      #ab-hidden-filter-row.open .ab-hidden-btn { flex: 0 0 calc(50% - 4px); max-width: none; height: 64px; }
+      #mv-cat-filter-row.open .mv-cat-btn { flex: 0 0 calc(33.333% - 6px); width: auto; height: 64px; }
 
       /* Lore: single "Lore" trigger opens one sheet with 3 tabs (Classification / Behavior / Danger Level) */
       .lore-filter-backdrop { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 400; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
@@ -1591,14 +1611,16 @@
       .lore-icon-btn img { width: 52px; height: 52px; }
 
       /* Sort: reuses the existing select + direction button inside its own bottom sheet.
-         grid-top-bar itself collapses to nothing (display:contents keeps its fixed-positioned
-         child working — a plain display:none would hide that child too). */
-      .grid-top-bar { display: contents; }
-      .result-count { display: none; }
-      #grid-sort-wrapper { align-items: stretch; gap: 10px; }
-      #grid-sort-wrapper label { display: none; }
-      #grid-sort-wrapper select { height: 44px; font-size: 14px; width: 100%; }
-      #grid-sort-wrapper .grid-sort-dir { width: 100%; height: 40px; border-radius: 8px; font-size: 16px; }
+         grid-top-bar/ab-top-bar itself collapses to nothing (display:contents keeps its
+         fixed-positioned child working — a plain display:none would hide that child too).
+         .ab-top-bar/.ab-result-count are shared classes used by both Abilities and Moves, so one
+         rule here covers both sections' sort bars. */
+      .grid-top-bar, .ab-top-bar { display: contents; }
+      .result-count, .ab-result-count { display: none; }
+      #grid-sort-wrapper, #ab-sort-wrap, #mv-sort-wrap { align-items: stretch; gap: 10px; }
+      #grid-sort-wrapper label, #ab-sort-wrap label, #mv-sort-wrap label { display: none; }
+      #grid-sort-wrapper select, #ab-sort-wrap select, #mv-sort-wrap select { height: 44px; font-size: 14px; width: 100%; }
+      #grid-sort-wrapper .grid-sort-dir, #ab-sort-wrap .grid-sort-dir, #mv-sort-wrap .grid-sort-dir { width: 100%; height: 40px; border-radius: 8px; font-size: 16px; }
 
       #right-panel { width: 100%; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100; }
       .ab-right-panel { width: 100%; }
@@ -2248,7 +2270,29 @@
       <div class="ab-left-panel" id="ab-left-panel">
         <!-- Gen row -->
         <div class="ab-filter-bar">
-          <div class="filter-row">
+          <!-- Mobile-only toolbar + trigger row — same pattern as the Pokémon section's Types/
+               Generations/Sort row, just with Abilities' own two filters (Gens, Kind) plus Sort. -->
+          <div class="mobile-filters-toolbar" id="ab-mobile-filters-toolbar">
+            <span class="mobile-filters-label">Filters</span>
+            <button class="mobile-clear-all-btn" id="ab-mobile-clear-all-btn">Clear all</button>
+          </div>
+          <div class="mobile-filter-buttons-row cols-3" id="ab-mobile-filter-buttons-row">
+            <button class="mobile-filter-trigger" id="mobile-ab-gens-trigger" aria-expanded="false">
+              Gens<span class="mobile-trigger-count" id="mobile-ab-gens-count">0</span>
+            </button>
+            <button class="mobile-filter-trigger" id="mobile-ab-kind-trigger" aria-expanded="false">
+              Kind<span class="mobile-trigger-count" id="mobile-ab-kind-count">0</span>
+            </button>
+            <button class="mobile-filter-trigger mobile-sort-trigger" id="mobile-ab-sort-trigger" aria-expanded="false">
+              <span id="mobile-ab-sort-icon">↑</span> Sort
+            </button>
+          </div>
+
+          <div class="filter-row" id="ab-gen-filter-row">
+            <div class="mobile-sheet-header">
+              <span class="mobile-sheet-title">Generations</span>
+              <button class="mobile-sheet-close" id="ab-gen-sheet-close">✕</button>
+            </div>
             <div class="gen-strip gen-pills" id="ab-gen-filters">
               <div class="gen-pill" data-gen="1"><img src="icons/generations/1.png" alt="Gen I"></div>
               <div class="gen-pill" data-gen="2"><img src="icons/generations/2.png" alt="Gen II"></div>
@@ -2261,16 +2305,29 @@
               <div class="gen-pill" data-gen="9"><img src="icons/generations/9.png" alt="Gen IX"></div>
             </div>
           </div>
+          <div class="mobile-sheet-backdrop" id="ab-gen-sheet-backdrop"></div>
+
           <!-- Hidden/Regular row -->
-          <div class="ab-hidden-row" id="ab-hidden-row">
-            <button class="ab-hidden-btn" data-hidden="regular"><img src="icons/tabs/regular.png" alt="Regular"></button>
-            <button class="ab-hidden-btn" data-hidden="hidden"><img src="icons/tabs/hidden.png" alt="Hidden"></button>
+          <div class="filter-row" id="ab-hidden-filter-row">
+            <div class="mobile-sheet-header">
+              <span class="mobile-sheet-title">Kind</span>
+              <button class="mobile-sheet-close" id="ab-hidden-sheet-close">✕</button>
+            </div>
+            <div class="ab-hidden-row" id="ab-hidden-row">
+              <button class="ab-hidden-btn" data-hidden="regular"><img src="icons/tabs/regular.png" alt="Regular"></button>
+              <button class="ab-hidden-btn" data-hidden="hidden"><img src="icons/tabs/hidden.png" alt="Hidden"></button>
+            </div>
           </div>
+          <div class="mobile-sheet-backdrop" id="ab-hidden-sheet-backdrop"></div>
         </div>
         <!-- Count + sort inside grid area, fixed -->
         <div class="ab-top-bar">
           <div class="ab-result-count" id="ab-result-count"></div>
-          <div class="ab-sort-wrap">
+          <div class="ab-sort-wrap" id="ab-sort-wrap">
+            <div class="mobile-sheet-header">
+              <span class="mobile-sheet-title">Sort by</span>
+              <button class="mobile-sheet-close" id="ab-sort-sheet-close">✕</button>
+            </div>
             <label for="ab-sort-select">Sort by</label>
             <select class="ab-sort-select" id="ab-sort-select">
               <option value="alpha">Alphabetical</option>
@@ -2279,6 +2336,7 @@
             <div class="grid-sort-dir" id="ab-sort-dir-btn">↑</div>
           </div>
         </div>
+        <div class="mobile-sheet-backdrop" id="ab-sort-sheet-backdrop"></div>
         <div class="ab-grid" id="ab-grid">
           <div class="ab-loading" id="ab-loading">Loading abilities…</div>
         </div>
@@ -2324,10 +2382,41 @@
     <div class="section-panel" id="section-moves">
       <div class="mv-left-panel" id="mv-left-panel">
         <div class="mv-filter-bar">
-          <div class="filter-row">
+          <!-- Mobile-only toolbar + trigger row — same pattern as Pokémon/Abilities, with Moves'
+               four filters (Type, Gens, Category) plus Sort. -->
+          <div class="mobile-filters-toolbar" id="mv-mobile-filters-toolbar">
+            <span class="mobile-filters-label">Filters</span>
+            <button class="mobile-clear-all-btn" id="mv-mobile-clear-all-btn">Clear all</button>
+          </div>
+          <div class="mobile-filter-buttons-row" id="mv-mobile-filter-buttons-row">
+            <button class="mobile-filter-trigger" id="mobile-mv-type-trigger" aria-expanded="false">
+              Type<span class="mobile-trigger-count" id="mobile-mv-type-count">0</span>
+            </button>
+            <button class="mobile-filter-trigger" id="mobile-mv-gens-trigger" aria-expanded="false">
+              Gens<span class="mobile-trigger-count" id="mobile-mv-gens-count">0</span>
+            </button>
+            <button class="mobile-filter-trigger" id="mobile-mv-cat-trigger" aria-expanded="false">
+              Category<span class="mobile-trigger-count" id="mobile-mv-cat-count">0</span>
+            </button>
+            <button class="mobile-filter-trigger mobile-sort-trigger" id="mobile-mv-sort-trigger" aria-expanded="false">
+              <span id="mobile-mv-sort-icon">↑</span> Sort
+            </button>
+          </div>
+
+          <div class="filter-row" id="mv-type-filter-row">
+            <div class="mobile-sheet-header">
+              <span class="mobile-sheet-title">Type</span>
+              <button class="mobile-sheet-close" id="mv-type-sheet-close">✕</button>
+            </div>
             <div class="mv-type-row" id="mv-type-filter"></div>
           </div>
-          <div class="filter-row">
+          <div class="mobile-sheet-backdrop" id="mv-type-sheet-backdrop"></div>
+
+          <div class="filter-row" id="mv-gen-filter-row">
+            <div class="mobile-sheet-header">
+              <span class="mobile-sheet-title">Generations</span>
+              <button class="mobile-sheet-close" id="mv-gen-sheet-close">✕</button>
+            </div>
             <div class="gen-strip gen-pills" id="mv-gen-filters">
               <div class="gen-pill" data-gen="1"><img src="icons/generations/1.png" alt="Gen I"></div>
               <div class="gen-pill" data-gen="2"><img src="icons/generations/2.png" alt="Gen II"></div>
@@ -2340,16 +2429,29 @@
               <div class="gen-pill" data-gen="9"><img src="icons/generations/9.png" alt="Gen IX"></div>
             </div>
           </div>
+          <div class="mobile-sheet-backdrop" id="mv-gen-sheet-backdrop"></div>
+
           <!-- Category row: image-only for Physical/Special/Status, pill-all for ALL -->
-          <div class="mv-cat-row" id="mv-cat-row">
-            <button class="mv-cat-btn" data-cat="physical"><img src="icons/moves/physical.png" alt="Physical"></button>
-            <button class="mv-cat-btn" data-cat="special"><img src="icons/moves/special.png" alt="Special"></button>
-            <button class="mv-cat-btn" data-cat="status"><img src="icons/moves/status.png" alt="Status"></button>
+          <div class="filter-row" id="mv-cat-filter-row">
+            <div class="mobile-sheet-header">
+              <span class="mobile-sheet-title">Category</span>
+              <button class="mobile-sheet-close" id="mv-cat-sheet-close">✕</button>
+            </div>
+            <div class="mv-cat-row" id="mv-cat-row">
+              <button class="mv-cat-btn" data-cat="physical"><img src="icons/moves/physical.png" alt="Physical"></button>
+              <button class="mv-cat-btn" data-cat="special"><img src="icons/moves/special.png" alt="Special"></button>
+              <button class="mv-cat-btn" data-cat="status"><img src="icons/moves/status.png" alt="Status"></button>
+            </div>
           </div>
+          <div class="mobile-sheet-backdrop" id="mv-cat-sheet-backdrop"></div>
         </div>
         <div class="ab-top-bar">
           <div class="ab-result-count" id="mv-result-count"></div>
-          <div class="ab-sort-wrap">
+          <div class="ab-sort-wrap" id="mv-sort-wrap">
+            <div class="mobile-sheet-header">
+              <span class="mobile-sheet-title">Sort by</span>
+              <button class="mobile-sheet-close" id="mv-sort-sheet-close">✕</button>
+            </div>
             <label for="mv-sort-select">Sort by</label>
             <select class="ab-sort-select" id="mv-sort-select">
               <option value="alpha">Alphabetical</option>
@@ -2360,6 +2462,7 @@
             <div class="grid-sort-dir" id="mv-sort-dir-btn">↑</div>
           </div>
         </div>
+        <div class="mobile-sheet-backdrop" id="mv-sort-sheet-backdrop"></div>
         <div class="mv-grid" id="mv-grid">
           <div class="ab-loading" id="mv-loading">Loading moves…</div>
         </div>
@@ -2740,8 +2843,8 @@
 
     document.getElementById('ab-detail-close').addEventListener('click', closeAbSection);
     document.getElementById('ab-sort-select').addEventListener('change', renderAbGrid);
-    document.getElementById('ab-sort-dir-btn').addEventListener('click',()=>{abSortAscending=!abSortAscending;document.getElementById('ab-sort-dir-btn').textContent=abSortAscending?'↑':'↓';renderAbGrid();});
-    document.getElementById('mv-sort-dir-btn').addEventListener('click',()=>{mvSortAscending=!mvSortAscending;document.getElementById('mv-sort-dir-btn').textContent=mvSortAscending?'↑':'↓';renderMvGrid();});
+    document.getElementById('ab-sort-dir-btn').addEventListener('click',()=>{abSortAscending=!abSortAscending;const dir=abSortAscending?'↑':'↓';document.getElementById('ab-sort-dir-btn').textContent=dir;const mIcon=document.getElementById('mobile-ab-sort-icon');if(mIcon)mIcon.textContent=dir;renderAbGrid();});
+    document.getElementById('mv-sort-dir-btn').addEventListener('click',()=>{mvSortAscending=!mvSortAscending;const dir=mvSortAscending?'↑':'↓';document.getElementById('mv-sort-dir-btn').textContent=dir;const mIcon=document.getElementById('mobile-mv-sort-icon');if(mIcon)mIcon.textContent=dir;renderMvGrid();});
 
     // Ability generation filter
     document.querySelectorAll('#ab-gen-filters .gen-pill').forEach(p=>{
@@ -2750,6 +2853,7 @@
     function updateAbGenFilter(){
       document.querySelectorAll('#ab-gen-filters .gen-pill').forEach(p=>p.classList.toggle('active',p.dataset.gen===abActiveGen));
       document.getElementById('ab-gen-filters')?.classList.toggle('has-selection',abActiveGen!=='all');
+      updateAbMobileFilterBadges();
     }
 
     // Ability hidden filter
@@ -2759,6 +2863,7 @@
         const row=document.getElementById('ab-hidden-row');
         if(abActiveHidden===val){ abActiveHidden='all'; document.querySelectorAll('.ab-hidden-btn').forEach(b=>b.classList.remove('active')); row.classList.remove('has-selection'); }
         else { abActiveHidden=val; document.querySelectorAll('.ab-hidden-btn').forEach(b=>b.classList.toggle('active',b.dataset.hidden===val)); row.classList.add('has-selection'); }
+        updateAbMobileFilterBadges();
         renderAbGrid();
       });
     });
@@ -2855,7 +2960,6 @@
         const pill=document.createElement('div');
         pill.className='type-pill'+(mvActiveType===type?' active':'');
         pill.dataset.type=type;
-        pill.style.cssText='flex:1;min-width:0;height:30px;';
         const img=document.createElement('img');
         img.src=`${FILTER_PATH}/${type}.png`;
         img.style.cssText='width:100%;height:100%;object-fit:contain;border-radius:4px;';
@@ -2867,6 +2971,7 @@
 
     function updateMvTypeFilter(){
       document.querySelectorAll('#mv-type-filter .type-pill').forEach(p=>p.classList.toggle('active',p.dataset.type===mvActiveType));
+      updateMvMobileFilterBadges();
     }
 
     document.querySelectorAll('#mv-gen-filters .gen-pill').forEach(p=>{
@@ -2875,6 +2980,7 @@
     function updateMvGenFilter(){
       document.querySelectorAll('#mv-gen-filters .gen-pill').forEach(p=>p.classList.toggle('active',p.dataset.gen===mvActiveGen));
       document.getElementById('mv-gen-filters')?.classList.toggle('has-selection',mvActiveGen!=='all');
+      updateMvMobileFilterBadges();
     }
 
     function isExcludedMoveId(id){ return id>=622&&id<=751; }
@@ -3059,6 +3165,7 @@
         const cat=btn.dataset.cat; const row=document.getElementById('mv-cat-row');
         if(mvActiveCat===cat){ mvActiveCat='all'; document.querySelectorAll('.mv-cat-btn').forEach(b=>b.classList.remove('active')); row.classList.remove('has-selection'); }
         else { mvActiveCat=cat; document.querySelectorAll('.mv-cat-btn').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat)); row.classList.add('has-selection'); }
+        updateMvMobileFilterBadges();
         renderMvGrid();
       });
     });
@@ -3445,6 +3552,71 @@
     setupMobileSheet('mobile-gens-trigger','gen-filter-row','gen-sheet-backdrop','gen-sheet-close');
     setupMobileSheet('mobile-sort-trigger','grid-sort-wrapper','sort-sheet-backdrop','sort-sheet-close');
     setupMobileSheet('obtain-games-trigger','obtain-games-column','obtain-games-backdrop','obtain-games-sheet-close');
+    // Abilities & Moves reuse the exact same bottom-sheet helper as the Pokémon section, so all
+    // three sections' filter drawers open/close/behave identically.
+    setupMobileSheet('mobile-ab-gens-trigger','ab-gen-filter-row','ab-gen-sheet-backdrop','ab-gen-sheet-close');
+    setupMobileSheet('mobile-ab-kind-trigger','ab-hidden-filter-row','ab-hidden-sheet-backdrop','ab-hidden-sheet-close');
+    setupMobileSheet('mobile-ab-sort-trigger','ab-sort-wrap','ab-sort-sheet-backdrop','ab-sort-sheet-close');
+    setupMobileSheet('mobile-mv-type-trigger','mv-type-filter-row','mv-type-sheet-backdrop','mv-type-sheet-close');
+    setupMobileSheet('mobile-mv-gens-trigger','mv-gen-filter-row','mv-gen-sheet-backdrop','mv-gen-sheet-close');
+    setupMobileSheet('mobile-mv-cat-trigger','mv-cat-filter-row','mv-cat-sheet-backdrop','mv-cat-sheet-close');
+    setupMobileSheet('mobile-mv-sort-trigger','mv-sort-wrap','mv-sort-sheet-backdrop','mv-sort-sheet-close');
+
+    // ── Mobile trigger badges (count + has-selection) for Abilities & Moves — mirrors
+    // updateMobileAccordionCounts() for the Pokémon section's Types/Gens/Lore triggers. ──
+    function updateAbMobileFilterBadges(){
+      const gTrigger=document.getElementById('mobile-ab-gens-trigger');
+      const gCount=document.getElementById('mobile-ab-gens-count');
+      const gOn=abActiveGen!=='all';
+      if(gCount){gCount.textContent=gOn?'1':'0';gCount.style.display=gOn?'inline-flex':'none';}
+      gTrigger?.classList.toggle('has-selection',gOn);
+
+      const kTrigger=document.getElementById('mobile-ab-kind-trigger');
+      const kCount=document.getElementById('mobile-ab-kind-count');
+      const kOn=abActiveHidden!=='all';
+      if(kCount){kCount.textContent=kOn?'1':'0';kCount.style.display=kOn?'inline-flex':'none';}
+      kTrigger?.classList.toggle('has-selection',kOn);
+    }
+    function updateMvMobileFilterBadges(){
+      const tTrigger=document.getElementById('mobile-mv-type-trigger');
+      const tCount=document.getElementById('mobile-mv-type-count');
+      const tOn=mvActiveType!=='all';
+      if(tCount){tCount.textContent=tOn?'1':'0';tCount.style.display=tOn?'inline-flex':'none';}
+      tTrigger?.classList.toggle('has-selection',tOn);
+
+      const gTrigger=document.getElementById('mobile-mv-gens-trigger');
+      const gCount=document.getElementById('mobile-mv-gens-count');
+      const gOn=mvActiveGen!=='all';
+      if(gCount){gCount.textContent=gOn?'1':'0';gCount.style.display=gOn?'inline-flex':'none';}
+      gTrigger?.classList.toggle('has-selection',gOn);
+
+      const cTrigger=document.getElementById('mobile-mv-cat-trigger');
+      const cCount=document.getElementById('mobile-mv-cat-count');
+      const cOn=mvActiveCat!=='all';
+      if(cCount){cCount.textContent=cOn?'1':'0';cCount.style.display=cOn?'inline-flex':'none';}
+      cTrigger?.classList.toggle('has-selection',cOn);
+    }
+
+    // ── Clear all — same behavior/labeling as the Pokémon section's "Clear all" button ──
+    document.getElementById('ab-mobile-clear-all-btn')?.addEventListener('click',()=>{
+      abActiveGen='all';abActiveHidden='all';
+      document.querySelectorAll('#ab-gen-filters .gen-pill').forEach(p=>p.classList.remove('active'));
+      document.getElementById('ab-gen-filters')?.classList.remove('has-selection');
+      document.querySelectorAll('.ab-hidden-btn').forEach(b=>b.classList.remove('active'));
+      document.getElementById('ab-hidden-row')?.classList.remove('has-selection');
+      updateAbMobileFilterBadges();
+      renderAbGrid();
+    });
+    document.getElementById('mv-mobile-clear-all-btn')?.addEventListener('click',()=>{
+      mvActiveType='all';mvActiveGen='all';mvActiveCat='all';
+      updateMvTypeFilter();
+      document.querySelectorAll('#mv-gen-filters .gen-pill').forEach(p=>p.classList.remove('active'));
+      document.getElementById('mv-gen-filters')?.classList.remove('has-selection');
+      document.querySelectorAll('.mv-cat-btn').forEach(b=>b.classList.remove('active'));
+      document.getElementById('mv-cat-row')?.classList.remove('has-selection');
+      updateMvMobileFilterBadges();
+      renderMvGrid();
+    });
     (function(){
       const panel=document.getElementById('obtain-games-panel');
       const label=document.getElementById('obtain-games-trigger-label');
@@ -6492,6 +6664,8 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
     document.querySelector('#gen-filters .gen-pill[data-gen="1"]')?.classList.add('active');
     document.getElementById('gen-filters')?.classList.add('has-selection');
     updateMobileAccordionCounts();
+    updateAbMobileFilterBadges();
+    updateMvMobileFilterBadges();
   </script>
 </body>
 </html>
