@@ -1591,16 +1591,18 @@
       .type-badge-img { width: 22px; height: 22px; }
 
       /* ── Moveset modal table: icons were disproportionately large and the Power/Acc/PP
-         columns' font ate space the Move name column badly needed (hence the "…" truncation). ── */
+         columns' font ate space the Move name column badly needed. First pass over-corrected —
+         gave Move so much room that Power/Acc/PP got squeezed back down to unreadable. These are
+         all explicit px ratios (table-layout:fixed scales them proportionally to the table's
+         actual 100%-wide box), balanced so every column has enough room for its longest value:
+         "100%" needs ~3 digits, move names need real room but not all of it. */
       .moveset-type-icon { width: 18px; height: 18px; }
-      .moveset-table thead th.right { font-size: 9px; width: 26px; padding-right: 4px; }
+      .moveset-table thead th.right { font-size: 9px; width: 36px; padding-right: 4px; }
       .moveset-table tbody td.right { font-size: 11px; padding-right: 4px; }
-      .moveset-table thead th:first-child { width: 26px; }
-      .moveset-table thead th.col-type { width: 24px; }
-      .moveset-table thead th.col-cat { width: 28px; }
-      /* No fixed width here — table-layout:fixed hands whatever's left over (after the columns
-         above claim their space) to this one, which is exactly the room the move name needed. */
-      .moveset-table thead th.col-move { width: auto; }
+      .moveset-table thead th:first-child { width: 24px; }
+      .moveset-table thead th.col-type { width: 26px; }
+      .moveset-table thead th.col-cat { width: 30px; }
+      .moveset-table thead th.col-move { width: 140px; }
     }
   </style>
 </head>
@@ -2019,14 +2021,8 @@
         <!-- PINNED TOP: controls + name + sprite + types -->
         <div class="info-pinned-top" id="info-pinned-top">
 
-          <!-- Row 1: Favorite | Lists | [spacer] | Shiny | Close -->
+          <!-- Row 1: [spacer] | Shiny | Close — Favorite/Lists removed until those features are built -->
           <div class="info-controls-bar">
-            <button class="info-fav-btn" id="info-fav-btn">
-              <span>Favorite</span><span class="info-fav-star">★</span>
-            </button>
-            <button class="info-lists-btn" id="info-lists-btn" title="Lists (coming soon)">
-              Lists <span class="info-lists-chevron"></span>
-            </button>
             <div style="flex:1;"></div>
             <div class="obtain-shiny-btn" id="info-shiny-control" title="Toggle Shiny">
               <span class="obtain-shiny-emoji">✨</span>
@@ -3577,13 +3573,7 @@
       if(isInfoShiny){const s=new Audio('https://play.pokemonshowdown.com/audio/cries/shinypokemon.mp3');s.volume=0.6;s.play().catch(()=>{});}
     });
 
-    // Favorites button (visual only for now)
-    // Favorite button — disabled until feature is built out
-    document.getElementById('info-fav-btn').style.opacity='0.45';
-    document.getElementById('info-fav-btn').style.cursor='default';
-    document.getElementById('info-fav-btn').style.pointerEvents='none';
-
-    // Lists button — disabled until feature is built out
+    // Favorite/Lists buttons removed (were placeholders, not yet built) — see info-controls-bar above.
 
     // Cry button with 3-second cooldown
     let currentAudio=null;let cryCooldown=false;
@@ -3644,12 +3634,32 @@
       document.getElementById('info-sprite-img').src=sprite;
     }
 
+    // Shrinks the Pokémon name to fit on one line instead of truncating with "…" (e.g. "Alolan
+    // Sandslash"). Starts from the CSS clamp()-driven size and steps down until it fits, or hits
+    // a sensible floor so very long names still stay legible rather than becoming tiny.
+    function fitPokemonNameFont(){
+      const el=document.getElementById('info-pokemon-name');
+      if(!el)return;
+      el.style.fontSize='';
+      let size=parseFloat(getComputedStyle(el).fontSize);
+      const minSize=16;
+      el.style.fontSize=size+'px';
+      let guard=0;
+      while(el.scrollWidth>el.clientWidth&&size>minSize&&guard<60){
+        size-=1;
+        el.style.fontSize=size+'px';
+        guard++;
+      }
+    }
+    window.addEventListener('resize',()=>{ if(document.getElementById('right-panel')?.classList.contains('open')) fitPokemonNameFont(); });
+
     function updateInfoHeader(pokemon){
       updateInfoSprite(pokemon);
       document.getElementById('info-sprite-img').alt=getDisplayName(pokemon.name);
       let displayId=pokemon.id;
       if(pokemon.id>10000&&pokemon.species?.url){const m=pokemon.species.url.match(/\/(\d+)\/$/);if(m)displayId=parseInt(m[1]);}
       document.getElementById('info-pokemon-name').textContent=getDisplayName(pokemon.name).toUpperCase();
+      fitPokemonNameFont();
       document.getElementById('info-pokemon-number').textContent=`# ${String(displayId).padStart(4,'0')}`;
       const hm=(pokemon.height/10).toFixed(1),hft=Math.floor(pokemon.height/3.048),hin=Math.round((pokemon.height/3.048-hft)*12);
       document.getElementById('info-height').textContent=`${hm} m (${hft}'${hin}")`;
