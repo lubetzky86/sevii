@@ -39494,8 +39494,8 @@
     "name": "Tornadus",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Sub-Legendary",
+        "justification": "The legendary storm-stirring Pokemon that can make seasons turn."
       }
     ],
     "behavioral_badges": [
@@ -39557,8 +39557,8 @@
     "name": "Thundurus",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Sub-Legendary",
+        "justification": "The legendary wielder of electricity"
       }
     ],
     "behavioral_badges": [
@@ -39746,8 +39746,8 @@
     "name": "Landorus",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Sub-Legendary",
+        "justification": "The legendary enricher of soil and harvest Pokemon, comes to us to break the qwell between thunder and wind."
       }
     ],
     "behavioral_badges": [
@@ -44253,8 +44253,8 @@
     "name": "Zygarde",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Sub-Legendary",
+        "justification": "Seeker of balance between life and death, Zygarde will assemble its multi-cellular body to its legendary 100% Complete form to take on any event that may disrupt this balance."
       }
     ],
     "behavioral_badges": [
