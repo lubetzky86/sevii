@@ -40,6 +40,7 @@
     .sidenav-nav { display: flex; flex-direction: column; gap: 12px; padding: 18px 20px; flex: 1; }
     .sidenav-item { display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; border: 2px solid transparent; background: none; width: 100%; border-radius: 10px; overflow: hidden; transition: border-color 0.15s, box-shadow 0.15s, opacity 0.15s; }
     .sidenav-item img.sidenav-section-img { width: 100%; height: auto; display: block; border-radius: 8px; }
+    .sidenav-item svg.sidenav-section-img { width: 100%; aspect-ratio: 1 / 1; height: auto; display: block; border-radius: 8px; background: #eae3d7; padding: 14px; box-sizing: border-box; }
     .sidenav-item:hover { border-color: #c8bfaf; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     .sidenav-item.active { border-color: #43656e; box-shadow: 0 2px 12px rgba(67,101,110,0.2); }
     .sidenav-item.disabled { opacity: 0.35; cursor: default; pointer-events: none; filter: saturate(0); }
@@ -1383,41 +1384,84 @@
     .moveset-footer-btn { width: 130px; padding: 8px 0; border-radius: 24px; border: 2px solid var(--moveset-theme-dark, #888); background: transparent; font-size: 13px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--moveset-theme-dark, #555); cursor: pointer; transition: opacity 0.15s; }
     .moveset-footer-btn:hover:not(:disabled) { opacity: 0.7; }
     .moveset-footer-btn-inactive { opacity: 0.35; cursor: default; }
+    /* ══ LISTS SECTION ═══════════════════════════════════════════════════ */
+    .lists-switcher-bar { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 14px 4px; }
+    .lists-switcher-pill {
+      display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 20px;
+      border: 2px solid #e2ddd0; background: white; cursor: pointer; user-select: none;
+      font-family: 'Archivo Black', sans-serif; font-size: 11px; font-weight: 900; text-transform: uppercase;
+      letter-spacing: 0.3px; color: #555; transition: border-color 0.15s, background 0.15s, color 0.15s;
+    }
+    .lists-switcher-pill:hover { border-color: #c8bfaf; }
+    .lists-switcher-pill.active { border-color: #43656e; background: #43656e; color: white; }
+    .lists-switcher-pill .lists-switcher-count { font-weight: 600; text-transform: none; opacity: 0.75; letter-spacing: 0; font-family: system-ui, sans-serif; }
+    .lists-switcher-pill.fav-pill .lists-switcher-star { color: #f8d030; }
+    .lists-switcher-add {
+      display: flex; align-items: center; gap: 5px; padding: 7px 14px; border-radius: 20px;
+      border: 2px dashed #c8bfaf; background: transparent; cursor: pointer; user-select: none;
+      font-family: 'Archivo Black', sans-serif; font-size: 11px; font-weight: 900; text-transform: uppercase;
+      letter-spacing: 0.3px; color: #777; transition: border-color 0.15s, color 0.15s;
+    }
+    .lists-switcher-add:hover { border-color: #43656e; color: #43656e; }
+    .lists-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 14px 12px; flex-wrap: wrap; }
+    .lists-toolbar-sort { display: flex; align-items: center; gap: 6px; }
+    .lists-toolbar-sort select { font-size: 12px; padding: 4px 8px; border-radius: 7px; border: 1px solid #ddd; background: white; color: #333; cursor: pointer; }
+    .lists-toolbar-actions { display: flex; gap: 8px; }
+    .lists-action-btn {
+      padding: 6px 14px; border-radius: 20px; border: 1.5px solid #ddd; background: white;
+      font-size: 11px; font-weight: 700; color: #444; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .lists-action-btn:hover:not(:disabled) { border-color: #43656e; color: #43656e; }
+    .lists-action-btn.danger:hover:not(:disabled) { border-color: #c0392b; color: #c0392b; }
+    .lists-action-btn:disabled { opacity: 0.35; cursor: default; }
+
     .addlist-backdrop {
       position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 500;
       display: none; align-items: flex-end; justify-content: center;
+      backdrop-filter: blur(2px);
     }
     .addlist-backdrop.visible { display: flex; }
     .addlist-sheet {
-      background: #fff; width: 100%; max-width: 460px; border-radius: 18px 18px 0 0;
-      padding: 16px 18px 20px; max-height: 70vh; overflow-y: auto;
+      background: #fff; width: 100%; max-width: 460px; border-radius: 20px 20px 0 0;
+      padding: 10px 18px 20px; max-height: 70vh; overflow-y: auto;
       transform: translateY(100%); transition: transform 0.25s ease;
+      box-shadow: 0 -8px 30px rgba(0,0,0,0.18);
     }
     .addlist-backdrop.visible .addlist-sheet { transform: translateY(0); }
-    .addlist-sheet-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .addlist-sheet-title { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: #333; }
-    .addlist-sheet-close { width: 30px; height: 30px; border-radius: 50%; border: none; background: #f0efe9; font-size: 13px; color: #555; cursor: pointer; flex-shrink: 0; }
+    .addlist-sheet-handle { width: 36px; height: 4px; border-radius: 3px; background: #e2ddd0; margin: 2px auto 12px; }
+    .addlist-sheet-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .addlist-sheet-title { font-family: 'Archivo Black', sans-serif; font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: #1a1a1a; }
+    .addlist-sheet-close { width: 30px; height: 30px; border-radius: 50%; border: none; background: #f0efe9; font-size: 13px; color: #555; cursor: pointer; flex-shrink: 0; transition: background 0.15s; }
+    .addlist-sheet-close:hover { background: #e2ddd0; }
     .addlist-item {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 4px; border-bottom: 1px solid #f0efe9;
-      font-size: 13px; font-weight: 600; color: #222; cursor: pointer; user-select: none;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 12px 12px; margin-bottom: 6px; border-radius: 14px; background: #faf9f5;
+      border: 2px solid transparent;
+      font-size: 13px; font-weight: 800; color: #1a1a1a; cursor: pointer; user-select: none;
+      transition: background 0.15s, border-color 0.15s;
     }
-    .addlist-item:last-child { border-bottom: none; }
+    .addlist-item:hover { background: #f2efe6; }
+    .addlist-item.on { border-color: #f8d030; background: rgba(248,208,48,0.12); }
+    .addlist-item-name { font-family: 'Archivo Black', sans-serif; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .addlist-item-count { font-size: 10.5px; font-weight: 600; color: #888; margin-left: 6px; text-transform: none; letter-spacing: 0; }
     .addlist-check {
-      width: 20px; height: 20px; border-radius: 5px; border: 2px solid #ccc;
+      width: 24px; height: 24px; border-radius: 50%; border: 2px solid #ddd; background: #fff;
       display: flex; align-items: center; justify-content: center;
-      font-size: 12px; color: #fff; flex-shrink: 0; transition: background 0.15s, border-color 0.15s;
+      font-size: 12px; font-weight: 900; color: #fff; flex-shrink: 0; transition: background 0.15s, border-color 0.15s;
     }
-    .addlist-check.on { background: #1a1a1a; border-color: #1a1a1a; }
-    .addlist-create-row { display: flex; gap: 8px; margin-top: 14px; }
+    .addlist-check.on { background: #f8d030; border-color: #f8d030; color: #1a1a1a; }
+    .addlist-create-row { display: flex; gap: 8px; margin-top: 10px; padding-top: 12px; border-top: 1px solid #f0efe9; }
     .addlist-create-row input {
-      flex: 1; min-width: 0; padding: 9px 12px; border-radius: 20px; border: 1px solid #ddd;
-      font-size: 12px; font-family: inherit;
+      flex: 1; min-width: 0; padding: 10px 14px; border-radius: 20px; border: 1px solid #e2ddd0;
+      background: #faf9f5; font-size: 12px; font-family: inherit; color: #1a1a1a;
     }
+    .addlist-create-row input:focus { outline: none; border-color: #43656e; }
     .addlist-create-row button {
-      padding: 9px 16px; border-radius: 20px; border: none; background: #1a1a1a; color: #fff;
-      font-size: 11px; font-weight: 700; cursor: pointer; flex-shrink: 0;
+      padding: 10px 18px; border-radius: 20px; border: none; background: #1a1a1a; color: #fff;
+      font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; cursor: pointer; flex-shrink: 0;
+      transition: opacity 0.15s;
     }
+    .addlist-create-row button:hover { opacity: 0.85; }
 
     .ability-modal-backdrop {
       position: absolute; top: 0; left: 0; right: 0; bottom: 0;
@@ -1781,6 +1825,15 @@
       </button>
       <button class="sidenav-item" data-section="moves">
         <img src="icons/sections/moves.png" alt="Moves" class="sidenav-section-img">
+      </button>
+      <button class="sidenav-item sidenav-item-lists" data-section="lists">
+        <svg class="sidenav-section-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 6.5C4 5.67157 4.67157 5 5.5 5H18.5C19.3284 5 20 5.67157 20 6.5V17.5C20 18.3284 19.3284 19 18.5 19H5.5C4.67157 19 4 18.3284 4 17.5V6.5Z" fill="#faf5e8"/>
+          <path d="M8 9H16" stroke="#43656e" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M8 12H16" stroke="#43656e" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M8 15H13" stroke="#43656e" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M17.3 3.6L18.05 5.2L19.8 5.45L18.55 6.65L18.85 8.4L17.3 7.55L15.75 8.4L16.05 6.65L14.8 5.45L16.55 5.2L17.3 3.6Z" fill="#f8d030"/>
+        </svg>
       </button>
     </div>
 
@@ -2156,6 +2209,7 @@
       <!-- ── ADD TO LIST SHEET ── -->
       <div class="addlist-backdrop" id="addlist-backdrop">
         <div class="addlist-sheet" id="addlist-sheet">
+          <div class="addlist-sheet-handle"></div>
           <div class="addlist-sheet-header">
             <div class="addlist-sheet-title">Add to List</div>
             <button class="addlist-sheet-close" id="addlist-sheet-close">✕</button>
@@ -2573,6 +2627,32 @@
             </div>
           </div>
           <div class="ab-detail-body" id="mv-poke-body" style="background:#eae3d7;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LISTS SECTION ── -->
+    <div class="section-panel" id="section-lists">
+      <div class="left-panel" id="lists-left-panel">
+        <div class="lists-switcher-bar" id="lists-switcher-bar"></div>
+
+        <div class="lists-toolbar">
+          <div class="lists-toolbar-sort">
+            <select id="lists-sort-select">
+              <option value="alpha">Alphabetical</option>
+              <option value="number">Pokédex number</option>
+            </select>
+            <div class="grid-sort-dir" id="lists-sort-dir-btn">↑</div>
+          </div>
+          <div class="lists-toolbar-actions">
+            <button class="lists-action-btn" id="lists-rename-btn">Rename</button>
+            <button class="lists-action-btn danger" id="lists-delete-btn">Delete</button>
+          </div>
+        </div>
+
+        <div class="grid-wrapper">
+          <div class="result-count" id="lists-result-count"></div>
+          <div class="grid" id="lists-grid"></div>
         </div>
       </div>
     </div>
@@ -3291,12 +3371,16 @@
       const searchInput = document.getElementById('search-input');
       if (searchInput) {
         searchInput.placeholder = name === 'abilities' ? 'Search abilities…' :
-                                   name === 'moves'     ? 'Search moves…' : 'Search Sevii';
+                                   name === 'moves'     ? 'Search moves…' :
+                                   name === 'lists'     ? 'Search this list…' : 'Search Sevii';
         searchInput.value = '';
         document.getElementById('search-clear-btn').style.display = 'none';
       }
-      // Show global shiny only in Pokémon section
-      document.getElementById('global-shiny').style.display = name === 'pokemon' ? '' : 'none';
+      // Shiny toggle is shared UI: shown in Pokémon and Lists sections, reflecting whichever
+      // section's own shiny state is active.
+      document.getElementById('global-shiny').style.display = (name === 'pokemon' || name === 'lists') ? '' : 'none';
+      if (name === 'pokemon') document.getElementById('global-shiny').classList.toggle('on', isGlobalShiny);
+      if (name === 'lists') document.getElementById('global-shiny').classList.toggle('on', isListsShiny);
       closeSidenav();
       if (name === 'abilities') {
         if (!abLoaded) loadAbilitiesSection();
@@ -3318,6 +3402,10 @@
         });
         if (!mvLoaded) loadMovesSection();
         else renderMvGrid();
+      }
+      if (name === 'lists') {
+        renderListsSwitcher();
+        renderListsGrid();
       }
     }
 
@@ -3514,6 +3602,137 @@
       if(!btn||!selectedPokemon) return;
       btn.classList.toggle('on', isFavorite(selectedPokemon.name));
     }
+
+    // ── Lists section state + rendering ──
+    let listsActiveId = 'favorites';
+    let listsSortMode = 'alpha';
+    let listsSortAscending = true;
+    let isListsShiny = false;
+    const listsPokemonCache = {}; // name -> full PokéAPI pokemon object, for alt-forms not in allPokemon
+
+    function renderListsSwitcher(){
+      const bar = document.getElementById('lists-switcher-bar');
+      if(!bar) return;
+      bar.innerHTML='';
+      getLists().forEach(l=>{
+        const pill=document.createElement('button');
+        pill.className='lists-switcher-pill'+(l.id===listsActiveId?' active':'')+(l.id==='favorites'?' fav-pill':'');
+        pill.innerHTML=(l.id==='favorites'?'<span class="lists-switcher-star">★</span> ':'')+
+          `${l.name}<span class="lists-switcher-count">(${l.items.length})</span>`;
+        pill.addEventListener('click',()=>{
+          if(listsActiveId===l.id) return;
+          listsActiveId=l.id;
+          renderListsSwitcher();
+          renderListsGrid();
+        });
+        bar.appendChild(pill);
+      });
+      const addBtn=document.createElement('button');
+      addBtn.className='lists-switcher-add';
+      addBtn.textContent='+ New List';
+      addBtn.addEventListener('click',()=>{
+        const name=prompt('Name your new list:');
+        if(name===null) return;
+        const list=createList(name);
+        if(list){ listsActiveId=list.id; renderListsSwitcher(); renderListsGrid(); }
+      });
+      bar.appendChild(addBtn);
+      const activeList=getList(listsActiveId);
+      const isDefault=!activeList||activeList.isDefault;
+      document.getElementById('lists-rename-btn').disabled=isDefault;
+      document.getElementById('lists-delete-btn').disabled=isDefault;
+    }
+
+    function getListPokemonData(item){
+      const known=allPokemon.find(p=>p.name===item.name);
+      if(known) return known;
+      if(listsPokemonCache[item.name]) return listsPokemonCache[item.name];
+      fetch(`https://pokeapi.co/api/v2/pokemon/${item.name}`).then(r=>r.json()).then(data=>{
+        listsPokemonCache[item.name]=data;
+        if(activeSection==='lists') renderListsGrid();
+      }).catch(()=>{});
+      return null;
+    }
+
+    function renderListsGrid(){
+      const grid=document.getElementById('lists-grid');
+      const countEl=document.getElementById('lists-result-count');
+      if(!grid||!countEl) return;
+      const list=getList(listsActiveId);
+      if(!list){ grid.innerHTML=''; countEl.textContent=''; return; }
+      const q=(document.getElementById('search-input')?.value||'').trim().toLowerCase();
+      let items=list.items.filter(it=>!q||it.name.replace(/-/g,' ').includes(q));
+      items=items.slice().sort((a,b)=>{
+        let r;
+        if(listsSortMode==='number') r=(a.id||0)-(b.id||0);
+        else r=a.name.localeCompare(b.name);
+        return listsSortAscending?r:-r;
+      });
+      countEl.textContent=`${items.length} Pokémon in ${list.name}`;
+      grid.innerHTML='';
+      if(items.length===0){
+        grid.innerHTML=q
+          ? `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No matches for "${q}" in ${list.name}</div></div>`
+          : `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">${list.name} is empty</div><div class="empty-sub" style="margin-top:6px;font-size:12px;color:#999;">Tap the "+" on any Pokémon's info card to add it here.</div></div>`;
+        return;
+      }
+      items.forEach(item=>{
+        const pokemon=getListPokemonData(item);
+        const card=document.createElement('div');
+        card.className='card';
+        if(!pokemon){
+          card.innerHTML=`<div class="card-sprite-zone"><div style="width:88px;height:88px;"></div></div><div class="card-name">${getDisplayName(item.name)}</div>`;
+          grid.appendChild(card);
+          return;
+        }
+        card.addEventListener('click',()=>{ switchSection('pokemon'); selectPokemon(pokemon,null); });
+        const si=document.createElement('img');
+        si.src=getSprite(pokemon,isListsShiny);
+        si.alt=pokemon.name;
+        si.className='sprite';
+        si.loading='lazy';
+        si.decoding='async';
+        si.width=88;si.height=88;
+        const spriteZone=document.createElement('div');
+        spriteZone.className='card-sprite-zone';
+        spriteZone.appendChild(si);
+        const ne=document.createElement('div');ne.className='card-number';ne.textContent=`#${String(pokemon.id).padStart(3,'0')}`;
+        const nm=document.createElement('div');nm.className='card-name';nm.textContent=getDisplayName(pokemon.name);
+        const bd=document.createElement('div');bd.className='type-badges';pokemon.types.forEach(t=>bd.appendChild(makeBadgeImg(t.type.name,false)));
+        card.appendChild(spriteZone);card.appendChild(ne);card.appendChild(nm);card.appendChild(bd);
+        grid.appendChild(card);
+      });
+    }
+
+    document.getElementById('lists-sort-select').addEventListener('change',e=>{
+      listsSortMode=e.target.value;
+      renderListsGrid();
+    });
+    document.getElementById('lists-sort-dir-btn').addEventListener('click',()=>{
+      listsSortAscending=!listsSortAscending;
+      document.getElementById('lists-sort-dir-btn').textContent=listsSortAscending?'↑':'↓';
+      renderListsGrid();
+    });
+    document.getElementById('lists-rename-btn').addEventListener('click',()=>{
+      const list=getList(listsActiveId);
+      if(!list||list.isDefault) return;
+      const name=prompt('Rename list:',list.name);
+      if(name===null) return;
+      renameList(list.id,name);
+      renderListsSwitcher();
+      renderListsGrid();
+    });
+    document.getElementById('lists-delete-btn').addEventListener('click',()=>{
+      const list=getList(listsActiveId);
+      if(!list||list.isDefault) return;
+      if(confirm(`Delete "${list.name}"? This can't be undone.`)){
+        deleteList(list.id);
+        listsActiveId='favorites';
+        renderListsSwitcher();
+        renderListsGrid();
+      }
+    });
+
     let loreFilterCat=null;
     // Per-category selections stored separately for AND logic + persistence
     const loreSelections = { classification: new Set(), badge: new Set(), hazard: new Set() };
@@ -3822,12 +4041,19 @@
       renderGrid();
     });
     document.getElementById('global-shiny').addEventListener('click',()=>{
-      if(activeSection!=='pokemon')return;
-      isGlobalShiny=!isGlobalShiny;
-      document.getElementById('global-shiny').classList.toggle('on',isGlobalShiny);
-      if(isGlobalShiny)playShiny();
-      renderGrid();
-      if(isGlobalShiny)requestAnimationFrame(()=>showSparkleAll('.grid .card'));
+      if(activeSection==='pokemon'){
+        isGlobalShiny=!isGlobalShiny;
+        document.getElementById('global-shiny').classList.toggle('on',isGlobalShiny);
+        if(isGlobalShiny)playShiny();
+        renderGrid();
+        if(isGlobalShiny)requestAnimationFrame(()=>showSparkleAll('.grid .card'));
+      } else if(activeSection==='lists'){
+        isListsShiny=!isListsShiny;
+        document.getElementById('global-shiny').classList.toggle('on',isListsShiny);
+        if(isListsShiny)playShiny();
+        renderListsGrid();
+        if(isListsShiny)requestAnimationFrame(()=>showSparkleAll('#lists-grid .card'));
+      }
     });
     document.getElementById('sort-dir-btn').addEventListener('click',()=>{sortAscending=!sortAscending;const dir=sortAscending?'↑':'↓';document.getElementById('sort-dir-btn').textContent=dir;const mIcon=document.getElementById('mobile-sort-icon');if(mIcon)mIcon.textContent=dir;renderGrid();});
     // ── Stat cache ─────────────────────────────────────────────────────
@@ -3893,6 +4119,7 @@
       document.getElementById('search-clear-btn').style.display = v ? 'block' : 'none';
       if (activeSection === 'abilities') renderAbGrid();
       else if (activeSection === 'moves') renderMvGrid();
+      else if (activeSection === 'lists') renderListsGrid();
       else renderGrid();
     });
     document.getElementById('search-clear-btn').addEventListener('click', () => {
@@ -3900,6 +4127,7 @@
       document.getElementById('search-clear-btn').style.display = 'none';
       if (activeSection === 'abilities') renderAbGrid();
       else if (activeSection === 'moves') renderMvGrid();
+      else if (activeSection === 'lists') renderListsGrid();
       else renderGrid();
     });
 
@@ -4039,8 +4267,9 @@
       const wrap=document.getElementById('addlist-list'); wrap.innerHTML='';
       getLists().forEach(l=>{
         const inList=isPokemonInList(l.id, selectedPokemon.name);
-        const row=document.createElement('div'); row.className='addlist-item';
-        const label=document.createElement('span'); label.textContent=l.name+(l.items.length?` (${l.items.length})`:'');
+        const row=document.createElement('div'); row.className='addlist-item'+(inList?' on':'');
+        const label=document.createElement('span');
+        label.innerHTML=`<span class="addlist-item-name">${l.name}</span><span class="addlist-item-count">${l.items.length} saved</span>`;
         const check=document.createElement('span'); check.className='addlist-check'+(inList?' on':''); check.textContent=inList?'✓':'';
         row.appendChild(label); row.appendChild(check);
         row.addEventListener('click',()=>{
