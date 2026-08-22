@@ -1676,12 +1676,12 @@
       #ab-gen-filter-row.open .gen-strip, #mv-gen-filter-row.open .gen-strip,
       #mv-type-filter-row.open #mv-type-filter { display: flex; flex-wrap: wrap; overflow: visible; gap: 8px; }
       #ab-hidden-filter-row.open #ab-hidden-row, #mv-cat-filter-row.open #mv-cat-row { display: flex; flex-wrap: wrap; overflow: visible; gap: 8px; justify-content: center; }
-      #mv-type-filter-row.open .type-pill { flex: 0 0 calc(25% - 6px); width: auto; height: 64px; }
-      /* Pokémon type filter sheet: 3 pills per row (6 equal rows for the 18 types), bigger pills,
-         and a taller sheet so the extra row height still fits without scrolling awkwardly. */
-      #type-filter-row.open .type-pill { flex: 0 0 calc(33.333% - 6px); width: auto; height: 84px; }
-      #type-filter-row { max-height: 80vh; }
-      #type-filter-row .type-filter-strip { padding-bottom: 4px; }
+      /* Type filter sheets (Pokémon + Moves, same treatment): 3 pills per row (6 equal rows for
+         the 18 types), bigger pills, and a taller sheet so the extra row height still fits
+         without scrolling awkwardly. */
+      #type-filter-row.open .type-pill, #mv-type-filter-row.open .type-pill { flex: 0 0 calc(33.333% - 6px); width: auto; height: 84px; }
+      #type-filter-row, #mv-type-filter-row { max-height: 80vh; }
+      #type-filter-row .type-filter-strip, #mv-type-filter-row #mv-type-filter { padding-bottom: 4px; }
       #gen-filter-row.open .gen-pill, #ab-gen-filter-row.open .gen-pill, #mv-gen-filter-row.open .gen-pill { flex: 0 0 calc(33.333% - 6px); height: 64px; }
       #ab-hidden-filter-row.open .ab-hidden-btn { flex: 0 0 calc(50% - 4px); max-width: none; height: 64px; }
       #mv-cat-filter-row.open .mv-cat-btn { flex: 0 0 calc(33.333% - 6px); width: auto; height: 64px; }
@@ -1847,13 +1847,7 @@
         <img src="icons/sections/moves.png" alt="Moves" class="sidenav-section-img">
       </button>
       <button class="sidenav-item sidenav-item-lists" data-section="lists">
-        <svg class="sidenav-section-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4 6.5C4 5.67157 4.67157 5 5.5 5H18.5C19.3284 5 20 5.67157 20 6.5V17.5C20 18.3284 19.3284 19 18.5 19H5.5C4.67157 19 4 18.3284 4 17.5V6.5Z" fill="#faf5e8"/>
-          <path d="M8 9H16" stroke="#43656e" stroke-width="1.6" stroke-linecap="round"/>
-          <path d="M8 12H16" stroke="#43656e" stroke-width="1.6" stroke-linecap="round"/>
-          <path d="M8 15H13" stroke="#43656e" stroke-width="1.6" stroke-linecap="round"/>
-          <path d="M17.3 3.6L18.05 5.2L19.8 5.45L18.55 6.65L18.85 8.4L17.3 7.55L15.75 8.4L16.05 6.65L14.8 5.45L16.55 5.2L17.3 3.6Z" fill="#f8d030"/>
-        </svg>
+        <img src="icons/sections/lists.png" alt="Lists" class="sidenav-section-img">
       </button>
     </div>
 
@@ -3554,6 +3548,15 @@
     }
     function syncShinyBody(){}
     let allPokemon=[],activeTypes=new Set(),activeGen='1',sortAscending=true,selectedPokemon=null,isShiny=false,isGlobalShiny=false,isFemale=false,currentSpeciesData=null;
+    // Regional-form grid cards (e.g. Alolan Rattata) — resolved separately from allPokemon since
+    // PokéAPI's base /pokemon list only returns base species. Each entry is a wrapper:
+    // { __regional:true, displayId: <base species' Pokédex number>, cardLabel: <label from JSON>, data: <full fetched pokemon object> }
+    let regionalForms=[];
+    function cardData(p){return p.__regional?p.data:p;}
+    function cardDexId(p){return p.__regional?p.displayId:p.id;}
+    function cardTypes(p){return p.__regional?p.data.types:p.types;}
+    function cardName(p){return p.__regional?p.data.name:p.name;}
+    function cardLabelText(p){return p.__regional?p.cardLabel:getDisplayName(p.name);}
 
     // ── Lists / Favorites data layer — localStorage-backed, no server. Each list is
     // { id, name, isDefault, items:[{name,id}] }. Favorites is auto-created on first run and
@@ -4181,14 +4184,15 @@
     function matchesPokemonSearch(pokemon,query){if(!query)return true;const display=getDisplayName(pokemon.name).toLowerCase();if(display.includes(query))return true;if(pokemon.name.toLowerCase().includes(query))return true;if(TYPE_ORDER.some(t=>t.startsWith(query)&&query.length>=3)){const mt=TYPE_ORDER.find(t=>t.startsWith(query));if(mt&&pokemon.types.some(x=>x.type.name===mt))return true;}if(query.length>=3&&fuzzyMatchesName(query,display))return true;return false;}
     function matchesAbilitySearch(apiName,query){if(!query)return true;const display=apiName.replace(/-/g,' ');if(display.includes(query))return true;if(apiName.includes(query))return true;if(query.length>=3&&fuzzyMatchesName(query,display))return true;return false;}
     function matchesMoveSearch(apiName,query){if(!query)return true;const display=apiName.replace(/-/g,' ');if(display.includes(query))return true;if(apiName.includes(query))return true;if(query.length>=3&&fuzzyMatchesName(query,display))return true;return false;}
-    function getSortedFiltered(){let list=[...allPokemon];const q=document.getElementById('search-input').value.trim().toLowerCase();if(q)list=list.filter(p=>matchesPokemonSearch(p,q));if(activeGen!=='all'){const[min,max]=GEN_RANGES[parseInt(activeGen)];list=list.filter(p=>p.id>=min&&p.id<=max);}if(activeTypes.size===1){const[t]=activeTypes;list=list.filter(p=>p.types.some(x=>x.type.name===t));}else if(activeTypes.size>1){list=list.filter(p=>[...activeTypes].every(t=>p.types.some(x=>x.type.name===t)));}
+    function getSortedFiltered(){let list=[...allPokemon,...regionalForms];const q=document.getElementById('search-input').value.trim().toLowerCase();if(q)list=list.filter(p=>matchesPokemonSearch(cardData(p),q)||(p.__regional&&p.cardLabel.toLowerCase().includes(q)));if(activeGen!=='all'){const[min,max]=GEN_RANGES[parseInt(activeGen)];list=list.filter(p=>{const id=cardDexId(p);return id>=min&&id<=max;});}if(activeTypes.size===1){const[t]=activeTypes;list=list.filter(p=>cardTypes(p).some(x=>x.type.name===t));}else if(activeTypes.size>1){list=list.filter(p=>[...activeTypes].every(t=>cardTypes(p).some(x=>x.type.name===t)));}
       // Lore filter — AND logic: must satisfy every active category
       const hasClassFilter = loreSelections.classification.size > 0;
       const hasBadgeFilter = loreSelections.badge.size > 0;
       const hasHazardFilter = loreSelections.hazard.size > 0;
       if((hasClassFilter||hasBadgeFilter||hasHazardFilter)&&loreData){
         list=list.filter(p=>{
-          const entry=loreData[p.name]||loreData[p.name.split('-')[0]];
+          const pName=cardName(p);
+          const entry=loreData[pName]||loreData[pName.split('-')[0]];
           if(!entry)return false;
           if(hasClassFilter&&!(entry.classifications||[]).some(c=>loreSelections.classification.has(c.category)))return false;
           if(hasBadgeFilter&&!(entry.behavioral_badges||[]).some(b=>loreSelections.badge.has(b.badge_id)))return false;
@@ -4199,15 +4203,15 @@
       const sv=document.getElementById('sort-select').value;
       const dir=sortAscending?1:-1;
       list.sort((a,b)=>{
-        if(sv==='alpha') return dir*a.name.localeCompare(b.name);
-        if(sv==='number') return dir*(a.id-b.id);
+        if(sv==='alpha') return dir*cardName(a).localeCompare(cardName(b));
+        if(sv==='number') return dir*(cardDexId(a)-cardDexId(b));
         // Stat sorts — fall back to id if stat not yet cached
-        const sa=statCache[a.id], sb=statCache[b.id];
+        const sa=statCache[cardDexId(a)], sb=statCache[cardDexId(b)];
         if(sa&&sb){
           const va=sa[sv]??0, vb=sb[sv]??0;
           return dir*(va-vb);
         }
-        return dir*(a.id-b.id); // fallback
+        return dir*(cardDexId(a)-cardDexId(b)); // fallback
       });
       return list;}
 
@@ -4229,7 +4233,7 @@
       let lastGen=null;
       list.forEach(pokemon=>{
         if(showGenDividers){
-          const g=getGenForId(pokemon.id);
+          const g=getGenForId(cardDexId(pokemon));
           if(g!==lastGen){
             const divider=document.createElement('div');
             divider.className='gen-divider';
@@ -4238,13 +4242,15 @@
             lastGen=g;
           }
         }
-        const card=document.createElement('div');const isSel=selectedPokemon?.id===pokemon.id;
+        const entryData=cardData(pokemon);
+        const dexId=cardDexId(pokemon);
+        const card=document.createElement('div');const isSel=selectedPokemon?.name===entryData.name;
         card.className='card'+(isSel?' selected':'');
         if(isSel&&currentPalette){card.style.borderColor=currentPalette.dark;card.style.boxShadow=`0 0 0 1px ${currentPalette.dark}`;card.style.background=currentPalette.bg;}
-        card.addEventListener('click',()=>{if(selectedPokemon?.id===pokemon.id){closePanel();}else{selectPokemon(pokemon,card);}});
+        card.addEventListener('click',()=>{if(selectedPokemon?.name===entryData.name){closePanel();}else{selectPokemon(entryData,card);}});
         const si=document.createElement('img');
-        si.src=getSprite(pokemon,isGlobalShiny);
-        si.alt=pokemon.name;
+        si.src=getSprite(entryData,isGlobalShiny);
+        si.alt=entryData.name;
         si.className='sprite';
         si.loading='lazy';
         si.decoding='async';
@@ -4252,9 +4258,9 @@
         const spriteZone=document.createElement('div');
         spriteZone.className='card-sprite-zone';
         spriteZone.appendChild(si);
-        const ne=document.createElement('div');ne.className='card-number';ne.textContent=`#${String(pokemon.id).padStart(3,'0')}`;
-        const nm=document.createElement('div');nm.className='card-name';nm.textContent=getDisplayName(pokemon.name);
-        const bd=document.createElement('div');bd.className='type-badges';pokemon.types.forEach(t=>bd.appendChild(makeBadgeImg(t.type.name,false)));
+        const ne=document.createElement('div');ne.className='card-number';ne.textContent=`#${String(dexId).padStart(3,'0')}`;
+        const nm=document.createElement('div');nm.className='card-name';nm.textContent=cardLabelText(pokemon);
+        const bd=document.createElement('div');bd.className='type-badges';cardTypes(pokemon).forEach(t=>bd.appendChild(makeBadgeImg(t.type.name,false)));
         card.appendChild(spriteZone);card.appendChild(ne);card.appendChild(nm);card.appendChild(bd);grid.appendChild(card);
       });
     }
@@ -5329,6 +5335,38 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       }}catch(e){console.warn('alternate-forms.json:',e.message);}
     }
     loadCuratedData();
+
+    // ── Regional-form grid cards (e.g. Alolan Rattata) ──
+    // alternate-forms.json lists a "REGIONAL" entry per region a Pokémon appears in, including
+    // one entry per species whose form equals its own base (the plain/Kantonian version — that's
+    // just the species already in allPokemon, so it's skipped here to avoid a duplicate card).
+    // Everything else with form_type REGIONAL is a genuine variant (Alolan, Galarian, Hisuian,
+    // Paldean, etc.) that PokéAPI's base /pokemon list doesn't include, so it's fetched on its own
+    // and shown as an extra card carrying its base species' Pokédex number.
+    async function loadRegionalFormsCards(){
+      let tries=0;
+      while(!alternateForms && tries<60){ await new Promise(res=>setTimeout(res,50)); tries++; }
+      if(!alternateForms) return;
+      const entries=alternateForms.filter(f=>f.form_type==='REGIONAL' && f.form!==f.base);
+      const BATCH=20;
+      const resolved=[];
+      for(let i=0;i<entries.length;i+=BATCH){
+        const batch=entries.slice(i,i+BATCH);
+        const results=await Promise.all(batch.map(async f=>{
+          const baseMon=allPokemon.find(p=>p.name===f.base)||allPokemon.find(p=>p.name===f.base.split('-')[0]);
+          if(!baseMon) return null;
+          try{
+            const res=await fetch(`https://pokeapi.co/api/v2/pokemon/${f.form}`);
+            if(!res.ok) return null;
+            const data=await res.json();
+            return{__regional:true,displayId:baseMon.id,cardLabel:f.label,data};
+          }catch(e){console.warn('regional form fetch failed:',f.form,e.message);return null;}
+        }));
+        resolved.push(...results.filter(Boolean));
+      }
+      regionalForms=resolved;
+      renderGrid();
+    }
 
     // ── Name resolution ──
     // Returns the display name for a pokemon, checking curated overrides first.
@@ -7126,7 +7164,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
     document.getElementById('moveset-to-matchups').addEventListener('click', () => { closeMovesetModal(); openMatchupsModal(); });
     document.getElementById('moveset-to-obtain').addEventListener('click', () => { closeMovesetModal(); openObtainModal(); });
 
-        loadPokemon();
+        loadPokemon().then(loadRegionalFormsCards);
     document.querySelector('#gen-filters .gen-pill[data-gen="1"]')?.classList.add('active');
     document.getElementById('gen-filters')?.classList.add('has-selection');
     updateMobileAccordionCounts();
