@@ -777,6 +777,13 @@
     .info-dex-box {
       background: white; border-radius: 12px; padding: 10px 12px 12px 12px;
       box-shadow: 0 1px 6px rgba(0,0,0,0.08); position: relative;
+      cursor: pointer; transition: box-shadow 0.15s, transform 0.1s;
+    }
+    .info-dex-box:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.13); }
+    .info-dex-box:active { transform: scale(0.99); }
+    .info-dex-chevron {
+      position: absolute; top: 8px; right: 10px;
+      font-size: 16px; font-weight: 700; color: #bbb; line-height: 1;
     }
     /* Learn More: positioned top-right, floating over content */
     .info-learn-more-btn {
@@ -1271,6 +1278,46 @@
     .matchups-footer-btn { width: 130px; padding: 8px 0; border-radius: 24px; border: 2px solid var(--matchup-theme-dark, #888); background: transparent; font-size: 13px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--matchup-theme-dark, #555); cursor: pointer; transition: opacity 0.15s; }
     .matchups-footer-btn:hover:not(:disabled) { opacity: 0.7; }
     .matchups-footer-btn-inactive { opacity: 0.35; cursor: default; }
+
+    /* ── Pokédex Entries modal — same chrome as Matchups (backdrop/header/body/footer),
+       accordion body reuses the Matchups accordion's shape/spacing with its own class prefix
+       and theme variable, matching how every other modal in the app (Obtain, Matchups, Lore,
+       Moveset, Ability) keeps its own prefixed classes rather than sharing another modal's. ── */
+    .dex-modal-backdrop { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 10px 20px; }
+    .dex-modal-backdrop.visible { display: flex; }
+    .dex-modal { width: 100%; height: 97%; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.25); }
+    .dex-modal-header { padding: 10px 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 56px; }
+    .dex-modal-title-block { display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 0; overflow: hidden; }
+    .dex-modal-name { font-family: 'Archivo Black', sans-serif; font-weight: 900; color: white; text-transform: uppercase; line-height: 1; white-space: nowrap; overflow: hidden; font-size: 22px; }
+    .dex-modal-subtitle { font-size: 11px; color: rgba(255,255,255,0.75); font-weight: 500; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.4px; }
+    .dex-modal-close { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.25); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; color: white; transition: background 0.15s; flex-shrink: 0; }
+    .dex-modal-close:hover { background: rgba(255,255,255,0.4); }
+    .dex-modal-body { flex: 1; overflow-y: auto; padding: 10px 12px 20px; display: flex; flex-direction: column; gap: 8px; scrollbar-width: none; -ms-overflow-style: none; }
+    .dex-modal-body::-webkit-scrollbar { display: none; }
+    .dex-accordion { display: flex; flex-direction: column; gap: 8px; }
+
+    .dex-section { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); background: white; flex-shrink: 0; }
+    .dex-section-header { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; cursor: pointer; user-select: none; transition: background 0.15s; }
+    .dex-section-header:hover { background: rgba(0,0,0,0.02); }
+    .dex-section-title { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: var(--dex-theme-color, #555); }
+    .dex-section-header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .dex-section-region-badge { height: 26px; width: auto; object-fit: contain; border-radius: 6px; }
+    .dex-section-arrow { font-size: 10px; color: #aaa; transition: transform 0.2s; flex-shrink: 0; }
+    .dex-section.open .dex-section-arrow { transform: rotate(180deg); }
+    .dex-section-body { display: none; border-top: 1px solid rgba(0,0,0,0.06); padding: 14px 14px 6px; }
+    .dex-section.open .dex-section-body { display: block; }
+
+    .dex-entry-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 18px; }
+    .dex-entry-row:last-child { margin-bottom: 4px; }
+    .dex-entry-game { flex-shrink: 0; width: 74px; height: 30px; border-radius: 7px; overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+    .dex-entry-game img { width: 100%; height: 100%; object-fit: contain; }
+    .dex-entry-game-fallback { display: none; align-items: center; justify-content: center; width: 100%; height: 100%; background: #eee; font-size: 8px; font-weight: 700; color: #666; text-align: center; padding: 2px; line-height: 1.2; }
+    .dex-entry-text { flex: 1; min-width: 0; font-size: 13.5px; line-height: 1.55; color: #333; font-style: italic; }
+    .dex-empty { text-align: center; padding: 24px; color: #aaa; font-size: 12px; }
+
+    .dex-modal-footer { flex-shrink: 0; display: flex; gap: 8px; justify-content: center; padding: 8px 16px 12px; }
+    .dex-footer-btn { flex: 1 1 0; min-width: 0; padding: 8px 4px; border-radius: 24px; border: 2px solid var(--dex-theme-dark, #888); background: transparent; font-size: 12px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--dex-theme-dark, #555); cursor: pointer; transition: opacity 0.15s; }
+    .dex-footer-btn:hover:not(:disabled) { opacity: 0.7; }
 
     /* "Learn More" footer buttons — Ability modal and Move popup (Pokémon info detail) —
        same pill shape/sizing as the Obtain/Matchups footer buttons above, reusing that pattern. */
@@ -2102,6 +2149,25 @@
         </div>
       </div>
 
+      <!-- ── POKÉDEX ENTRIES MODAL ── -->
+      <div class="dex-modal-backdrop" id="dex-modal-backdrop">
+        <div class="dex-modal" id="dex-modal">
+          <div class="dex-modal-header" id="dex-modal-header">
+            <div class="dex-modal-title-block">
+              <div class="dex-modal-name" id="dex-modal-name"></div>
+              <div class="dex-modal-subtitle">Pokédex Entries</div>
+            </div>
+            <button class="dex-modal-close" id="dex-modal-close">✕</button>
+          </div>
+          <div class="dex-modal-body" id="dex-modal-body"></div>
+          <div class="dex-modal-footer" id="dex-modal-footer">
+            <button class="dex-footer-btn" id="dex-to-matchups">Matchups</button>
+            <button class="dex-footer-btn" id="dex-to-obtain">Obtain</button>
+            <button class="dex-footer-btn" id="dex-to-moveset">Moveset</button>
+          </div>
+        </div>
+      </div>
+
       <!-- ── LORE MODAL ── -->
       <div class="lore-modal-backdrop" id="lore-modal-backdrop">
         <div class="lore-modal" id="lore-modal">
@@ -2369,9 +2435,10 @@
               <div class="info-section-title" id="section-title-dex">Pokédex Entry</div>
               <hr class="info-section-rule" id="section-rule-dex" />
             </div>
-            <div class="info-dex-box">
+            <div class="info-dex-box" id="info-dex-box">
               <div class="info-dex-text" id="info-dex-text">—</div>
               <div class="info-dex-game" id="info-dex-game"></div>
+              <span class="info-dex-chevron">›</span>
             </div>
           </div>
 
@@ -4404,6 +4471,7 @@
       document.getElementById('obtain-modal-backdrop').classList.remove('visible');
       document.getElementById('moveset-modal-backdrop').classList.remove('visible');
       document.getElementById('lore-modal-backdrop').classList.remove('visible');
+      document.getElementById('dex-modal-backdrop').classList.remove('visible');
       activeModal=null;
       if(currentAudio){currentAudio.pause();currentAudio=null;document.getElementById('info-cry-btn').textContent='♪';document.getElementById('info-cry-btn').classList.remove('playing');}
       document.querySelectorAll('.card').forEach(c=>{c.classList.remove('selected');c.style.borderColor='';c.style.boxShadow='';c.style.background='';});
@@ -4429,6 +4497,7 @@
         else if(prevModal==='obtain')openObtainModal();
         else if(prevModal==='moveset')openMovesetModal();
         else if(prevModal==='lore')openLoreModal();
+        else if(prevModal==='dex')openDexModal();
       }catch(e){console.error('selectPokemon error:',e);}
     }
 
@@ -5896,6 +5965,129 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
     // matchups-btn renamed to info-matchups-btn — listener already set above
     // matchups-modal-close listener is attached dynamically in openMatchupsModal
     document.getElementById('matchups-modal-backdrop').addEventListener('click',e=>{if(e.target===document.getElementById('matchups-modal-backdrop'))closeMatchupsModal();});
+
+    // ── Pokédex Entries modal ──
+    // currentSpeciesData is already fetched and stored by selectPokemon() for every Pokémon, so
+    // this modal needs no fetch of its own — it just re-groups flavor_text_entries by generation.
+    function openDexModal(){
+      if(!selectedPokemon||!currentSpeciesData)return;
+      activeModal='dex';
+      const p=currentPalette||POKEMON_PALETTE.white;
+
+      const modal=document.getElementById('dex-modal');
+      modal.style.background=p.bg;
+      modal.style.setProperty('--dex-theme-color',p.dark);
+      modal.style.setProperty('--dex-theme-dark',p.dark);
+      modal.style.setProperty('--dex-theme-bg',p.bg);
+      document.getElementById('dex-modal-header').style.background=p.dark;
+
+      // Name with auto-shrink, same behavior as the Matchups modal's name
+      const nameEl=document.getElementById('dex-modal-name');
+      nameEl.textContent=getDisplayName(selectedPokemon.name);
+      nameEl.style.fontSize='22px';
+      requestAnimationFrame(()=>{
+        const container=nameEl.parentElement;let fs=22;
+        while(nameEl.scrollWidth>container.clientWidth&&fs>10){fs--;nameEl.style.fontSize=fs+'px';}
+      });
+
+      document.getElementById('dex-modal-backdrop').classList.add('visible');
+      renderDexModal(p);
+    }
+
+    function renderDexModal(palette){
+      const p=palette||currentPalette||POKEMON_PALETTE.white;
+      const body=document.getElementById('dex-modal-body');
+      body.innerHTML='';
+
+      // version name → generation number, from the same GAME_LIST the Obtain modal uses
+      const versionToGen={};
+      GAME_LIST.forEach(({gen,games})=>games.forEach(g=>{versionToGen[g.id]=gen;}));
+
+      const entries=(currentSpeciesData.flavor_text_entries||[]).filter(e=>e.language.name==='en');
+      // A version can appear more than once (regional Pokédex slots) — keep the first entry seen.
+      const byVersion={};
+      entries.forEach(e=>{ if(!byVersion[e.version.name]) byVersion[e.version.name]=e; });
+
+      const byGen={};
+      Object.values(byVersion).forEach(e=>{
+        const gen=versionToGen[e.version.name];
+        if(!gen)return; // version not in GAME_LIST — skip rather than mis-group it
+        (byGen[gen]=byGen[gen]||[]).push(e);
+      });
+
+      const gensPresent=Object.keys(byGen).map(Number).sort((a,b)=>a-b);
+      if(gensPresent.length===0){
+        body.innerHTML='<div class="dex-empty">No Pokédex entries available.</div>';
+        return;
+      }
+
+      const accordion=document.createElement('div');accordion.className='dex-accordion';
+      body.appendChild(accordion);
+      const allSections=[];
+      gensPresent.forEach((gen,i)=>{
+        // Order each generation's entries to match GAME_LIST's own game order (Red, Blue, Yellow...)
+        const gameOrder=(GAME_LIST.find(g=>g.gen===gen)?.games||[]).map(g=>g.id);
+        const genEntries=byGen[gen].slice().sort((a,b)=>gameOrder.indexOf(a.version.name)-gameOrder.indexOf(b.version.name));
+        const section=buildDexSection(gen,genEntries,allSections,p);
+        if(i===0)section.classList.add('open');
+        allSections.push(section);
+        accordion.appendChild(section);
+      });
+    }
+
+    function buildDexSection(gen,genEntries,allSections,palette){
+      const section=document.createElement('div');section.className='dex-section';
+
+      const hdr=document.createElement('div');hdr.className='dex-section-header';
+      const titleEl=document.createElement('span');titleEl.className='dex-section-title';
+      titleEl.textContent=`Generation ${gen}`;
+      titleEl.style.color=palette.dark;
+
+      const right=document.createElement('div');right.className='dex-section-header-right';
+      const badge=document.createElement('img');badge.className='dex-section-region-badge';
+      badge.src=`icons/generations/${gen}.png`;badge.alt=`Generation ${gen}`;
+      badge.onerror=()=>{badge.style.display='none';};
+      const arrow=document.createElement('span');arrow.className='dex-section-arrow';arrow.textContent='▼';
+      right.appendChild(badge);right.appendChild(arrow);
+
+      hdr.appendChild(titleEl);hdr.appendChild(right);
+
+      const sBody=document.createElement('div');sBody.className='dex-section-body';
+      genEntries.forEach(e=>{
+        const row=document.createElement('div');row.className='dex-entry-row';
+
+        const gameWrap=document.createElement('div');gameWrap.className='dex-entry-game';
+        const img=document.createElement('img');
+        img.src=`icons/games/${e.version.name}.png`;img.alt=e.version.name;
+        const fallback=document.createElement('span');fallback.className='dex-entry-game-fallback';
+        fallback.textContent=toTitleCase(e.version.name.replace(/-/g,' '));
+        img.onerror=()=>{img.style.display='none';fallback.style.display='flex';};
+        gameWrap.appendChild(img);gameWrap.appendChild(fallback);
+
+        const textEl=document.createElement('div');textEl.className='dex-entry-text';
+        textEl.textContent=`"${e.flavor_text.replace(/\f|\n/g,' ').replace(/\s+/g,' ').trim()}"`;
+
+        row.appendChild(gameWrap);row.appendChild(textEl);
+        sBody.appendChild(row);
+      });
+
+      section.appendChild(hdr);section.appendChild(sBody);
+      hdr.addEventListener('click',()=>{
+        const isOpen=section.classList.contains('open');
+        allSections.forEach(s=>s.classList.remove('open'));
+        if(!isOpen)section.classList.add('open');
+      });
+      return section;
+    }
+
+    function closeDexModal(){document.getElementById('dex-modal-backdrop').classList.remove('visible');activeModal=null;}
+
+    document.getElementById('info-dex-box').addEventListener('click',openDexModal);
+    document.getElementById('dex-modal-close').addEventListener('click',closeDexModal);
+    document.getElementById('dex-modal-backdrop').addEventListener('click',e=>{if(e.target===document.getElementById('dex-modal-backdrop'))closeDexModal();});
+    document.getElementById('dex-to-matchups').addEventListener('click',()=>{closeDexModal();openMatchupsModal();});
+    document.getElementById('dex-to-obtain').addEventListener('click',()=>{closeDexModal();openObtainModal();});
+    document.getElementById('dex-to-moveset').addEventListener('click',()=>{closeDexModal();openMovesetModal();});
 
     const GAME_LIST=[{gen:1,games:[{id:'red',name:'Red'},{id:'blue',name:'Blue'},{id:'yellow',name:'Yellow'}]},{gen:2,games:[{id:'gold',name:'Gold'},{id:'silver',name:'Silver'},{id:'crystal',name:'Crystal'}]},{gen:3,games:[{id:'ruby',name:'Ruby'},{id:'sapphire',name:'Sapphire'},{id:'emerald',name:'Emerald'},{id:'firered',name:'FireRed'},{id:'leafgreen',name:'LeafGreen'}]},{gen:4,games:[{id:'diamond',name:'Diamond'},{id:'pearl',name:'Pearl'},{id:'platinum',name:'Platinum'},{id:'heartgold',name:'HeartGold'},{id:'soulsilver',name:'SoulSilver'}]},{gen:5,games:[{id:'black',name:'Black'},{id:'white',name:'White'},{id:'black-2',name:'Black 2'},{id:'white-2',name:'White 2'}]},{gen:6,games:[{id:'x',name:'X'},{id:'y',name:'Y'},{id:'omega-ruby',name:'Omega Ruby'},{id:'alpha-sapphire',name:'Alpha Sapphire'}]},{gen:7,games:[{id:'sun',name:'Sun'},{id:'moon',name:'Moon'},{id:'ultra-sun',name:'Ultra Sun'},{id:'ultra-moon',name:'Ultra Moon'},{id:'lets-go-pikachu',name:"Let's Go Pikachu"},{id:'lets-go-eevee',name:"Let's Go Eevee"}]},{gen:8,games:[{id:'sword',name:'Sword'},{id:'shield',name:'Shield'},{id:'brilliant-diamond',name:'Brilliant Diamond'},{id:'shining-pearl',name:'Shining Pearl'},{id:'legends-arceus',name:'Legends: Arceus'}]},{gen:9,games:[{id:'scarlet',name:'Scarlet'},{id:'violet',name:'Violet'},{id:'legends-za',name:'Legends: Z-A'}]}];
     const GAME_ROW_SIZES={1:[3],2:[3],3:[3,2],4:[3,2],5:[2,2],6:[2,2],7:[2,2,2],8:[2,2,1],9:[2,1]};
