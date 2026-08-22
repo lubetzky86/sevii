@@ -3056,10 +3056,13 @@
       const latestFlavor = flavorEntries[flavorEntries.length - 1]?.flavor_text?.replace(/\f/g,' ') || '';
       const gen = GEN_LABELS[data.generation?.name] || '';
       // Show all pokemon entries — forms included
-      const pokemonList = data.pokemon || [];
-      const allHidden = pokemonList.length > 0 && pokemonList.every(p => p.is_hidden);
+      const rawPokemonList = data.pokemon || [];
+      const allHidden = rawPokemonList.length > 0 && rawPokemonList.every(p => p.is_hidden);
+      // Collapse cosmetic/battle-internal forms (Minior colors, Morpeko modes, etc.) down to one
+      // entry per species, matching the main grid — see dedupFormEntries().
+      const pokemonList = dedupFormEntries(rawPokemonList.map(p => ({name: p.pokemon.name, url: p.pokemon.url})));
       const isSignature = pokemonList.length === 1;
-      const sigPokemon = isSignature ? toTitleCase(pokemonList[0].pokemon.name.replace(/-/g,' ')) : '';
+      const sigPokemon = isSignature ? toTitleCase(baseSpeciesNameForPokemon(pokemonList[0].name).replace(/-/g,' ')) : '';
 
       // Header — name only (no gen in subtitle), signature below name
       document.getElementById('ab-detail-name').textContent = toTitleCase(data.name.replace(/-/g,' '));
@@ -3075,7 +3078,7 @@
         // having been opened in the meantime.
         if (pokemonList.length > 1) {
           const abilityName = data.name;
-          resolveSignatureLabel(pokemonList.map(p => ({name: p.pokemon.name}))).then(label => {
+          resolveSignatureLabel(pokemonList.map(p => ({name: p.name}))).then(label => {
             if (label && abSelectedName === abilityName) {
               sigEl.textContent = `${label}'s Signature Ability`;
               sigEl.style.display = 'block';
@@ -3174,11 +3177,8 @@
         body.appendChild(pokeCard);
 
         pokemonList.forEach(entry => {
-          const pname = entry.pokemon.name;
-          const purl  = entry.pokemon.url;
-          const m = purl.match(/\/(\d+)\/$/);
-          if (!m) return;
-          const pid = parseInt(m[1]);
+          const pname = entry.name;
+          const pid = entry.pid;
 
           const pcard = document.createElement('div');
           pcard.className = 'ab-poke-card';
@@ -3491,10 +3491,13 @@
       // Same fix as the Move popup: only Mega/Gmax forms are excluded (battle-only, not
       // separately obtainable). Regional variants keep their high PokéAPI id (>10000) but are
       // real Pokémon, so a move exclusive to a regional form no longer shows an empty list.
-      const learnedBy=(data.learned_by_pokemon||[]).filter(pk=>{const m=pk.url.match(/\/(\d+)\//);return m&&!isMegaForm(pk.name)&&!isGmaxForm(pk.name);});
+      const rawLearnedBy=(data.learned_by_pokemon||[]).filter(pk=>{const m=pk.url.match(/\/(\d+)\//);return m&&!isMegaForm(pk.name)&&!isGmaxForm(pk.name);});
+      // Collapse cosmetic/battle-internal forms (Minior colors, Morpeko modes, etc.) down to one
+      // entry per species, matching the main grid — see dedupFormEntries().
+      const learnedBy=dedupFormEntries(rawLearnedBy.map(pk=>({name:pk.name,url:pk.url})));
       const mvSigEl=document.getElementById('mv-detail-sig');
       if(mvSigEl){
-        if(learnedBy.length===1){mvSigEl.textContent=`${toTitleCase(learnedBy[0].name.replace(/-/g,' '))}'s Signature Move`;mvSigEl.style.display='block';}
+        if(learnedBy.length===1){mvSigEl.textContent=`${toTitleCase(baseSpeciesNameForPokemon(learnedBy[0].name).replace(/-/g,' '))}'s Signature Move`;mvSigEl.style.display='block';}
         else{
           mvSigEl.style.display='none';
           // Same evolutionary-line check as Abilities — e.g. a move only two stages of one
@@ -3545,8 +3548,7 @@
         const pg=document.createElement('div');pg.className='ab-poke-grid';pg.id='mv-poke-grid';
         pc.appendChild(pl);pc.appendChild(pg);body.appendChild(pc);
         learnedBy.forEach(entry=>{
-          const m=entry.url.match(/\/(\d+)\/$/);if(!m)return;
-          const pid=parseInt(m[1]);
+          const pid=entry.pid;
           const pcard=document.createElement('div');pcard.className='ab-poke-card';
           const img=document.createElement('img');img.width=54;img.height=54;img.alt=entry.name;img.dataset.pokeid=pid;
           setSpriteSrc(img,pid,mvShiny);
@@ -3903,6 +3905,15 @@
       document.getElementById('lists-delete-btn').disabled=isDefault;
     }
 
+    // Resolves the dex number a Lists card should show, matching the main grid's cardDexId():
+    // a regional variant (e.g. Alolan Rattata) is displayed under its base species' low dex
+    // number, not PokéAPI's internal >10000 form id. regionalForms carries that mapping
+    // (displayId) keyed by the form's own PokéAPI name.
+    function listDexId(name, fallbackId){
+      const rf=regionalForms.find(r=>r.data.name===name);
+      return rf?rf.displayId:fallbackId;
+    }
+
     function getListPokemonData(item){
       const known=allPokemon.find(p=>p.name===item.name);
       if(known) return known;
@@ -3924,7 +3935,7 @@
       let items=list.items.filter(it=>!q||it.name.replace(/-/g,' ').includes(q));
       items=items.slice().sort((a,b)=>{
         let r;
-        if(listsSortMode==='number') r=(a.id||0)-(b.id||0);
+        if(listsSortMode==='number') r=listDexId(a.name,a.id||0)-listDexId(b.name,b.id||0);
         else r=a.name.localeCompare(b.name);
         return listsSortAscending?r:-r;
       });
@@ -3956,7 +3967,7 @@
         const spriteZone=document.createElement('div');
         spriteZone.className='card-sprite-zone';
         spriteZone.appendChild(si);
-        const ne=document.createElement('div');ne.className='card-number';ne.textContent=`#${String(pokemon.id).padStart(3,'0')}`;
+        const ne=document.createElement('div');ne.className='card-number';ne.textContent=`#${String(listDexId(pokemon.name,pokemon.id)).padStart(3,'0')}`;
         const nm=document.createElement('div');nm.className='card-name';nm.textContent=getDisplayName(pokemon.name);
         const bd=document.createElement('div');bd.className='type-badges';pokemon.types.forEach(t=>bd.appendChild(makeBadgeImg(t.type.name,false)));
         card.appendChild(spriteZone);card.appendChild(ne);card.appendChild(nm);card.appendChild(bd);
@@ -5688,6 +5699,29 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       if(entry?.base) return entry.base;
       return name.split('-')[0];
     }
+
+    // ── Species dedup for Moves/Abilities "learned by" lists ──
+    // The main grid shows exactly one card per species for purely cosmetic/battle-internal
+    // forms (Minior's 14 color forms, Morpeko's Hangry mode, gender-difference sprites, etc.) —
+    // those aren't separate main-grid entries, so a move/ability list must collapse them to one
+    // representative entry too, or a species like Minior inflates the count ~14x. True REGIONAL
+    // variants (Alolan/Galarian/Hisuian/Paldean, from alternate-forms.json) ARE separate main-grid
+    // entries (via regionalForms), so those stay separate here as well — keyed by their own form
+    // name rather than collapsed to the base species. Within a collapsed group, the lowest-id form
+    // (the default/base form PokéAPI would list first) is kept as the representative.
+    // entries: array of {name, url} (raw PokéAPI pokemon name + species/pokemon URL).
+    function dedupFormEntries(entries){
+      const groups={};
+      entries.forEach(e=>{
+        const m=e.url.match(/\/(\d+)\//);
+        if(!m) return;
+        const pid=parseInt(m[1]);
+        const formEntry=alternateForms?._byForm?.[e.name];
+        const key=formEntry?.form_type==='REGIONAL' ? e.name : baseSpeciesNameForPokemon(e.name);
+        if(!groups[key] || pid<groups[key].pid) groups[key]={name:e.name,url:e.url,pid};
+      });
+      return Object.values(groups);
+    }
     const evoLineChainCache={}; // species name -> {names:Set, terminals:Set} | null
     async function getEvoChainInfo(speciesName){
       if(evoLineChainCache[speciesName]!==undefined) return evoLineChainCache[speciesName];
@@ -6047,6 +6081,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
         activeTypes.clear();activeTypes.add(type);
         const el=document.getElementById('type-filters');el.classList.add('has-selection');
         document.querySelectorAll('#type-filters .type-pill').forEach(pill=>{pill.classList.toggle('active',pill.dataset.type===type);});
+        updateMobileAccordionCounts();
         renderGrid();closePanel();
       };
 
@@ -6093,6 +6128,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
             const el=document.getElementById('type-filters');
             el.classList.toggle('has-selection',activeTypes.size>0);
             document.querySelectorAll('#type-filters .type-pill').forEach(pill=>{pill.classList.toggle('active',activeTypes.has(pill.dataset.type));});
+            updateMobileAccordionCounts();
             renderGrid();closePanel();
           });
           defLeft.appendChild(ico);
