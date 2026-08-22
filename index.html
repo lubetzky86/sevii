@@ -1676,6 +1676,83 @@
       color: #333; text-align: center; line-height: 1.2;
     }
     .ability-loading { font-size: 13px; color: #aaa; text-align: center; padding: 24px; }
+
+    /* ══════════════════════════════════════════
+       TEAM BUILDER SECTION (Round 1 skeleton)
+       Reuses existing tokens throughout: 'Archivo Black' for headings, the
+       #43656e/#eae3d7/#c8bfaf palette used by the header/sidenav, .card-style white
+       tiles with the same border/shadow as the Pokémon grid cards, and the pill-button
+       shape used by .lists-action-btn / the modal footer buttons.
+       ══════════════════════════════════════════ */
+    #section-teambuilder { position: relative; }
+    .tb-hub, .tb-canvas { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 18px 22px 28px; gap: 14px; }
+    .tb-hub-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .tb-hub-title { font-family: 'Archivo Black', sans-serif; font-size: 18px; font-weight: 900; color: #43656e; text-transform: uppercase; letter-spacing: 0.4px; }
+    .tb-create-btn { padding: 9px 18px; border-radius: 24px; border: none; background: #43656e; color: white; font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
+    .tb-create-btn:hover { opacity: 0.85; }
+
+    .tb-teams-grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+    .tb-team-card { background: white; border-radius: 12px; padding: 16px 14px; display: flex; flex-direction: column; gap: 8px; border: 2px solid #e8e4dd; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
+    .tb-team-card:hover { border-color: #c8bfaf; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .tb-team-card-name { font-family: 'Archivo Black', sans-serif; font-size: 14px; font-weight: 900; color: #1a1a1a; text-transform: uppercase; letter-spacing: 0.3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tb-team-card-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tb-badge { font-size: 10px; font-weight: 800; color: #43656e; text-transform: uppercase; letter-spacing: 0.4px; background: rgba(67,101,110,0.1); padding: 3px 8px; border-radius: 10px; }
+    .tb-team-card-sprites { display: flex; gap: 4px; margin-top: 2px; }
+    .tb-team-card-sprite-slot { width: 34px; height: 34px; border-radius: 8px; background: #f0efe9; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .tb-team-card-sprite-slot img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+    .tb-team-card-meta { font-size: 11px; color: #999; margin-top: auto; }
+
+    /* Canvas topbar + context header */
+    .tb-canvas-topbar { display: flex; }
+    .tb-back-btn { background: none; border: none; color: #43656e; font-size: 13px; font-weight: 700; cursor: pointer; padding: 4px 0; }
+    .tb-back-btn:hover { text-decoration: underline; }
+    .tb-context-header { background: #eae3d7; border: 1px solid #d4ccbc; border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+    .tb-name-row { display: flex; align-items: center; gap: 8px; }
+    .tb-name-input { font-family: 'Archivo Black', sans-serif; font-size: 18px; font-weight: 900; color: #1a1a1a; border: none; background: transparent; outline: none; flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: 0.3px; padding: 4px 2px; border-radius: 6px; transition: background 0.15s; }
+    .tb-name-input:focus { background: rgba(255,255,255,0.6); }
+    .tb-name-edit-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: rgba(67,101,110,0.12); color: #43656e; font-size: 13px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .tb-name-edit-btn:hover { background: rgba(67,101,110,0.22); }
+
+    .tb-header-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .tb-toggle-group { display: inline-flex; background: rgba(255,255,255,0.55); border: 1.5px solid #c8bfaf; border-radius: 20px; padding: 2px; }
+    .tb-toggle-btn { border: none; background: none; padding: 6px 14px; border-radius: 18px; font-size: 12px; font-weight: 700; color: #43656e; cursor: pointer; transition: background 0.15s, color 0.15s; }
+    .tb-toggle-btn.active { background: #43656e; color: white; }
+    .tb-toggle-group.tb-disabled { opacity: 0.4; pointer-events: none; }
+
+    .tb-game-select-btn { display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 20px; border: 1.5px solid #c8bfaf; background: rgba(255,255,255,0.55); color: #43656e; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .tb-game-select-btn:hover { background: rgba(255,255,255,0.85); }
+    .tb-game-select-chevron { font-size: 10px; color: #999; }
+
+    /* Party grid: 2 columns × 3 rows on desktop */
+    .tb-party-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 640px; margin: 0 auto; width: 100%; }
+    .tb-party-slot { background: white; border: 2px dashed #d4ccbc; border-radius: 14px; min-height: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+    .tb-party-slot:hover { border-color: #43656e; background: rgba(67,101,110,0.04); }
+    .tb-party-slot-plus { font-size: 26px; color: #b8ad9a; line-height: 1; }
+    .tb-party-slot-label { font-size: 12px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.4px; }
+    .tb-party-slot.filled { border-style: solid; border-color: #e8e4dd; cursor: default; align-items: stretch; justify-content: flex-start; padding: 10px; }
+    .tb-party-slot-filled-row { display: flex; align-items: center; gap: 10px; }
+    .tb-party-slot-sprite { width: 56px; height: 56px; object-fit: contain; image-rendering: pixelated; flex-shrink: 0; }
+    .tb-party-slot-name { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; color: #1a1a1a; text-transform: uppercase; }
+    .tb-party-slot-shiny { font-size: 11px; color: #b8860b; font-weight: 700; }
+
+    /* Game picker sheet — same slide-up-from-bottom mechanics as the app's other
+       setupMobileSheet-driven pickers (Obtain's game list, Types/Generations filters),
+       just scoped with tb- prefixed classes and positioned relative to this section. */
+    .tb-game-sheet-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.35); z-index: 400; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+    .tb-game-sheet-backdrop.open { opacity: 1; pointer-events: all; }
+    .tb-game-sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 70%; background: white; border-radius: 16px 16px 0 0; z-index: 401; display: flex; flex-direction: column; box-shadow: 0 -4px 20px rgba(0,0,0,0.2); transform: translateY(100%); transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); }
+    .tb-game-sheet.open { transform: translateY(0); }
+    .tb-game-sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #eee; flex-shrink: 0; }
+    .tb-game-sheet-title { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; text-transform: uppercase; color: #43656e; }
+    .tb-game-sheet-close { width: 28px; height: 28px; border-radius: 50%; border: none; background: #f0efe9; font-size: 12px; color: #555; cursor: pointer; }
+    .tb-game-sheet-body { overflow-y: auto; padding: 10px 16px 20px; }
+    .tb-game-gen-group { margin-bottom: 14px; }
+    .tb-game-gen-label { font-size: 11px; font-weight: 800; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .tb-game-pill-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tb-game-pill { padding: 7px 13px; border-radius: 16px; border: 1.5px solid #e2ddd0; background: #f7f5f0; font-size: 12px; font-weight: 700; color: #43656e; cursor: pointer; }
+    .tb-game-pill:hover { border-color: #43656e; }
+    .tb-game-pill.selected { background: #43656e; border-color: #43656e; color: white; }
+
     @media (max-width: 900px) {
       .app-header { padding: 0 8px; gap: 6px; }
       .app-header-brand { height: 28px; }
@@ -1980,6 +2057,15 @@
       .obtain-footer-btn, .matchups-footer-btn, .moveset-footer-btn {
         width: auto; flex: 1; padding: 8px 4px;
       }
+
+      /* ── Team Builder: stack the party grid to a single column and let the header
+           controls wrap onto their own lines so nothing gets clipped on a phone screen. ── */
+      .tb-hub, .tb-canvas { padding: 12px 12px 20px; gap: 10px; }
+      .tb-party-grid { grid-template-columns: 1fr; max-width: 420px; }
+      .tb-header-controls { gap: 8px; }
+      .tb-toggle-btn { padding: 6px 10px; font-size: 11px; }
+      .tb-game-select-btn { font-size: 11px; padding: 6px 10px; }
+      .tb-name-input { font-size: 15px; }
     }
   </style>
 </head>
@@ -2006,6 +2092,17 @@
       </button>
       <button class="sidenav-item sidenav-item-lists" data-section="lists">
         <img src="icons/sections/lists.png" alt="Lists" class="sidenav-section-img">
+      </button>
+      <!-- No icons/sections/teambuilder.png asset exists yet in this build, so this nav item
+           uses the app's existing inline-SVG fallback pattern (see the
+           ".sidenav-item svg.sidenav-section-img" rule above) instead of an <img>. Diego: drop a
+           teambuilder.png into icons/sections/ later and swap this <svg> for an <img> to match
+           the other four tabs — no other code needs to change. -->
+      <button class="sidenav-item sidenav-item-teambuilder" data-section="teambuilder">
+        <svg class="sidenav-section-img" viewBox="0 0 24 24" fill="none" stroke="#43656e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="12" cy="17" r="3"/>
+          <path d="M9.2 8.7 10.6 15M14.8 8.7 13.4 15"/>
+        </svg>
       </button>
     </div>
 
@@ -2898,6 +2995,77 @@
       </div>
     </div>
 
+    <!-- ── TEAM BUILDER SECTION (Round 1: Saved Teams Hub + Team Canvas skeleton) ──
+         Two screens live inside this one section-panel and are toggled by showing/hiding
+         #tb-hub vs #tb-canvas, the same "one panel, swap the visible child" approach the
+         Obtain modal uses for its Hunt/Breed tabs. Everything here reads/writes the
+         'sevii_teams_v1' localStorage key defined further down in the script — completely
+         separate from the Lists feature's 'sevii_lists_v1' key just above. -->
+    <div class="section-panel" id="section-teambuilder">
+
+      <!-- Screen 1: Saved Teams Hub — a grid of team cards, or an empty state -->
+      <div class="tb-hub" id="tb-hub">
+        <div class="tb-hub-toolbar">
+          <div class="tb-hub-title">My Teams</div>
+          <button class="tb-create-btn" id="tb-create-team-btn">+ Create New Team</button>
+        </div>
+        <div class="grid-wrapper">
+          <div class="grid tb-teams-grid" id="tb-teams-grid"></div>
+        </div>
+      </div>
+
+      <!-- Screen 2: Team Canvas — context header + 2×3 party grid -->
+      <div class="tb-canvas" id="tb-canvas" style="display:none;">
+        <div class="tb-canvas-topbar">
+          <button class="tb-back-btn" id="tb-back-to-hub-btn">← My Teams</button>
+        </div>
+
+        <div class="tb-context-header">
+          <div class="tb-name-row">
+            <input type="text" class="tb-name-input" id="tb-team-name-input" maxlength="40" placeholder="Team name">
+            <button class="tb-name-edit-btn" id="tb-team-name-edit-btn" title="Rename">✎</button>
+          </div>
+
+          <div class="tb-header-controls">
+            <!-- Mode toggle: Story / Competitive — visual/local-state only in Round 1 -->
+            <div class="tb-toggle-group" id="tb-mode-toggle">
+              <button class="tb-toggle-btn" data-mode="story">Story</button>
+              <button class="tb-toggle-btn" data-mode="competitive">Competitive</button>
+            </div>
+
+            <!-- Format toggle: Singles / Doubles — hidden/disabled while Mode = Story -->
+            <div class="tb-toggle-group" id="tb-format-toggle">
+              <button class="tb-toggle-btn" data-format="singles">Singles</button>
+              <button class="tb-toggle-btn" data-format="doubles">Doubles</button>
+            </div>
+
+            <!-- Game selector: opens a bottom-sheet picker grouped by generation, built from
+                 the existing GAME_LIST constant. Visual only — no legality filtering yet. -->
+            <button class="tb-game-select-btn" id="tb-game-select-btn">
+              <span id="tb-game-select-label">Select a game</span><span class="tb-game-select-chevron">▾</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid-wrapper">
+          <div class="tb-party-grid" id="tb-party-grid"></div>
+        </div>
+      </div>
+
+      <!-- Game picker — reuses the app's mobile-sheet slide-up pattern (setupMobileSheet) for
+           both mobile and desktop rather than inventing a separate desktop-only dropdown, so the
+           same markup/behavior works at every width. -->
+      <div class="tb-game-sheet-backdrop" id="tb-game-sheet-backdrop"></div>
+      <div class="tb-game-sheet" id="tb-game-sheet">
+        <div class="tb-game-sheet-header">
+          <span class="tb-game-sheet-title">Select a Game</span>
+          <button class="tb-game-sheet-close" id="tb-game-sheet-close">✕</button>
+        </div>
+        <div class="tb-game-sheet-body" id="tb-game-sheet-body"></div>
+      </div>
+
+    </div>
+
   </div>
 
 
@@ -3690,6 +3858,11 @@
         renderListsSwitcher();
         renderListsGrid();
       }
+      if (name === 'teambuilder') {
+        // Always land back on the Hub when the tab is opened; Canvas is only reached by
+        // creating/opening a specific team from there.
+        tbShowHub();
+      }
     }
 
     document.getElementById('hamburger-btn').addEventListener('click', openSidenav);
@@ -4121,6 +4294,281 @@
         renderListsGrid();
       }
     });
+
+    // ══════════════════════════════════════════
+    // TEAM BUILDER SECTION (Round 1: Saved Teams Hub + Team Canvas skeleton)
+    // ══════════════════════════════════════════
+
+    // ── Storage layer — localStorage-backed, completely separate from Lists' own
+    // 'sevii_lists_v1' key above. Shape: { version:1, teams:[ team, ... ] }.
+    // Each team's `party` array always has exactly 6 slots (null = empty). Each filled slot
+    // gets the FULL competitive-build schema now — speciesId/speciesName/shiny are the only
+    // fields Round 1 actually sets, but ability/item/nature/teraType/evs/ivs/moves already
+    // exist with sensible empty defaults so later rounds (Studio, sub-pickers) never need to
+    // migrate old saved teams to a new shape. ──
+    const TEAMS_STORAGE_KEY = 'sevii_teams_v1';
+    let teamsData = null;
+
+    function loadTeamsData(){
+      if(teamsData) return teamsData;
+      try{
+        const raw = localStorage.getItem(TEAMS_STORAGE_KEY);
+        if(raw){ teamsData = JSON.parse(raw); if(teamsData && Array.isArray(teamsData.teams)) return teamsData; }
+      }catch(e){}
+      teamsData = { version:1, teams:[] };
+      return teamsData;
+    }
+    function saveTeamsData(){
+      try{ localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(teamsData)); }catch(e){}
+    }
+    function getTeams(){ return loadTeamsData().teams; }
+    function getTeam(id){ return getTeams().find(t=>t.id===id); }
+
+    // The full per-slot schema — every field a later round will need, even though this
+    // round only ever fills in speciesId/speciesName/shiny.
+    function makeEmptyPartySlot(){
+      return null; // an empty slot is simply null; see makeTeamMember() for a filled one
+    }
+    function makeTeamMember(speciesId, speciesName, shiny){
+      return {
+        speciesId, speciesName, nickname: '', shiny: !!shiny,
+        ability: null, item: null, nature: null, teraType: null,
+        evs: { hp:0, atk:0, def:0, spa:0, spd:0, spe:0 },
+        ivs: { hp:31, atk:31, def:31, spa:31, spd:31, spe:31 },
+        moves: []
+      };
+    }
+    function createTeam(name){
+      const trimmed=(name||'New Team').trim().slice(0,40) || 'New Team';
+      const now=Date.now();
+      const team={
+        id: 'team_'+now.toString(36)+'_'+Math.random().toString(36).slice(2,7),
+        name: trimmed,
+        mode: 'story',
+        format: 'singles',
+        game: null,
+        createdAt: now,
+        updatedAt: now,
+        party: [null,null,null,null,null,null]
+      };
+      getTeams().push(team);
+      saveTeamsData();
+      return team;
+    }
+    function deleteTeam(id){
+      const before=getTeams().length;
+      teamsData.teams = getTeams().filter(t=>t.id!==id);
+      if(getTeams().length!==before) saveTeamsData();
+    }
+    function touchTeam(team){ team.updatedAt = Date.now(); saveTeamsData(); }
+
+    // ── Hub / Canvas navigation state ──
+    let tbActiveTeamId = null; // which team the Canvas screen is currently showing
+
+    function tbShowHub(){
+      tbActiveTeamId = null;
+      document.getElementById('tb-hub').style.display = '';
+      document.getElementById('tb-canvas').style.display = 'none';
+      renderTeamBuilderHub();
+    }
+    function tbShowCanvas(teamId){
+      tbActiveTeamId = teamId;
+      document.getElementById('tb-hub').style.display = 'none';
+      document.getElementById('tb-canvas').style.display = 'flex';
+      renderTeamCanvas();
+    }
+
+    // ── Screen 1: Saved Teams Hub ──
+    function renderTeamBuilderHub(){
+      const grid = document.getElementById('tb-teams-grid');
+      if(!grid) return;
+      const teams = getTeams();
+      grid.innerHTML = '';
+      if(teams.length===0){
+        grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🧩</div><div class="empty-title">No teams yet</div><div class="empty-sub" style="margin-top:6px;">Build your first team to get started.</div><button class="tb-create-btn" id="tb-hub-empty-create-btn" style="margin-top:14px;">+ Create New Team</button></div>`;
+        document.getElementById('tb-hub-empty-create-btn')?.addEventListener('click', tbCreateAndOpenTeam);
+        return;
+      }
+      // Newest-updated first
+      teams.slice().sort((a,b)=>b.updatedAt-a.updatedAt).forEach(team=>{
+        const card = document.createElement('div');
+        card.className = 'tb-team-card';
+        const filledCount = team.party.filter(Boolean).length;
+        const gameLabel = tbGameLabelFor(team.game) || 'No game set';
+        card.innerHTML = `
+          <div class="tb-team-card-name">${escapeHtml(team.name)}</div>
+          <div class="tb-team-card-badges">
+            <span class="tb-badge">${team.mode==='competitive'?'Competitive':'Story'}</span>
+            <span class="tb-badge">${team.format==='doubles'?'Doubles':'Singles'}</span>
+            <span class="tb-badge">${escapeHtml(gameLabel)}</span>
+          </div>
+          <div class="tb-team-card-sprites"></div>
+          <div class="tb-team-card-meta">${filledCount}/6 Pokémon</div>
+        `;
+        const spriteRow = card.querySelector('.tb-team-card-sprites');
+        team.party.forEach(member=>{
+          const slot = document.createElement('div');
+          slot.className = 'tb-team-card-sprite-slot';
+          if(member && member.speciesId){
+            const img = document.createElement('img');
+            img.src = getEvoSpriteUrl(member.speciesId, member.shiny);
+            img.alt = member.speciesName || '';
+            slot.appendChild(img);
+          }
+          spriteRow.appendChild(slot);
+        });
+        card.addEventListener('click', ()=> tbShowCanvas(team.id));
+        grid.appendChild(card);
+      });
+    }
+    // Small helper — the app doesn't seem to have a generic HTML-escape utility yet, and team
+    // names are free-typed user input, so escape before dropping them into innerHTML.
+    function escapeHtml(s){
+      return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function tbGameLabelFor(gameId){
+      if(!gameId) return null;
+      for(const genGroup of GAME_LIST){
+        const found = genGroup.games.find(g=>g.id===gameId);
+        if(found) return found.name;
+      }
+      return null;
+    }
+    function tbCreateAndOpenTeam(){
+      const team = createTeam('New Team');
+      tbShowCanvas(team.id);
+    }
+    document.getElementById('tb-create-team-btn')?.addEventListener('click', tbCreateAndOpenTeam);
+    document.getElementById('tb-back-to-hub-btn')?.addEventListener('click', tbShowHub);
+
+    // ── Screen 2: Team Canvas ──
+    function renderTeamCanvas(){
+      const team = getTeam(tbActiveTeamId);
+      if(!team){ tbShowHub(); return; }
+
+      const nameInput = document.getElementById('tb-team-name-input');
+      nameInput.value = team.name;
+
+      // Mode toggle
+      document.querySelectorAll('#tb-mode-toggle .tb-toggle-btn').forEach(btn=>{
+        btn.classList.toggle('active', btn.dataset.mode === team.mode);
+      });
+      // Format toggle — hidden/disabled entirely while Mode is Story, per the Story/Competitive
+      // resolution: Story mode has no singles/doubles distinction to make.
+      const formatGroup = document.getElementById('tb-format-toggle');
+      const isStory = team.mode === 'story';
+      formatGroup.classList.toggle('tb-disabled', isStory);
+      formatGroup.style.display = isStory ? 'none' : '';
+      document.querySelectorAll('#tb-format-toggle .tb-toggle-btn').forEach(btn=>{
+        btn.classList.toggle('active', btn.dataset.format === team.format);
+      });
+
+      // Game selector label
+      document.getElementById('tb-game-select-label').textContent = tbGameLabelFor(team.game) || 'Select a game';
+
+      renderTeamPartyGrid(team);
+    }
+
+    document.getElementById('tb-team-name-input')?.addEventListener('change', e=>{
+      const team = getTeam(tbActiveTeamId);
+      if(!team) return;
+      const trimmed = e.target.value.trim().slice(0,40) || 'New Team';
+      team.name = trimmed;
+      e.target.value = trimmed;
+      touchTeam(team);
+    });
+    document.getElementById('tb-team-name-edit-btn')?.addEventListener('click', ()=>{
+      document.getElementById('tb-team-name-input')?.focus();
+      document.getElementById('tb-team-name-input')?.select();
+    });
+
+    document.getElementById('tb-mode-toggle')?.addEventListener('click', e=>{
+      const btn = e.target.closest('.tb-toggle-btn');
+      if(!btn) return;
+      const team = getTeam(tbActiveTeamId);
+      if(!team) return;
+      team.mode = btn.dataset.mode;
+      touchTeam(team);
+      renderTeamCanvas();
+    });
+    document.getElementById('tb-format-toggle')?.addEventListener('click', e=>{
+      const btn = e.target.closest('.tb-toggle-btn');
+      if(!btn) return;
+      const team = getTeam(tbActiveTeamId);
+      if(!team) return;
+      team.format = btn.dataset.format;
+      touchTeam(team);
+      renderTeamCanvas();
+    });
+
+    // Party grid: 6 slots, empty ones are a stub "Add Team Member" card (Dex Picker/Studio
+    // are out of scope for this round — clicking an empty slot just shows a coming-soon note).
+    function renderTeamPartyGrid(team){
+      const grid = document.getElementById('tb-party-grid');
+      if(!grid) return;
+      grid.innerHTML = '';
+      for(let i=0;i<6;i++){
+        const member = team.party[i];
+        const slot = document.createElement('div');
+        slot.className = 'tb-party-slot' + (member ? ' filled' : '');
+        if(member && member.speciesId){
+          slot.innerHTML = `
+            <div class="tb-party-slot-filled-row">
+              <img class="tb-party-slot-sprite" src="${getEvoSpriteUrl(member.speciesId, member.shiny)}" alt="${escapeHtml(member.speciesName||'')}">
+              <div>
+                <div class="tb-party-slot-name">${escapeHtml(member.speciesName||'')}</div>
+                ${member.shiny ? '<div class="tb-party-slot-shiny">✨ Shiny</div>' : ''}
+              </div>
+            </div>
+          `;
+        } else {
+          slot.innerHTML = `<div class="tb-party-slot-plus">+</div><div class="tb-party-slot-label">Add Team Member</div>`;
+          slot.addEventListener('click', ()=>{
+            // Dex Picker / Pokémon Studio come in a later round — Round 1 just stubs this out.
+            alert('Adding team members is coming in a later round of the Team Builder!');
+          });
+        }
+        grid.appendChild(slot);
+      }
+    }
+
+    // ── Game picker sheet — reuses setupMobileSheet() exactly like the app's other pickers ──
+    setupMobileSheet('tb-game-select-btn','tb-game-sheet','tb-game-sheet-backdrop','tb-game-sheet-close');
+    function renderTeamGameSheet(){
+      const body = document.getElementById('tb-game-sheet-body');
+      if(!body) return;
+      const team = getTeam(tbActiveTeamId);
+      body.innerHTML = '';
+      GAME_LIST.forEach(genGroup=>{
+        const group = document.createElement('div');
+        group.className = 'tb-game-gen-group';
+        const label = document.createElement('div');
+        label.className = 'tb-game-gen-label';
+        label.textContent = `Generation ${genGroup.gen}`;
+        const row = document.createElement('div');
+        row.className = 'tb-game-pill-row';
+        genGroup.games.forEach(game=>{
+          const pill = document.createElement('button');
+          pill.className = 'tb-game-pill' + (team && team.game===game.id ? ' selected' : '');
+          pill.textContent = game.name;
+          pill.addEventListener('click', ()=>{
+            const t = getTeam(tbActiveTeamId);
+            if(!t) return;
+            t.game = game.id;
+            touchTeam(t);
+            document.getElementById('tb-game-select-label').textContent = game.name;
+            document.getElementById('tb-game-sheet').classList.remove('open');
+            document.getElementById('tb-game-sheet-backdrop').classList.remove('open');
+            renderTeamGameSheet();
+          });
+          row.appendChild(pill);
+        });
+        group.appendChild(label);
+        group.appendChild(row);
+        body.appendChild(group);
+      });
+    }
+    document.getElementById('tb-game-select-btn')?.addEventListener('click', renderTeamGameSheet);
 
     let loreFilterCat=null;
     // Per-category selections stored separately for AND logic + persistence
