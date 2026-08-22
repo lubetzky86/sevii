@@ -1676,7 +1676,12 @@
       #ab-gen-filter-row.open .gen-strip, #mv-gen-filter-row.open .gen-strip,
       #mv-type-filter-row.open #mv-type-filter { display: flex; flex-wrap: wrap; overflow: visible; gap: 8px; }
       #ab-hidden-filter-row.open #ab-hidden-row, #mv-cat-filter-row.open #mv-cat-row { display: flex; flex-wrap: wrap; overflow: visible; gap: 8px; justify-content: center; }
-      #type-filter-row.open .type-pill, #mv-type-filter-row.open .type-pill { flex: 0 0 calc(25% - 6px); width: auto; height: 64px; }
+      #mv-type-filter-row.open .type-pill { flex: 0 0 calc(25% - 6px); width: auto; height: 64px; }
+      /* Pokémon type filter sheet: 3 pills per row (6 equal rows for the 18 types), bigger pills,
+         and a taller sheet so the extra row height still fits without scrolling awkwardly. */
+      #type-filter-row.open .type-pill { flex: 0 0 calc(33.333% - 6px); width: auto; height: 84px; }
+      #type-filter-row { max-height: 80vh; }
+      #type-filter-row .type-filter-strip { padding-bottom: 4px; }
       #gen-filter-row.open .gen-pill, #ab-gen-filter-row.open .gen-pill, #mv-gen-filter-row.open .gen-pill { flex: 0 0 calc(33.333% - 6px); height: 64px; }
       #ab-hidden-filter-row.open .ab-hidden-btn { flex: 0 0 calc(50% - 4px); max-width: none; height: 64px; }
       #mv-cat-filter-row.open .mv-cat-btn { flex: 0 0 calc(33.333% - 6px); width: auto; height: 64px; }
@@ -1802,6 +1807,21 @@
         font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.75);
         text-decoration: underline; cursor: pointer;
       }
+
+      /* Matchups modal: more breathing room between effectiveness tiers (Super Effective,
+         Not Very Effective, etc.) so the eye can separate one block from the next. */
+      .matchup-group { margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+      .matchup-group:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+
+      /* Generation divider label in the Pokémon grid — spans the full row (grid-column:1/-1),
+         which is what pushes the next generation's cards onto a fresh row automatically. */
+      .gen-divider {
+        grid-column: 1 / -1;
+        font-family: 'Archivo Black', sans-serif; font-size: 12px; font-weight: 900;
+        text-transform: uppercase; letter-spacing: 0.6px; color: #43656e; text-align: center;
+        padding: 10px 0 4px; margin-top: 4px; border-top: 2px solid #43656e22;
+      }
+      .gen-divider:first-child { margin-top: 0; border-top: none; padding-top: 0; }
     }
   </style>
 </head>
@@ -2059,7 +2079,7 @@
           <div class="matchups-modal-header" id="matchups-modal-header">
             <div class="matchups-modal-title-block">
               <div class="matchups-modal-name" id="matchups-modal-name"></div>
-              <div class="matchups-modal-subtitle">Damage Taken vs.</div>
+              <div class="matchups-modal-subtitle">Type Matchups</div>
             </div>
             <div class="matchups-modal-header-right">
               <div id="matchups-type-group" class="matchups-type-group"></div>
@@ -2370,7 +2390,7 @@
           <!-- ALTERNATIVE FORMS (hidden if none) -->
           <div id="info-alt-forms-section" style="display:none;">
             <div class="info-section-header">
-              <div class="info-section-title" id="section-title-forms">Alternative Forms</div>
+              <div class="info-section-title" id="section-title-forms">Alternate Forms</div>
               <hr class="info-section-rule" id="section-rule-forms" />
             </div>
             <div class="info-alt-forms-row" id="info-alt-forms-row"></div>
@@ -4191,6 +4211,7 @@
       });
       return list;}
 
+    function getGenForId(id){for(const g in GEN_RANGES){const[min,max]=GEN_RANGES[g];if(id>=min&&id<=max)return g;}return null;}
     function renderGrid(){
       const grid=document.getElementById('grid');const list=getSortedFiltered();const q=document.getElementById('search-input').value.trim().toLowerCase();
       document.getElementById('result-count').textContent=activeTypes.size>1?`Showing ${list.length} Pokémon with ${[...activeTypes].join(' + ')} typing`:`Showing ${list.length} Pokémon`;
@@ -4201,7 +4222,22 @@
         else{grid.innerHTML=`<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No Pokémon found with this combination</div></div>`;}
         return;
       }
+      // Generation dividers: only meaningful when sorted by Pokédex number (#), since that's
+      // the only order where each generation's Pokémon stay together in one contiguous block.
+      // Mobile-only per the grid's fixed 3-column layout, matching the screenshots this was asked for.
+      const showGenDividers=window.innerWidth<=600&&document.getElementById('sort-select').value==='number';
+      let lastGen=null;
       list.forEach(pokemon=>{
+        if(showGenDividers){
+          const g=getGenForId(pokemon.id);
+          if(g!==lastGen){
+            const divider=document.createElement('div');
+            divider.className='gen-divider';
+            divider.textContent=`Gen ${g}`;
+            grid.appendChild(divider);
+            lastGen=g;
+          }
+        }
         const card=document.createElement('div');const isSel=selectedPokemon?.id===pokemon.id;
         card.className='card'+(isSel?' selected':'');
         if(isSel&&currentPalette){card.style.borderColor=currentPalette.dark;card.style.boxShadow=`0 0 0 1px ${currentPalette.dark}`;card.style.background=currentPalette.bg;}
@@ -5678,7 +5714,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
             document.querySelectorAll('#type-filters .type-pill').forEach(pill=>{pill.classList.toggle('active',activeTypes.has(pill.dataset.type));});
             renderGrid();closePanel();
           });
-          defLeft.insertBefore(ico,defLeft.firstChild);
+          defLeft.appendChild(ico);
         });
         if(firstOpen||openTitles.has(defTitle))defSection.classList.add('open');
         allSections.push(defSection);
