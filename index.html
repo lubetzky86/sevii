@@ -273,6 +273,7 @@
     .mobile-clear-all-btn { display: none; }
     .mobile-filter-buttons-row { display: none; }
     .mobile-trigger-count { display: none; }
+    .mobile-lists-row { display: none; }
     .mobile-sheet-header { display: none; }
     .mobile-sheet-backdrop { display: none; }
     .lore-filter-backdrop { display: none; }
@@ -1754,7 +1755,8 @@
       .mobile-sheet-backdrop.open { opacity: 1; pointer-events: all; }
       #type-filter-row, #gen-filter-row, #grid-sort-wrapper,
       #ab-gen-filter-row, #ab-hidden-filter-row, #ab-sort-wrap,
-      #mv-type-filter-row, #mv-gen-filter-row, #mv-cat-filter-row, #mv-sort-wrap {
+      #mv-type-filter-row, #mv-gen-filter-row, #mv-cat-filter-row, #mv-sort-wrap,
+      #lists-mylists-sheet {
         position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 401;
         display: flex; flex-direction: column; background: white; border-radius: 16px 16px 0 0;
         max-height: 65vh; overflow-y: auto; padding: 14px 14px calc(14px + env(safe-area-inset-bottom, 0px));
@@ -1762,7 +1764,8 @@
       }
       #type-filter-row.open, #gen-filter-row.open, #grid-sort-wrapper.open,
       #ab-gen-filter-row.open, #ab-hidden-filter-row.open, #ab-sort-wrap.open,
-      #mv-type-filter-row.open, #mv-gen-filter-row.open, #mv-cat-filter-row.open, #mv-sort-wrap.open { transform: translateY(0); }
+      #mv-type-filter-row.open, #mv-gen-filter-row.open, #mv-cat-filter-row.open, #mv-sort-wrap.open,
+      #lists-mylists-sheet.open { transform: translateY(0); }
       .mobile-sheet-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0; }
       .mobile-sheet-title { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: #333; }
       .mobile-sheet-close { width: 30px; height: 30px; border-radius: 50%; border: none; background: #f0efe9; font-size: 13px; color: #555; cursor: pointer; }
@@ -1782,6 +1785,23 @@
       #mv-cat-filter-row.open .mv-cat-btn { flex: 0 0 calc(33.333% - 6px); width: auto; height: 64px; flex-direction: column; gap: 2px; padding-bottom: 6px; }
       #mv-cat-filter-row.open .mv-cat-btn img { width: 28px; height: 28px; flex-shrink: 0; }
       #mv-cat-filter-row.open .mv-cat-label { display: block; font-size: 9px; font-weight: 700; color: #43656e; text-transform: uppercase; letter-spacing: 0.3px; }
+
+      /* ── Lists section (mobile): the desktop pill-per-list row (.lists-switcher-bar) wraps
+         badly once there are more than ~4 lists, so mobile swaps it for 2 fixed buttons
+         (Favorites + "My Lists") plus a bottom sheet listing custom lists — same trigger+sheet
+         pattern reused above for Types/Generations/Sort. */
+      .lists-switcher-bar { display: none; }
+      .mobile-lists-row { display: flex; gap: 8px; padding: 14px 14px 4px; }
+      .mobile-lists-row .mobile-filter-trigger { flex: 1; }
+      #lists-mylists-sheet .lists-mylists-strip { display: flex; flex-wrap: wrap; gap: 8px; overflow: visible; }
+      #lists-mylists-sheet .lists-switcher-pill { flex: 0 0 calc(50% - 4px); justify-content: center; }
+      #lists-mylists-sheet .lists-mylists-empty { padding: 18px 4px; text-align: center; font-size: 12px; color: #888; width: 100%; }
+      /* Toolbar polish to match the mobile-filter-trigger treatment used everywhere else. */
+      .lists-toolbar { padding: 10px 14px 12px; }
+      .lists-toolbar-sort select { height: 40px; font-size: 13px; border-radius: 8px; flex: 1; }
+      .lists-toolbar-sort { flex: 1; }
+      .lists-toolbar-sort .grid-sort-dir { width: 40px; height: 40px; border-radius: 8px; }
+      .lists-toolbar-actions .lists-action-btn { height: 40px; padding: 0 14px; border-radius: 8px; font-family: 'Archivo Black', sans-serif; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; border-width: 1.5px; }
 
       /* Lore: single "Lore" trigger opens one sheet with 3 tabs (Classification / Behavior / Danger Level) */
       .lore-filter-backdrop { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 400; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
@@ -2839,6 +2859,24 @@
       <div class="left-panel" id="lists-left-panel">
         <div class="lists-switcher-bar" id="lists-switcher-bar"></div>
 
+        <!-- Mobile-only: the desktop pill row above overflows/wraps once there are more than a
+             few lists, so mobile collapses it to 2 fixed buttons (Favorites + a "My Lists"
+             sheet trigger) — same trigger+bottom-sheet pattern as Types/Generations/Sort above. -->
+        <div class="mobile-lists-row" id="mobile-lists-row">
+          <button class="mobile-filter-trigger" id="lists-fav-trigger">★ Favorites</button>
+          <button class="mobile-filter-trigger mobile-sort-trigger" id="lists-mylists-trigger" aria-expanded="false">
+            <span id="lists-mylists-trigger-label">My Lists</span>
+          </button>
+        </div>
+        <div class="filter-row" id="lists-mylists-sheet">
+          <div class="mobile-sheet-header">
+            <span class="mobile-sheet-title">My Lists</span>
+            <button class="mobile-sheet-close" id="lists-mylists-close">✕</button>
+          </div>
+          <div class="lists-mylists-strip" id="lists-mylists-strip"></div>
+        </div>
+        <div class="mobile-sheet-backdrop" id="lists-mylists-backdrop"></div>
+
         <div class="lists-toolbar">
           <div class="lists-toolbar-sort">
             <select id="lists-sort-select">
@@ -3790,12 +3828,36 @@
     function cardDexId(p){return p.__regional?p.displayId:p.id;}
     function cardTypes(p){return p.__regional?p.data.types:p.types;}
     function cardName(p){return p.__regional?p.data.name:p.name;}
+    // ── Known "default-form cosmetic suffix" words ──
+    // Some species' PokéAPI slug for their PRIMARY/default form still carries a trailing
+    // cosmetic/battle-form word (Keldeo's base form is literally "keldeo-ordinary", Meloetta's
+    // is "meloetta-aria", gender-difference species like Basculegion resolve to
+    // "basculegion-male", etc.). This single list is the shared source of truth for what counts
+    // as "just a stripped suffix, not part of the species' actual name" — used both to clean up
+    // main-grid card labels (cardLabelText below) and, via baseSpeciesNameForPokemon further
+    // down, to compute signature-move/ability labels and the Moves/Abilities dedup grouping.
+    // IMPORTANT: this must never be confused with genuine multi-word species names like the
+    // Gen 9 Paradox Pokémon ("iron-crown", "great-tusk", ...) — those have no separate base
+    // form and are guarded separately (see PARADOX_MULTIWORD_SPECIES below).
+    const KNOWN_FORM_SUFFIX_WORDS=['male','female','hangry','full-belly','ordinary','aria','red-striped'];
+    // Strips a trailing KNOWN_FORM_SUFFIX_WORDS entry from a raw PokéAPI slug (e.g.
+    // "keldeo-ordinary" -> "keldeo"). Returns the slug unchanged if no known suffix matches, or
+    // if the slug IS the suffix word itself (defensive — shouldn't happen for real species).
+    function stripKnownFormSuffix(slug){
+      for(const suf of KNOWN_FORM_SUFFIX_WORDS){
+        if(slug!==suf && slug.endsWith('-'+suf)) return slug.slice(0,-(suf.length+1));
+      }
+      return slug;
+    }
     // Main-grid card labels only: some base-form Pokémon (Meowstic, Indeedee, Basculegion,
     // Oinkologne) are gender-difference species whose curated display_name can still resolve to
     // a raw PokéAPI slug like "basculegion-male" before/without an override, which title-cases to
-    // "Basculegion Male". Strip a trailing Male/Female word here — grid cards only — without ever
-    // touching __regional labels (those keep prefixes like "Alolan"/"Galarian" verbatim).
-    function cardLabelText(p){return p.__regional?p.cardLabel:getDisplayName(p.name).replace(/\s+(Male|Female)$/i,'');}
+    // "Basculegion Male" — and others (Keldeo "Ordinary", Meloetta "Aria", Basculin
+    // "Red Striped") carry a similar cosmetic suffix on their default/primary form. Strip any
+    // KNOWN_FORM_SUFFIX_WORDS word here — grid cards only — without ever touching __regional
+    // labels (those keep prefixes like "Alolan"/"Galarian" verbatim; that's a separate code path).
+    const KNOWN_FORM_SUFFIX_LABEL_RE=new RegExp('\\s+('+KNOWN_FORM_SUFFIX_WORDS.map(w=>w.replace(/-/g,'\\s+')).join('|')+')$','i');
+    function cardLabelText(p){return p.__regional?p.cardLabel:getDisplayName(p.name).replace(KNOWN_FORM_SUFFIX_LABEL_RE,'');}
 
     // ── Lists / Favorites data layer — localStorage-backed, no server. Each list is
     // { id, name, isDefault, items:[{name,id}] }. Favorites is auto-created on first run and
@@ -3903,15 +3965,71 @@
       const isDefault=!activeList||activeList.isDefault;
       document.getElementById('lists-rename-btn').disabled=isDefault;
       document.getElementById('lists-delete-btn').disabled=isDefault;
+      renderMobileListsRow();
+    }
+
+    // ── Mobile Lists row (Favorites + "My Lists" sheet trigger) ──
+    // Mirrors renderListsSwitcher's desktop pill bar but collapses every non-Favorites list into
+    // one "My Lists" bottom sheet (reusing the app's existing filter-sheet pattern) instead of a
+    // pill per list, so it never overflows regardless of how many lists exist.
+    function renderMobileListsRow(){
+      const favBtn=document.getElementById('lists-fav-trigger');
+      const mlBtn=document.getElementById('lists-mylists-trigger');
+      const mlLabel=document.getElementById('lists-mylists-trigger-label');
+      const strip=document.getElementById('lists-mylists-strip');
+      if(!favBtn||!mlBtn||!strip) return;
+      const customLists=getLists().filter(l=>l.id!=='favorites');
+      favBtn.classList.toggle('has-selection',listsActiveId==='favorites');
+      favBtn.onclick=()=>{
+        if(listsActiveId==='favorites') return;
+        listsActiveId='favorites';
+        renderListsSwitcher();
+        renderListsGrid();
+      };
+      const activeCustom=customLists.find(l=>l.id===listsActiveId);
+      mlLabel.textContent=activeCustom?activeCustom.name:'My Lists';
+      mlBtn.classList.toggle('has-selection',!!activeCustom);
+      strip.innerHTML='';
+      if(customLists.length===0){
+        const empty=document.createElement('div');
+        empty.className='lists-mylists-empty';
+        empty.textContent='No custom lists yet — use "+ New List" to create one.';
+        strip.appendChild(empty);
+      }else{
+        customLists.forEach(l=>{
+          const pill=document.createElement('button');
+          pill.className='lists-switcher-pill'+(l.id===listsActiveId?' active':'');
+          pill.innerHTML=`${l.name}<span class="lists-switcher-count">(${l.items.length})</span>`;
+          pill.addEventListener('click',()=>{
+            listsActiveId=l.id;
+            renderListsSwitcher();
+            renderListsGrid();
+            document.getElementById('lists-mylists-sheet')?.classList.remove('open');
+            document.getElementById('lists-mylists-backdrop')?.classList.remove('open');
+            mlBtn.setAttribute('aria-expanded','false');
+          });
+          strip.appendChild(pill);
+        });
+      }
     }
 
     // Resolves the dex number a Lists card should show, matching the main grid's cardDexId():
     // a regional variant (e.g. Alolan Rattata) is displayed under its base species' low dex
     // number, not PokéAPI's internal >10000 form id. regionalForms carries that mapping
     // (displayId) keyed by the form's own PokéAPI name.
+    // Mega Evolutions and Gigantamax forms (e.g. "rayquaza-mega", id >10000) need the same
+    // treatment but aren't in regionalForms — instead alternate-forms.json's curated entry for
+    // every MEGA/GMAX form already carries a "base" field with the base species' PokéAPI slug
+    // (e.g. "rayquaza-mega" -> base "rayquaza"), so look that up in allPokemon for its real id.
     function listDexId(name, fallbackId){
       const rf=regionalForms.find(r=>r.data.name===name);
-      return rf?rf.displayId:fallbackId;
+      if(rf) return rf.displayId;
+      if(isMegaForm(name)||isGmaxForm(name)){
+        const base=alternateForms?._byForm?.[name]?.base;
+        const baseP=base && allPokemon.find(p=>p.name===base);
+        if(baseP) return baseP.id;
+      }
+      return fallbackId;
     }
 
     function getListPokemonData(item){
@@ -4226,6 +4344,7 @@
     setupMobileSheet('mobile-mv-gens-trigger','mv-gen-filter-row','mv-gen-sheet-backdrop','mv-gen-sheet-close');
     setupMobileSheet('mobile-mv-cat-trigger','mv-cat-filter-row','mv-cat-sheet-backdrop','mv-cat-sheet-close');
     setupMobileSheet('mobile-mv-sort-trigger','mv-sort-wrap','mv-sort-sheet-backdrop','mv-sort-sheet-close');
+    setupMobileSheet('lists-mylists-trigger','lists-mylists-sheet','lists-mylists-backdrop','lists-mylists-close');
 
     // ── Mobile trigger badges (count + has-selection) for Abilities & Moves — mirrors
     // updateMobileAccordionCounts() for the Pokémon section's Types/Gens/Lore triggers. ──
@@ -5692,11 +5811,29 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
     // An ability/move held by more than one Pokémon can still be a "signature" if every one of
     // those Pokémon is a different stage of the SAME evolutionary line (e.g. Archen + Archeops
     // both have Defeatist) — in that case the label should use the line's final evolution.
+    // Genuine multi-word species names (Gen 9 Paradox Pokémon) — their PokéAPI slug IS their
+    // full two-word species name with no separate "base form" underneath it, unlike
+    // "basculegion-male" (base species "basculegion" + real suffix "male") or "morpeko-hangry"
+    // (base species "morpeko" + real suffix "hangry"). Naively treating "the first hyphen
+    // segment" as the species name — the old behavior here — chopped these down to their first
+    // word only ("iron-crown" -> "Iron"), which is wrong: neither word is a stripped-off suffix.
+    const PARADOX_MULTIWORD_SPECIES=new Set([
+      'iron-crown','iron-valiant','iron-bundle','iron-hands','iron-jugulis','iron-moth',
+      'iron-thorns','iron-treads','great-tusk','scream-tail','brute-bonnet','flutter-mane',
+      'slither-wing','sandy-shocks','roaring-moon','walking-wake','gouging-fire','raging-bolt'
+    ]);
     // Resolves the base species name for a PokéAPI pokemon name the same way renderAltForms does:
-    // curated JSON's "base" field first, falling back to the name's first hyphen segment.
+    // curated JSON's "base" field first; then genuine multi-word species names are returned
+    // whole (see PARADOX_MULTIWORD_SPECIES above); then a known cosmetic-suffix word is stripped
+    // if present (shared KNOWN_FORM_SUFFIX_WORDS list, see cardLabelText above); otherwise falls
+    // back to the name's first hyphen segment, which is correct for every other single-word
+    // species with a form/variant suffix (e.g. "deoxys-attack" -> "deoxys").
     function baseSpeciesNameForPokemon(name){
       const entry=alternateForms?._byForm?.[name];
       if(entry?.base) return entry.base;
+      if(PARADOX_MULTIWORD_SPECIES.has(name)) return name;
+      const stripped=stripKnownFormSuffix(name);
+      if(stripped!==name) return stripped;
       return name.split('-')[0];
     }
 
