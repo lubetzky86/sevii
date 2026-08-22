@@ -1786,8 +1786,12 @@
       .result-count, .ab-result-count { display: none; }
       #grid-sort-wrapper, #ab-sort-wrap, #mv-sort-wrap { align-items: stretch; gap: 10px; }
       #grid-sort-wrapper label, #ab-sort-wrap label, #mv-sort-wrap label { display: none; }
-      #grid-sort-wrapper select, #ab-sort-wrap select, #mv-sort-wrap select { height: 44px; font-size: 14px; width: 100%; }
-      #grid-sort-wrapper .grid-sort-dir, #ab-sort-wrap .grid-sort-dir, #mv-sort-wrap .grid-sort-dir { width: 100%; height: 40px; border-radius: 8px; font-size: 16px; }
+      /* Field select + direction toggle sit side by side on one row: the select grows to fill
+         the row, the arrow button is a small fixed-size square to its right — replacing the old
+         layout where the arrow toggle was its own full-width row stacked underneath. */
+      #grid-sort-wrapper .sort-row, #ab-sort-wrap .sort-row, #mv-sort-wrap .sort-row { display: flex; align-items: stretch; gap: 8px; }
+      #grid-sort-wrapper select, #ab-sort-wrap select, #mv-sort-wrap select { height: 44px; font-size: 14px; width: auto; flex: 1; min-width: 0; }
+      #grid-sort-wrapper .grid-sort-dir, #ab-sort-wrap .grid-sort-dir, #mv-sort-wrap .grid-sort-dir { width: 44px; height: 44px; flex: 0 0 44px; border-radius: 10px; font-size: 16px; }
 
       #right-panel { width: 100%; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100; }
       /* Ability/Move detail panels were only "position:absolute" (relative to their section's
@@ -2065,7 +2069,8 @@
               <button class="mobile-sheet-close" id="sort-sheet-close">✕</button>
             </div>
             <label for="sort-select">Sort by</label>
-            <select id="sort-select">
+            <div class="sort-row">
+              <select id="sort-select">
                 <option value="number">Pokédex number</option>
                 <option value="alpha">Alphabetical</option>
                 <optgroup label="Base Stats">
@@ -2082,7 +2087,8 @@
                   <option value="height">Height</option>
                 </optgroup>
               </select>
-            <div class="grid-sort-dir" id="sort-dir-btn">↑</div>
+              <div class="grid-sort-dir" id="sort-dir-btn">↑</div>
+            </div>
           </div>
         </div>
         <div class="mobile-sheet-backdrop" id="sort-sheet-backdrop"></div>
@@ -2572,11 +2578,13 @@
               <button class="mobile-sheet-close" id="ab-sort-sheet-close">✕</button>
             </div>
             <label for="ab-sort-select">Sort by</label>
-            <select class="ab-sort-select" id="ab-sort-select">
-              <option value="alpha">Alphabetical</option>
-              <option value="count">Pokémon count</option>
-            </select>
-            <div class="grid-sort-dir" id="ab-sort-dir-btn">↑</div>
+            <div class="sort-row">
+              <select class="ab-sort-select" id="ab-sort-select">
+                <option value="alpha">Alphabetical</option>
+                <option value="count">Pokémon count</option>
+              </select>
+              <div class="grid-sort-dir" id="ab-sort-dir-btn">↑</div>
+            </div>
           </div>
         </div>
         <div class="mobile-sheet-backdrop" id="ab-sort-sheet-backdrop"></div>
@@ -2696,13 +2704,15 @@
               <button class="mobile-sheet-close" id="mv-sort-sheet-close">✕</button>
             </div>
             <label for="mv-sort-select">Sort by</label>
-            <select class="ab-sort-select" id="mv-sort-select">
-              <option value="alpha">Alphabetical</option>
-              <option value="power">Power</option>
-              <option value="accuracy">Accuracy</option>
-              <option value="pp">PP</option>
-            </select>
-            <div class="grid-sort-dir" id="mv-sort-dir-btn">↑</div>
+            <div class="sort-row">
+              <select class="ab-sort-select" id="mv-sort-select">
+                <option value="alpha">Alphabetical</option>
+                <option value="power">Power</option>
+                <option value="accuracy">Accuracy</option>
+                <option value="pp">PP</option>
+              </select>
+              <div class="grid-sort-dir" id="mv-sort-dir-btn">↑</div>
+            </div>
           </div>
         </div>
         <div class="mobile-sheet-backdrop" id="mv-sort-sheet-backdrop"></div>
@@ -3222,6 +3232,17 @@
       const q=(activeSection==='moves')?(document.getElementById('search-input')?.value.trim().toLowerCase()||''):'';
       let list=[...mvAllData];
       if(q) list=list.filter(m=>matchesMoveSearch(m.name,q));
+      // Exclude Z-Moves (id 622-751) synchronously by id, not just by cached detail data. The
+      // detail-based exclusion below only kicks in once prefetchMoveCounts() has actually fetched
+      // and cached that move (mvDetailCache[name]===null) — until then mvDetailCache[name] is
+      // undefined and passes the `!==null` check, so on first render (before any fetch resolves)
+      // every move, Z-Moves included, would flash on screen for the ~1s prefetch takes to reach
+      // them. Checking the id here needs no fetch, so Z-Moves are gone from the very first paint.
+      list=list.filter(m=>{
+        const idMatch=m.url.match(/\/(\d+)\/$/);
+        const mvId=idMatch?parseInt(idMatch[1]):0;
+        return !isExcludedMoveId(mvId);
+      });
       list=list.filter(m=>mvDetailCache[m.name]!==null);
       if(mvActiveType!=='all') list=list.filter(m=>{const d=mvDetailCache[m.name];return d&&d.type?.name===mvActiveType;});
       if(mvActiveCat!=='all')  list=list.filter(m=>{const d=mvDetailCache[m.name];return d&&d.damage_class?.name===mvActiveCat;});
@@ -3690,7 +3711,12 @@
     function cardDexId(p){return p.__regional?p.displayId:p.id;}
     function cardTypes(p){return p.__regional?p.data.types:p.types;}
     function cardName(p){return p.__regional?p.data.name:p.name;}
-    function cardLabelText(p){return p.__regional?p.cardLabel:getDisplayName(p.name);}
+    // Main-grid card labels only: some base-form Pokémon (Meowstic, Indeedee, Basculegion,
+    // Oinkologne) are gender-difference species whose curated display_name can still resolve to
+    // a raw PokéAPI slug like "basculegion-male" before/without an override, which title-cases to
+    // "Basculegion Male". Strip a trailing Male/Female word here — grid cards only — without ever
+    // touching __regional labels (those keep prefixes like "Alolan"/"Galarian" verbatim).
+    function cardLabelText(p){return p.__regional?p.cardLabel:getDisplayName(p.name).replace(/\s+(Male|Female)$/i,'');}
 
     // ── Lists / Favorites data layer — localStorage-backed, no server. Each list is
     // { id, name, isDefault, items:[{name,id}] }. Favorites is auto-created on first run and
@@ -4881,6 +4907,16 @@
         const gmaxGames=['sword','shield'];
         fe = enEntries.find(e=>gmaxGames.includes(e.version?.name))
           || [...enEntries].reverse().find(e=>true);
+      } else if(pokemon.id>10000){
+        // Regional/alt forms: PokéAPI stores flavor_text_entries at the SPECIES level, shared
+        // across every variety (Galarian Rapidash and base Rapidash are both "species: rapidash"),
+        // so without filtering, a game where only the OTHER variety actually appeared (e.g. base
+        // Rapidash's own Legends: Arceus entry) leaks onto this variety's dex text too.
+        // pokemon.game_indices, by contrast, IS per-variety and accurate — it's this exact form's
+        // own list of games it appears in — so use it to keep only entries this form really has.
+        const ownVersions=new Set((pokemon.game_indices||[]).map(gi=>gi.version.name));
+        const ownEntries=ownVersions.size?enEntries.filter(e=>ownVersions.has(e.version?.name)):enEntries;
+        fe = [...ownEntries].reverse().find(e=>true) || [...enEntries].reverse().find(e=>true);
       } else {
         fe = [...enEntries].reverse().find(e=>true);
       }
@@ -6039,7 +6075,16 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       const versionToGen={};
       GAME_LIST.forEach(({gen,games})=>games.forEach(g=>{versionToGen[g.id]=gen;}));
 
-      const entries=(currentSpeciesData.flavor_text_entries||[]).filter(e=>e.language.name==='en');
+      let entries=(currentSpeciesData.flavor_text_entries||[]).filter(e=>e.language.name==='en');
+      // Regional/alt forms share their species record with the base form in PokéAPI (species-level
+      // flavor text isn't per-variety), so without this filter a game where only the OTHER variety
+      // appeared (e.g. base Rapidash's Legends: Arceus entry showing up under Galarian Rapidash)
+      // would leak in here too. selectedPokemon.game_indices is this exact form's own accurate
+      // list of games it appears in — use it to keep only entries this form really has.
+      if(selectedPokemon && selectedPokemon.id>10000 && !isMegaForm(selectedPokemon.name) && !isGmaxForm(selectedPokemon.name)){
+        const ownVersions=new Set((selectedPokemon.game_indices||[]).map(gi=>gi.version.name));
+        if(ownVersions.size) entries=entries.filter(e=>ownVersions.has(e.version?.name));
+      }
       // A version can appear more than once (regional Pokédex slots) — keep the first entry seen.
       const byVersion={};
       entries.forEach(e=>{ if(!byVersion[e.version.name]) byVersion[e.version.name]=e; });
