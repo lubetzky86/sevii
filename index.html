@@ -1896,6 +1896,28 @@
         padding: 10px 0 4px; margin-top: 4px; border-top: 2px solid #43656e22;
       }
       .gen-divider:first-child { margin-top: 0; border-top: none; padding-top: 0; }
+
+      /* ── Height/Weight pills: metric value wrapped awkwardly against the imperial value on
+         narrow screens (both crammed onto one line). Same stacking pattern as the Obtain modal's
+         gender pill (.obtain-info-pill-values / .obtain-info-pill-value.sub) — metric on top,
+         imperial below it, muted + italic, right-aligned within the pill. ── */
+      .info-measure-value { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+      .info-measure-metric { font-size: 13px; font-weight: 500; color: #555; }
+      .info-measure-imperial { font-size: 11px; font-weight: 400; font-style: italic; color: #999; }
+
+      /* ── Cry/Gender cluster: label should read to the LEFT of its icon ("Cry [icon]"), with
+         both icons stacked in a fixed right-hand column. The base rule uses row-reverse, which
+         (with label-then-button DOM order) actually puts the icon on the LEFT — reversed from
+         what's wanted. Flipping to plain row keeps .info-sprite-controls' existing
+         align-items:flex-end doing the column alignment (each row's right edge, i.e. the icon's
+         edge, pins to the same x regardless of label width). ── */
+      .info-cry-wrap, .info-gender-wrap { flex-direction: row; }
+
+      /* ── Hidden Ability pill: sibling generation-icon image is 32px tall, and align-items on
+         .ab-badge-row defaults to stretch — the plain <span> badge stretches to match that height
+         but only centers via its own padding, so the text sits high/off-center in the extra
+         space. Centering the span's own content directly fixes it regardless of stretched height. ── */
+      .ab-badge-hidden { display: inline-flex; align-items: center; justify-content: center; }
     }
   </style>
 </head>
@@ -4442,7 +4464,12 @@
     }
 
     function openPanel(){document.getElementById('right-panel').classList.add('open');document.getElementById('left-panel').classList.add('panel-open');setTypeFilterImages(false);}
-    function closePanel(){document.getElementById('right-panel').classList.remove('open');document.getElementById('left-panel').classList.remove('panel-open');document.querySelectorAll('.card').forEach(c=>{c.classList.remove('selected');c.style.borderColor='';c.style.boxShadow='';c.style.background='';});selectedPokemon=null;document.querySelector('.grid')?.classList.remove('has-selection');resetPokemonTheme();setTypeFilterImages(true);}
+    function closePanel(){document.getElementById('right-panel').classList.remove('open');document.getElementById('left-panel').classList.remove('panel-open');document.querySelectorAll('.card').forEach(c=>{c.classList.remove('selected');c.style.borderColor='';c.style.boxShadow='';c.style.background='';});selectedPokemon=null;document.querySelector('.grid')?.classList.remove('has-selection');resetPokemonTheme();setTypeFilterImages(true);
+      // Reset the info-panel shiny toggle on exit: shiny sprites aren't preloaded like the
+      // regular grid sprites are, so leaving it on would make the NEXT Pokémon briefly show
+      // this one's art while its shiny image loads over the network. Starting clean avoids that.
+      if(isInfoShiny){isInfoShiny=false;document.getElementById('info-shiny-control')?.classList.remove('on');document.getElementById('info-shiny-toggle')?.classList.remove('on');}
+    }
     document.getElementById('info-close-btn').addEventListener('click',closePanel);
 
     let activeModal=null;
@@ -4599,9 +4626,9 @@
       fitPokemonNameFont();
       document.getElementById('info-pokemon-number').textContent=`# ${String(displayId).padStart(4,'0')}`;
       const hm=(pokemon.height/10).toFixed(1),hft=Math.floor(pokemon.height/3.048),hin=Math.round((pokemon.height/3.048-hft)*12);
-      document.getElementById('info-height').textContent=`${hm} m (${hft}'${hin}")`;
+      document.getElementById('info-height').innerHTML=`<span class="info-measure-metric">${hm} m</span><span class="info-measure-imperial"> (${hft}'${hin}")</span>`;
       const wkg=(pokemon.weight/10).toFixed(1),wlbs=(pokemon.weight/4.536).toFixed(1);
-      document.getElementById('info-weight').textContent=`${wkg} kg (${wlbs} lbs)`;
+      document.getElementById('info-weight').innerHTML=`<span class="info-measure-metric">${wkg} kg</span><span class="info-measure-imperial"> (${wlbs} lbs)</span>`;
       // Type row
       const tr=document.getElementById('info-type-row');tr.innerHTML='';
       pokemon.types.forEach(t=>{
