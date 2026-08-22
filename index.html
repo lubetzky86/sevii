@@ -1099,8 +1099,11 @@
       flex: 1; padding: 10px 8px; border-radius: 24px;
       background: var(--theme-dark, #606070);
       border: 1.5px solid rgba(255,255,255,0.5);
-      font-size: 11px; font-weight: 800; text-transform: uppercase;
-      letter-spacing: 0.7px; color: white; cursor: pointer;
+      /* Font matched to the inter-modal footer buttons (.obtain-footer-btn / .matchups-footer-btn /
+         .moveset-footer-btn / .lore-footer-btn) so the entry-point row and the modal-footer rows
+         read as the same button style. */
+      font-size: 13px; font-weight: 600; text-transform: none;
+      letter-spacing: 0; color: white; cursor: pointer;
       transition: background 0.15s, opacity 0.15s, transform 0.1s;
       text-align: center;
     }
@@ -1348,9 +1351,6 @@
     .moveset-modal-subtitle { font-size: 11px; color: rgba(255,255,255,0.75); font-weight: 500; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.4px; }
     .moveset-modal-header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     /* Gen dropdown */
-    .moveset-gen-select { appearance: none; -webkit-appearance: none; background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.5); border-radius: 20px; color: white; font-size: 12px; font-weight: 700; padding: 5px 28px 5px 12px; cursor: pointer; outline: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='white'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; transition: background 0.15s; }
-    .moveset-gen-select:hover { background-color: rgba(255,255,255,0.3); }
-    .moveset-gen-select option { background: #333; color: white; }
     .moveset-modal-close { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.25); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; color: white; transition: background 0.15s; flex-shrink: 0; }
     .moveset-modal-close:hover { background: rgba(255,255,255,0.4); }
     /* Body */
@@ -1442,6 +1442,40 @@
     .moveset-footer-btn { width: 130px; padding: 8px 0; border-radius: 24px; border: 2px solid var(--moveset-theme-dark, #888); background: transparent; font-size: 13px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--moveset-theme-dark, #555); cursor: pointer; transition: opacity 0.15s; }
     .moveset-footer-btn:hover:not(:disabled) { opacity: 0.7; }
     .moveset-footer-btn-inactive { opacity: 0.35; cursor: default; }
+    /* ── Moveset game picker: same bottom-sheet pattern as the Obtain modal's
+       "Obtainable in" sheet (trigger pill + full-screen sheet of game pills grouped
+       by generation), replacing the old plain <select>. Reuses the Obtain modal's
+       own game-pill/grid classes (.obtain-games-panel/.obtain-gen-block/.obtain-gen-label/
+       .obtain-game-row/.obtain-game-btn/.obtain-game-img/.obtain-game-icon) so the pills
+       look identical; only the trigger + sheet chrome needs its own class names. ── */
+    .moveset-games-trigger {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 0 12px; min-height: 30px; border-radius: 8px;
+      border: 1.5px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.15);
+      font-family: 'Archivo Black', sans-serif; font-size: 11px; font-weight: 900;
+      text-transform: uppercase; letter-spacing: 0.4px; color: white;
+      cursor: pointer; box-sizing: border-box; max-width: 46vw;
+    }
+    .moveset-games-trigger-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .moveset-games-trigger-chevron { color: rgba(255,255,255,0.8); font-size: 12px; flex-shrink: 0; }
+    .moveset-games-column {
+      position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 401;
+      width: auto; height: auto; max-height: 65vh; display: flex; flex-direction: column;
+      align-items: stretch; background: white; border-radius: 16px 16px 0 0;
+      padding: 14px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+      transform: translateY(100%); transition: transform 0.25s ease;
+      box-shadow: 0 -6px 24px rgba(0,0,0,0.2); overflow: hidden;
+    }
+    .moveset-games-column.open { transform: translateY(0); }
+    .moveset-games-sheet-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0; }
+    .moveset-games-sheet-title { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: #333; }
+    .moveset-games-sheet-close { width: 30px; height: 30px; border-radius: 50%; border: none; background: #f0efe9; font-size: 13px; color: #555; cursor: pointer; flex-shrink: 0; }
+    .moveset-games-column .obtain-games-panel { max-height: calc(65vh - 60px); }
+    .moveset-games-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 400;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: none;
+    }
+    .moveset-games-backdrop.open { display: block; opacity: 1; pointer-events: all; }
     /* ══ LISTS SECTION ═══════════════════════════════════════════════════ */
     .lists-switcher-bar { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 14px 4px; }
     .lists-switcher-pill {
@@ -1918,6 +1952,14 @@
          but only centers via its own padding, so the text sits high/off-center in the extra
          space. Centering the span's own content directly fixes it regardless of stretched height. ── */
       .ab-badge-hidden { display: inline-flex; align-items: center; justify-content: center; }
+
+      /* ── Inter-modal footer buttons: now 3 buttons instead of 2 (Sevii Report added
+         everywhere), so the fixed 130px width used for a 2-button row would overflow a
+         narrow phone screen. Switch to flexible width, same treatment already used by
+         the Lore modal's own 3-button footer (.lore-footer-btn). ── */
+      .obtain-footer-btn, .matchups-footer-btn, .moveset-footer-btn {
+        width: auto; flex: 1; padding: 8px 4px;
+      }
     }
   </style>
 </head>
@@ -2166,6 +2208,7 @@
           <div class="obtain-modal-footer" id="obtain-modal-footer">
             <button class="obtain-footer-btn" id="obtain-to-matchups">Matchups</button>
             <button class="obtain-footer-btn" id="obtain-to-moveset">Moveset</button>
+            <button class="obtain-footer-btn" id="obtain-to-lore">Sevii Report</button>
           </div>
         </div>
       </div>
@@ -2187,6 +2230,7 @@
           <div class="matchups-modal-footer" id="matchups-modal-footer">
             <button class="matchups-footer-btn" id="matchups-to-obtain">Obtain</button>
             <button class="matchups-footer-btn" id="matchups-to-moveset">Moveset</button>
+            <button class="matchups-footer-btn" id="matchups-to-lore">Sevii Report</button>
           </div>
         </div>
       </div>
@@ -2310,14 +2354,25 @@
               <div class="moveset-modal-subtitle">Moveset</div>
             </div>
             <div class="moveset-modal-header-right">
-              <select class="moveset-gen-select" id="moveset-gen-select"></select>
+              <button class="moveset-games-trigger" id="moveset-games-trigger" aria-expanded="false">
+                <span class="moveset-games-trigger-label" id="moveset-games-trigger-label">Select a game</span><span class="moveset-games-trigger-chevron" id="moveset-games-trigger-chevron">▾</span>
+              </button>
               <button class="moveset-modal-close" id="moveset-modal-close">✕</button>
             </div>
           </div>
+          <div class="moveset-games-column" id="moveset-games-column">
+            <div class="moveset-games-sheet-header" id="moveset-games-sheet-header">
+              <span class="moveset-games-sheet-title">Select a game</span>
+              <button class="moveset-games-sheet-close" id="moveset-games-sheet-close">✕</button>
+            </div>
+            <div class="obtain-games-panel" id="moveset-games-panel"></div>
+          </div>
+          <div class="moveset-games-backdrop" id="moveset-games-backdrop"></div>
           <div class="moveset-modal-body" id="moveset-modal-body"></div>
           <div class="moveset-modal-footer" id="moveset-modal-footer">
             <button class="moveset-footer-btn" id="moveset-to-matchups">Matchups</button>
             <button class="moveset-footer-btn" id="moveset-to-obtain">Obtain</button>
+            <button class="moveset-footer-btn" id="moveset-to-lore">Sevii Report</button>
           </div>
         </div>
         <!-- Move detail modal (full ability-style) -->
@@ -2527,7 +2582,7 @@
           <button class="info-action-btn" id="info-matchups-btn">Matchups</button>
           <button class="info-action-btn" id="info-obtain-btn">Obtain</button>
           <button class="info-action-btn" id="info-moveset-btn">Moveset</button>
-          <button class="info-action-btn info-action-btn-lore" id="info-field-notes-btn">Field Notes</button>
+          <button class="info-action-btn info-action-btn-lore" id="info-field-notes-btn">Sevii Report</button>
         </div>
 
       </div><!-- /info-card -->
@@ -4150,6 +4205,7 @@
       renderGrid();
     });
     setupMobileSheet('obtain-games-trigger','obtain-games-column','obtain-games-backdrop','obtain-games-sheet-close');
+    setupMobileSheet('moveset-games-trigger','moveset-games-column','moveset-games-backdrop','moveset-games-sheet-close');
     // Abilities & Moves reuse the exact same bottom-sheet helper as the Pokémon section, so all
     // three sections' filter drawers open/close/behave identically.
     setupMobileSheet('mobile-ab-gens-trigger','ab-gen-filter-row','ab-gen-sheet-backdrop','ab-gen-sheet-close');
@@ -6582,6 +6638,31 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       {gen:9, label:'Gen 9 — Scarlet / Violet', vg:'scarlet-violet'},
     ];
 
+    // Individual game id (as used by GAME_LIST, the same list the Obtain modal's game
+    // picker draws from) → the PokéAPI version group its moveset data lives under.
+    // Games sharing a version group (e.g. Red & Blue) map to the same value.
+    const GAME_TO_VERSION_GROUP = {
+      red:'red-blue', blue:'red-blue', yellow:'yellow',
+      gold:'gold-silver', silver:'gold-silver', crystal:'crystal',
+      ruby:'ruby-sapphire', sapphire:'ruby-sapphire', emerald:'emerald',
+      firered:'firered-leafgreen', leafgreen:'firered-leafgreen',
+      diamond:'diamond-pearl', pearl:'diamond-pearl', platinum:'platinum',
+      heartgold:'heartgold-soulsilver', soulsilver:'heartgold-soulsilver',
+      black:'black-white', white:'black-white',
+      'black-2':'black-2-white-2', 'white-2':'black-2-white-2',
+      x:'x-y', y:'x-y',
+      'omega-ruby':'omega-ruby-alpha-sapphire', 'alpha-sapphire':'omega-ruby-alpha-sapphire',
+      sun:'sun-moon', moon:'sun-moon',
+      'ultra-sun':'ultra-sun-ultra-moon', 'ultra-moon':'ultra-sun-ultra-moon',
+      'lets-go-pikachu':'lets-go-pikachu-lets-go-eevee', 'lets-go-eevee':'lets-go-pikachu-lets-go-eevee',
+      sword:'sword-shield', shield:'sword-shield',
+      'brilliant-diamond':'brilliant-diamond-shining-pearl', 'shining-pearl':'brilliant-diamond-shining-pearl',
+      'legends-arceus':'legends-arceus',
+      scarlet:'scarlet-violet', violet:'scarlet-violet',
+      // legends-za has no PokéAPI moveset data yet, so it's intentionally left unmapped
+      // and filtered out of the moveset game picker below.
+    };
+
     // Which gen a Pokémon was introduced (by id ranges)
     function getIntroGen(id){
       if(id<=151)return 1;if(id<=251)return 2;if(id<=386)return 3;
@@ -6612,23 +6693,66 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
         while(nameEl.scrollWidth>container.clientWidth&&fs>10){fs--;nameEl.style.fontSize=fs+'px';}
       });
 
-      // Build gen dropdown — only gens >= intro gen of this Pokémon
+      // Build game picker (same bottom-sheet pattern as Obtain) — only games from
+      // generations >= this Pokémon's intro gen.
       const introGen=getIntroGen(selectedPokemon.id||1);
-      const sel=document.getElementById('moveset-gen-select');
-      sel.innerHTML='';
-      MOVESET_GENS.filter(g=>g.gen>=introGen).forEach(g=>{
-        const opt=document.createElement('option');
-        opt.value=g.vg;opt.textContent=g.label;sel.appendChild(opt);
-      });
-      // Default: most recent gen available
-      const lastOpt=sel.options[sel.options.length-1];
-      sel.value=lastOpt?.value||'scarlet-violet';
-      movesetActiveVg=sel.value;
+      const movesetGames=buildMovesetGames(introGen);
+      // Default: most recent game available
+      const lastGame=movesetGames[movesetGames.length-1];
+      setMovesetSelectedGame(lastGame?lastGame.id:'scarlet');
 
       document.getElementById('moveset-modal-backdrop').classList.add('visible');
       loadMovesetContent();
+    }
 
-      sel.onchange=()=>{movesetActiveVg=sel.value;loadMovesetContent();};
+    let movesetSelectedGame=null;
+
+    function setMovesetSelectedGame(gameId){
+      movesetSelectedGame=gameId;
+      movesetActiveVg=GAME_TO_VERSION_GROUP[gameId]||'scarlet-violet';
+      const label=document.getElementById('moveset-games-trigger-label');
+      if(label){
+        const gameName=GAME_LIST.flatMap(g=>g.games).find(g=>g.id===gameId)?.name;
+        label.textContent=gameName||'Select a game';
+      }
+      document.querySelectorAll('#moveset-games-panel .obtain-game-btn').forEach(b=>{
+        b.classList.toggle('selected',b.dataset.gameId===gameId);
+      });
+    }
+
+    // Builds the game-pill grid inside the Moveset modal's bottom sheet, grouped by
+    // generation — same markup/classes as the Obtain modal's game grid (buildObtainGames),
+    // scoped to the version groups this feature has move data for (GAME_TO_VERSION_GROUP).
+    function buildMovesetGames(introGen){
+      const panel=document.getElementById('moveset-games-panel');
+      panel.innerHTML='';
+      const included=[];
+      GAME_LIST.filter(({gen})=>gen>=introGen).forEach(({gen,games})=>{
+        const rowGames=games.filter(g=>GAME_TO_VERSION_GROUP[g.id]);
+        if(rowGames.length===0)return;
+        rowGames.forEach(g=>included.push(g));
+        const block=document.createElement('div');block.className='obtain-gen-block';
+        const label=document.createElement('div');label.className='obtain-gen-label';label.textContent='Generation '+gen;block.appendChild(label);
+        const row=document.createElement('div');row.className='obtain-game-row';
+        rowGames.forEach(game=>{
+          const btn=document.createElement('button');btn.className='obtain-game-btn';btn.dataset.gameId=game.id;btn.title=game.name;
+          const ie=document.createElement('div');ie.className='obtain-game-icon';ie.textContent=game.name;
+          const img=document.createElement('img');img.className='obtain-game-img';img.src=`icons/games/${game.id}.png`;img.alt=game.name;
+          img.onerror=()=>{img.replaceWith(ie);};
+          btn.appendChild(img);
+          btn.addEventListener('click',()=>{
+            setMovesetSelectedGame(game.id);
+            loadMovesetContent();
+            document.getElementById('moveset-games-column').classList.remove('open');
+            document.getElementById('moveset-games-backdrop').classList.remove('open');
+            document.getElementById('moveset-games-trigger').setAttribute('aria-expanded','false');
+          });
+          row.appendChild(btn);
+        });
+        block.appendChild(row);
+        panel.appendChild(block);
+      });
+      return included;
     }
 
     async function loadMovesetContent(){
@@ -7586,14 +7710,17 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
     // Matchups inter-modal
     document.getElementById('matchups-to-obtain').addEventListener('click', () => { closeMatchupsModal(); openObtainModal(); });
     document.getElementById('matchups-to-moveset').addEventListener('click', () => { closeMatchupsModal(); openMovesetModal(); });
+    document.getElementById('matchups-to-lore').addEventListener('click', async () => { closeMatchupsModal(); try { await openLoreModal(); } catch(err) { console.error('openLoreModal failed:', err); } });
 
     // Obtain inter-modal
     document.getElementById('obtain-to-matchups').addEventListener('click', () => { closeObtainModal(); openMatchupsModal(); });
     document.getElementById('obtain-to-moveset').addEventListener('click', () => { closeObtainModal(); openMovesetModal(); });
+    document.getElementById('obtain-to-lore').addEventListener('click', async () => { closeObtainModal(); try { await openLoreModal(); } catch(err) { console.error('openLoreModal failed:', err); } });
 
     // Moveset close + inter-modal
     document.getElementById('moveset-modal-close').addEventListener('click', closeMovesetModal);
     document.getElementById('moveset-modal-backdrop').addEventListener('click', e => { if (e.target === document.getElementById('moveset-modal-backdrop')) closeMovesetModal(); });
+    document.getElementById('moveset-to-lore').addEventListener('click', async () => { closeMovesetModal(); try { await openLoreModal(); } catch(err) { console.error('openLoreModal failed:', err); } });
     document.getElementById('moveset-to-matchups').addEventListener('click', () => { closeMovesetModal(); openMatchupsModal(); });
     document.getElementById('moveset-to-obtain').addEventListener('click', () => { closeMovesetModal(); openObtainModal(); });
 
