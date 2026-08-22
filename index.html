@@ -1271,6 +1271,16 @@
     .matchups-footer-btn { width: 130px; padding: 8px 0; border-radius: 24px; border: 2px solid var(--matchup-theme-dark, #888); background: transparent; font-size: 13px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--matchup-theme-dark, #555); cursor: pointer; transition: opacity 0.15s; }
     .matchups-footer-btn:hover:not(:disabled) { opacity: 0.7; }
     .matchups-footer-btn-inactive { opacity: 0.35; cursor: default; }
+
+    /* "Learn More" footer buttons — Ability modal and Move popup (Pokémon info detail) —
+       same pill shape/sizing as the Obtain/Matchups footer buttons above, reusing that pattern. */
+    .ability-modal-footer { flex-shrink: 0; display: flex; gap: 10px; justify-content: center; padding: 8px 16px 12px; }
+    .ability-footer-btn { width: 160px; padding: 8px 0; border-radius: 24px; border: 2px solid var(--ability-theme-dark, #888); background: transparent; font-size: 13px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--ability-theme-dark, #555); cursor: pointer; transition: opacity 0.15s; }
+    .ability-footer-btn:hover { opacity: 0.7; }
+
+    .moveset-move-popup-footer { flex-shrink: 0; display: flex; gap: 10px; justify-content: center; padding: 8px 16px 12px; background: var(--theme-bg, #fafafa); }
+    .move-popup-footer-btn { width: 160px; padding: 8px 0; border-radius: 24px; border: 2px solid var(--theme-dark, #888); background: transparent; font-size: 13px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--theme-dark, #555); cursor: pointer; transition: opacity 0.15s; }
+    .move-popup-footer-btn:hover { opacity: 0.7; }
     /* ── Legacy cross-footer (keep for any stragglers) ── */
     .modal-cross-footer { display: flex; gap: 8px; padding: 10px 16px 12px; border-top: 1px solid rgba(0,0,0,0.08); flex-shrink: 0; }
     .modal-cross-btn { flex: 1; padding: 8px; border-radius: 20px; border: 2px solid #bbb; background: transparent; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; cursor: pointer; color: #666; transition: background 0.15s; }
@@ -1727,7 +1737,11 @@
       #grid-sort-wrapper .grid-sort-dir, #ab-sort-wrap .grid-sort-dir, #mv-sort-wrap .grid-sort-dir { width: 100%; height: 40px; border-radius: 8px; font-size: 16px; }
 
       #right-panel { width: 100%; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100; }
-      .ab-right-panel { width: 100%; }
+      /* Ability/Move detail panels were only "position:absolute" (relative to their section's
+         own container, which sits below the Sevii header + search bar), so on mobile the header
+         and search bar stayed visible above the detail screen. Matching #right-panel's fixed
+         full-viewport treatment above makes the detail header the very first thing on screen. */
+      .ab-right-panel { width: 100%; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100; }
 
       /* 3-column grid, edge padding trimmed so cards use the full width */
       .grid-inner { padding: 8px 8px calc(24px + env(safe-area-inset-bottom, 0px)); }
@@ -2216,6 +2230,9 @@
             <div class="moveset-move-popup-body" id="moveset-move-popup-body">
               <div class="ability-loading">Loading move data...</div>
             </div>
+            <div class="moveset-move-popup-footer" id="moveset-move-popup-footer">
+              <button class="move-popup-footer-btn" id="move-popup-learn-more-btn">Learn More</button>
+            </div>
           </div>
         </div>
       </div>
@@ -2257,6 +2274,10 @@
           <!-- Scrollable body: Effect + Pokémon with ability -->
           <div class="ability-modal-body" id="ability-modal-body">
             <div class="ability-loading">Loading ability data...</div>
+          </div>
+
+          <div class="ability-modal-footer" id="ability-modal-footer">
+            <button class="ability-footer-btn" id="ability-learn-more-btn">Learn More</button>
           </div>
 
         </div>
@@ -2880,6 +2901,19 @@
         sigEl.style.display = 'block';
       } else {
         sigEl.style.display = 'none';
+        // More than one Pokémon can still be a signature ability if they're all stages of the
+        // same evolutionary line (e.g. Archen + Archeops both have Defeatist) — resolve that
+        // asynchronously and fill the label in once we know, guarded against a newer ability
+        // having been opened in the meantime.
+        if (pokemonList.length > 1) {
+          const abilityName = data.name;
+          resolveSignatureLabel(pokemonList.map(p => ({name: p.pokemon.name}))).then(label => {
+            if (label && abSelectedName === abilityName) {
+              sigEl.textContent = `${label}'s Signature Ability`;
+              sigEl.style.display = 'block';
+            }
+          });
+        }
       }
 
       // Reset shiny toggle
@@ -3279,7 +3313,20 @@
       const mvSigEl=document.getElementById('mv-detail-sig');
       if(mvSigEl){
         if(learnedBy.length===1){mvSigEl.textContent=`${toTitleCase(learnedBy[0].name.replace(/-/g,' '))}'s Signature Move`;mvSigEl.style.display='block';}
-        else{mvSigEl.style.display='none';}
+        else{
+          mvSigEl.style.display='none';
+          // Same evolutionary-line check as Abilities — e.g. a move only two stages of one
+          // line both learn should still read as that line's signature move.
+          if(learnedBy.length>1){
+            const moveName=data.name;
+            resolveSignatureLabel(learnedBy.map(pk=>({name:pk.name}))).then(label=>{
+              if(label && mvSelectedName===moveName){
+                mvSigEl.textContent=`${label}'s Signature Move`;
+                mvSigEl.style.display='block';
+              }
+            });
+          }
+        }
       }
 
       // Stats card
@@ -5143,10 +5190,12 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
     document.getElementById('info-moveset-btn').addEventListener('click',openMovesetModal);
 
     // ── ABILITY POPUP ──
-    let abilityModalShiny=false, currentAbilityPokemon=[];
+    let abilityModalShiny=false, currentAbilityPokemon=[], currentAbilityName=null, currentAbilityUrl=null;
 
     async function openAbilityModal(abilityName, abilityUrl){
       abilityModalShiny=false;
+      currentAbilityName=abilityName;
+      currentAbilityUrl=abilityUrl;
       const p=currentPalette||POKEMON_PALETTE.white;
 
       // Apply theme to header and body background
@@ -5157,6 +5206,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       // Pass CSS vars so section titles/rules pick up theme
       modal.style.setProperty('--theme-dark',p.dark);
       modal.style.setProperty('--theme-bg',p.bg);
+      modal.style.setProperty('--ability-theme-dark',p.dark);
 
       // Reset shiny toggle
       document.getElementById('ability-shiny-track').classList.remove('on');
@@ -5210,13 +5260,27 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       body.appendChild(effectSection);
 
       // ── Pokémon with this ability section ──
+      // Only Mega/Gmax entries are skipped here — they're battle-only forms, not separately
+      // obtainable Pokémon. Regional variants (Alolan, Galarian, Hisuian, etc.) DO have their
+      // own high PokéAPI ids (>10000) but are real, distinct Pokémon, so they're kept. Filtering
+      // once into validAbilityPokemon means the header count and the row below can never drift
+      // apart — that mismatch (and abilities that are regional-exclusive showing an empty row
+      // entirely) was the bug: the old code filtered by "id>10000" for display but counted the
+      // unfiltered list, so a regional-only ability like Pastel Veil (Galarian Ponyta/Rapidash)
+      // showed "(2)" with nothing underneath.
+      const validAbilityPokemon=currentAbilityPokemon.filter(pk=>{
+        const m=pk.url.match(/\/(\d+)\//);
+        const pid=m?parseInt(m[1]):null;
+        return pid&&!isMegaForm(pk.name)&&!isGmaxForm(pk.name);
+      });
+
       const pokeSection=document.createElement('div');
 
       const pokeHeader=document.createElement('div');
       pokeHeader.className='ability-section-header';
       const pokeTitle=document.createElement('div');
       pokeTitle.className='ability-section-title';
-      pokeTitle.textContent=`Pokémon with this Ability (${currentAbilityPokemon.length})`;
+      pokeTitle.textContent=`Pokémon with this Ability (${validAbilityPokemon.length})`;
       pokeTitle.style.color=p.dark;
       const pokeRule=document.createElement('hr');
       pokeRule.className='ability-section-rule';
@@ -5228,10 +5292,9 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       row.className='ability-pokemon-row';
       row.id='ability-pokemon-row';
 
-      currentAbilityPokemon.forEach(pk=>{
+      validAbilityPokemon.forEach(pk=>{
         const m=pk.url.match(/\/(\d+)\//);
-        const pid=m?parseInt(m[1]):null;
-        if(!pid||pid>10000)return; // skip form-only IDs
+        const pid=parseInt(m[1]);
 
         const card=document.createElement('div');
         card.className='ability-poke-card';
@@ -5273,6 +5336,14 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
     document.getElementById('ability-modal-close').addEventListener('click',closeAbilityModal);
     document.getElementById('ability-modal-backdrop').addEventListener('click',e=>{
       if(e.target===document.getElementById('ability-modal-backdrop'))closeAbilityModal();
+    });
+    // "Learn More" — jump to this ability's full detail page in the Abilities section
+    document.getElementById('ability-learn-more-btn').addEventListener('click',()=>{
+      if(!currentAbilityName||!currentAbilityUrl)return;
+      const name=currentAbilityName,url=currentAbilityUrl;
+      closeAbilityModal();
+      switchSection('abilities');
+      openAbDetail(name,url,null);
     });
     // Shiny toggle — only affects sprites inside the ability popup
     document.getElementById('ability-shiny-control').addEventListener('click',()=>{
@@ -5380,6 +5451,54 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
         .split('-')
         .map(w => w.charAt(0).toUpperCase() + w.slice(1))
         .join(' ');
+    }
+
+    // ── Evolutionary-line signature detection (Abilities + Moves detail pages) ──
+    // An ability/move held by more than one Pokémon can still be a "signature" if every one of
+    // those Pokémon is a different stage of the SAME evolutionary line (e.g. Archen + Archeops
+    // both have Defeatist) — in that case the label should use the line's final evolution.
+    // Resolves the base species name for a PokéAPI pokemon name the same way renderAltForms does:
+    // curated JSON's "base" field first, falling back to the name's first hyphen segment.
+    function baseSpeciesNameForPokemon(name){
+      const entry=alternateForms?._byForm?.[name];
+      if(entry?.base) return entry.base;
+      return name.split('-')[0];
+    }
+    const evoLineChainCache={}; // species name -> {names:Set, terminals:Set} | null
+    async function getEvoChainInfo(speciesName){
+      if(evoLineChainCache[speciesName]!==undefined) return evoLineChainCache[speciesName];
+      try{
+        const specRes=await fetch(`https://pokeapi.co/api/v2/pokemon-species/${speciesName}`);
+        if(!specRes.ok){evoLineChainCache[speciesName]=null;return null;}
+        const specData=await specRes.json();
+        const chainUrl=specData.evolution_chain?.url;
+        if(!chainUrl){evoLineChainCache[speciesName]=null;return null;}
+        const chainRes=await fetch(chainUrl);
+        const chainData=await chainRes.json();
+        const names=new Set(),terminals=new Set();
+        (function walk(node){
+          if(!node)return;
+          names.add(node.species.name);
+          if(!node.evolves_to||node.evolves_to.length===0) terminals.add(node.species.name);
+          else node.evolves_to.forEach(walk);
+        })(chainData.chain);
+        const info={names,terminals};
+        names.forEach(n=>{evoLineChainCache[n]=info;}); // cache under every name in the chain
+        return info;
+      }catch(e){evoLineChainCache[speciesName]=null;return null;}
+    }
+    // entries: array of {name} raw PokéAPI pokemon names. Returns the display label to use
+    // ("X's Signature Ability/Move") or null if these Pokémon don't form one clean signature.
+    async function resolveSignatureLabel(entries){
+      if(!entries||entries.length<2) return null;
+      const baseNames=[...new Set(entries.map(e=>baseSpeciesNameForPokemon(e.name)))];
+      if(baseNames.length===1) return toTitleCase(baseNames[0].replace(/-/g,' ')); // same species, different forms only
+      const info=await getEvoChainInfo(baseNames[0]);
+      if(!info) return null;
+      if(!baseNames.every(n=>info.names.has(n))) return null; // not all in the same line
+      const matchedTerminals=baseNames.filter(n=>info.terminals.has(n));
+      if(matchedTerminals.length!==1) return null; // ambiguous branching — don't guess
+      return toTitleCase(matchedTerminals[0].replace(/-/g,' '));
     }
 
     // ── Missing form flag ──
@@ -6434,11 +6553,13 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       }
     }
 
-    let movePopupShiny = false;
+    let movePopupShiny = false, currentMoveName = null, currentMoveUrl = null;
     const AB_SPRITE_BASE_MOVE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home';
 
     async function openMovePopup(moveName, moveUrl, tr) {
       movePopupShiny = false;
+      currentMoveName = moveName;
+      currentMoveUrl = moveUrl;
       const p = currentPalette || POKEMON_PALETTE.white;
 
       // Apply theme
@@ -6547,9 +6668,12 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       body.appendChild(effectSection);
 
       // ── Pokémon that learn this move ──
+      // Same fix as the Ability popup: only Mega/Gmax are excluded (battle-only forms, not
+      // separately obtainable). Regional variants keep their high PokéAPI id (>10000) but are
+      // real Pokémon, so a move exclusive to a regional form no longer shows an empty list.
       const learnedBy = (data.learned_by_pokemon || []).filter(pk => {
         const m = pk.url.match(/\/(\d+)\//);
-        return m && parseInt(m[1]) <= 10000;
+        return m && !isMegaForm(pk.name) && !isGmaxForm(pk.name);
       });
 
       if (learnedBy.length > 0) {
@@ -6616,6 +6740,15 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
     document.getElementById('moveset-move-popup-close').addEventListener('click', closeMovePopup);
     document.getElementById('moveset-move-popup-backdrop').addEventListener('click', e => {
       if (e.target === document.getElementById('moveset-move-popup-backdrop')) closeMovePopup();
+    });
+    // "Learn More" — jump to this move's full detail page in the Moves section
+    document.getElementById('move-popup-learn-more-btn').addEventListener('click', () => {
+      if (!currentMoveName || !currentMoveUrl) return;
+      const name = currentMoveName, url = currentMoveUrl;
+      closeMovePopup();
+      closeMovesetModal();
+      switchSection('moves');
+      openMvDetail(name, url, null);
     });
     document.getElementById('moveset-move-popup-shiny').addEventListener('click', () => {
       movePopupShiny = !movePopupShiny;
