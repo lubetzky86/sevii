@@ -1845,21 +1845,39 @@
        it) to light (~42%, landing right as the Ability/Nature/Item row ends and stats begin),
        flat light for the rest of body. Footer reverts to plain light --studio-bg. */
     .tb-studio-panel { width: 100%; max-width: 640px; height: 92%; background: var(--studio-bg, #fafafa); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.25); border-left: 3px solid var(--studio-dark, #606070); transition: background 0.3s, border-color 0.3s; }
-    .tb-studio-header { flex-shrink: 0; padding: 44px 16px 24px; background: var(--studio-dark, #606070); transition: background 0.3s; display: flex; flex-direction: column; align-items: center; position: relative; }
+    /* Header/body/footer background — recycled directly from the main app's Pokémon Info card
+       (#info-pinned-top / #info-scroll-body / #info-pinned-bottom, see applyPokemonTheme()):
+       the header and footer are solid-dark-fading-to-TRANSPARENT gradients (not dark-to-bg), each
+       with extra padding as the fade's "overlap zone," sitting on top of the panel's own flat
+       --studio-bg background — so the fade blends into that same light color underneath rather
+       than needing a literal dark-to-bg gradient of its own. This is what the info card does and
+       is the fix for round 2's "wrong background/gradient" + "solid strip behind the button" gaps. */
+    .tb-studio-header {
+      flex-shrink: 0; position: relative; z-index: 2;
+      display: flex; flex-direction: column; align-items: center;
+      background: linear-gradient(to bottom, var(--studio-dark, #606070) 0%, transparent 100%);
+      transition: background 0.3s;
+      padding: 44px 16px 28px;
+    }
     .tb-studio-species-title { position: absolute; top: 14px; left: 16px; right: 50px; font-family: 'Archivo Black', sans-serif; font-size: 26px; font-weight: 900; color: white; text-transform: uppercase; line-height: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .tb-studio-close { position: absolute; top: 10px; right: 10px; width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.25); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; color: white; transition: background 0.15s; z-index: 2; }
     .tb-studio-close:hover { background: rgba(255,255,255,0.4); }
+    /* Nickname — moved ABOVE the sprite (Diego, round 3) and shrunk down to a small, discreet
+       inline field instead of a big bold pill: a translucent capsule sized like a caption, not a
+       headline. Sits directly under the species title's row. */
+    .tb-studio-nickname-wrap { position: relative; margin-top: 28px; width: auto; max-width: 200px; }
+    .tb-studio-nickname-input { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; text-align: center; text-transform: none; color: white; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.35); border-radius: 14px; padding: 5px 26px 5px 12px; width: 100%; box-sizing: border-box; }
+    .tb-studio-nickname-input::placeholder { color: rgba(255,255,255,0.65); }
+    .tb-studio-nickname-input:focus { outline: none; border-color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.24); }
+    .tb-studio-nickname-pencil { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); font-size: 10px; color: white; opacity: 0.75; pointer-events: none; }
     /* White glow behind the sprite — stacked drop-shadows follow the sprite PNG's own alpha
        silhouette (transparent background), so this reads as a soft halo rather than a boxy blur. */
-    .tb-studio-sprite { width: 120px; height: 120px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.25)) drop-shadow(0 0 22px rgba(255,255,255,0.9)) drop-shadow(0 0 40px rgba(255,255,255,0.55)); }
-    .tb-studio-nickname-wrap { position: relative; margin-top: 10px; width: 80%; max-width: 260px; }
-    .tb-studio-nickname-input { font-family: 'Archivo Black', sans-serif; font-size: 18px; font-weight: 900; text-align: center; text-transform: none; color: var(--studio-dark, #606070); background: white; border: 1.5px solid white; border-radius: 24px; padding: 10px 34px 10px 14px; width: 100%; box-sizing: border-box; }
-    .tb-studio-nickname-input::placeholder { color: #b0a898; }
-    .tb-studio-nickname-input:focus { outline: none; border-color: var(--studio-dark, #606070); }
-    .tb-studio-nickname-pencil { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; color: var(--studio-dark, #606070); opacity: 0.6; pointer-events: none; }
-    .tb-studio-badges { display: flex; gap: 12px; margin-top: 14px; align-items: center; justify-content: center; }
-    .tb-studio-type-badge { width: 56px; height: 56px; }
-    .tb-studio-body { flex: 1; overflow-y: auto; background: linear-gradient(to bottom, var(--studio-dark, #606070) 0%, var(--studio-bg, #fafafa) 42%); padding: 16px; transition: background 0.3s; display: flex; flex-direction: column; gap: 18px; }
+    .tb-studio-sprite { width: 120px; height: 120px; object-fit: contain; margin-top: 6px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.25)) drop-shadow(0 0 22px rgba(255,255,255,0.9)) drop-shadow(0 0 40px rgba(255,255,255,0.55)); }
+    /* Type badges sized to match the Info card's own .info-type-item img (38px) — round 2
+       accidentally left these at the old small size while blowing up the Tera slot instead. */
+    .tb-studio-badges { display: flex; gap: 16px; margin-top: 10px; align-items: center; justify-content: center; }
+    .tb-studio-type-badge { width: 38px; height: 38px; object-fit: contain; }
+    .tb-studio-body { flex: 1; overflow-y: auto; background: var(--studio-bg, #fafafa); padding: 16px; padding-top: 6px; transition: background 0.3s; display: flex; flex-direction: column; gap: 18px; position: relative; z-index: 1; }
     .tb-studio-section-title { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.6px; color: var(--studio-dark, #606070); transition: color 0.3s; }
     .tb-studio-stats-block { display: flex; flex-direction: column; gap: 8px; }
     .tb-studio-stat-row { display: flex; align-items: center; gap: 8px; }
@@ -1889,17 +1907,22 @@
        .tb-studio-stat-row etc. now handle both base and final display (see tbRenderStudioStats).
        .tb-studio-final-lv is still used, just now inline inside the single dynamic section title. */
     .tb-studio-final-lv { font-size: 10px; font-weight: 700; color: #999; text-transform: none; letter-spacing: 0; }
-    .tb-studio-pill-row { display: flex; gap: 8px; }
-    .tb-studio-pill-btn { flex: 1; padding: 12px 8px; border-radius: 24px; background: var(--studio-dark, #606070); border: 1.5px solid rgba(255,255,255,0.5); font-size: 13px; font-weight: 700; color: white; cursor: pointer; transition: background 0.15s, opacity 0.15s, transform 0.1s; text-align: center; }
-    .tb-studio-pill-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+    /* Ability/Nature/Item pills — recycled from the Info card's own .info-measure-pill format
+       (the Height/Weight pills): a small white rounded card with a soft shadow, NOT a tall solid
+       accent-colored button. Round 2 kept the old bold pill-button treatment; Diego asked for the
+       measure-pill's exact height/weight and "less bloated" feel instead. */
+    .tb-studio-pill-row { display: flex; gap: 10px; }
+    .tb-studio-pill-btn { flex: 1; background: white; border-radius: 10px; padding: 8px 10px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); border: none; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; font-weight: 700; color: #999; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s, color 0.15s; text-align: center; text-transform: none; letter-spacing: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tb-studio-pill-btn:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.13); }
+    .tb-studio-pill-btn:active { transform: scale(0.99); }
     .tb-studio-pill-hint { font-size: 11px; color: var(--studio-dark, #606070); font-style: italic; min-height: 14px; transition: color 0.3s; }
-    .tb-studio-pill-btn.tb-studio-pill-set { background: white; color: var(--studio-dark, #606070); border: 1.5px solid white; }
-    /* Tera Type badge-button — 3rd slot in the badge row (Diego, 2026-08-23), NOT its own labeled
-       pill anymore. Empty state: a plain "+" on a dashed circular outline, matching the "+ Move"
-       empty-slot convention elsewhere. Filled state: the Tera art fills the ENTIRE button edge to
-       edge with NO visible pill background/border — img is sized/positioned to cover the same
-       56px circle the 2 type badges use, so all 3 badges read as one evenly-sized row. */
-    .tb-studio-badges .tb-studio-tera-pill { align-self: auto; width: 56px; height: 56px; padding: 0; border-radius: 50%; background: none; border: 2px dashed rgba(255,255,255,0.5); font-size: 20px; font-weight: 700; color: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: opacity 0.15s, transform 0.1s; overflow: hidden; }
+    .tb-studio-pill-btn.tb-studio-pill-set { color: var(--studio-dark, #606070); }
+    /* Tera Type badge-button — 3rd slot in the badge row, sized to match the 2 type badges exactly
+       (38px, same as .info-type-item img) instead of round 2's oversized 56px circle. Empty state:
+       a plain "+" on a dashed circular outline, matching the "+ Move" empty-slot convention
+       elsewhere. Filled state: the Tera art fills the ENTIRE button edge to edge with NO visible
+       pill background/border, staying clickable to change the pick. */
+    .tb-studio-badges .tb-studio-tera-pill { align-self: auto; width: 38px; height: 38px; padding: 0; border-radius: 50%; background: none; border: 2px dashed rgba(255,255,255,0.5); font-size: 15px; font-weight: 700; color: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: opacity 0.15s, transform 0.1s; overflow: hidden; }
     .tb-studio-badges .tb-studio-tera-pill:hover { opacity: 0.8; transform: translateY(-1px); }
     .tb-studio-badges .tb-studio-tera-pill.tb-studio-pill-set { border: none; }
     .tb-studio-tera-badge-icon { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -2096,19 +2119,17 @@
     .tb-studio-moves-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .tb-studio-move-slot { background: white; border: 2px dashed #d4ccbc; border-radius: 12px; min-height: 56px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: border-color 0.15s, background 0.15s; font-size: 12px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.3px; }
     .tb-studio-move-slot:hover { border-color: var(--studio-dark, #606070); background: rgba(0,0,0,0.02); }
-    .tb-studio-move-slot.tb-move-slot-filled { border: 1.5px solid var(--studio-dark, #606070); background: var(--studio-bg, #fafafa); flex-direction: row; justify-content: flex-start; padding: 0 10px; gap: 8px; }
-    .tb-studio-move-slot .tb-move-slot-type-icon { width: 22px; height: 22px; object-fit: contain; flex-shrink: 0; }
-    .tb-studio-move-slot .tb-move-slot-name { flex: 1; font-size: 12px; font-weight: 700; color: #1a1a1a; text-transform: none; letter-spacing: 0; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .tb-studio-move-slot .tb-move-slot-cat-icon { width: 18px; height: 18px; object-fit: contain; flex-shrink: 0; }
-    .tb-studio-move-slot .tb-move-slot-clear { flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.08); border: none; color: #666; font-size: 11px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-    .tb-studio-move-slot .tb-move-slot-clear:hover { background: rgba(0,0,0,0.16); }
+    .tb-studio-move-slot.tb-move-slot-filled { border: 1px solid #e8e2d4; background: white; box-shadow: 0 1px 6px rgba(0,0,0,0.08); flex-direction: row; justify-content: space-between; padding: 0 10px; gap: 8px; }
+    .tb-studio-move-slot .tb-move-slot-type-icon { width: 28px; height: 28px; object-fit: contain; flex-shrink: 0; }
+    .tb-studio-move-slot .tb-move-slot-name { flex: 1; font-size: 12px; font-weight: 700; color: #1a1a1a; text-transform: none; letter-spacing: 0; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tb-studio-move-slot .tb-move-slot-cat-icon { width: 22px; height: 22px; object-fit: contain; flex-shrink: 0; }
 
     /* ── Move browser sheet — recreates the main Moveset modal's section/table format inside a
        Studio bottom sheet, but selectable (row tap fills the slot in progress) instead of a
        read-only viewer. Kept fully tb-prefixed/parallel; never touches .moveset-* classes. ── */
     .tb-studio-sheet.tb-move-sheet { max-height: 82%; }
     .tb-studio-sheet.tb-evsivs-sheet { max-height: 85%; }
-    .tb-evsivs-confirm-wrap { margin-top: 18px; }
+    .tb-evsivs-confirm-wrap { margin-top: 18px; display: flex; justify-content: center; }
     @media (max-width: 600px) { .tb-evsivs-confirm-wrap { margin-top: 14px; } }
     .tb-move-sheet-body { padding: 8px 0 16px; display: flex; flex-direction: column; gap: 10px; }
     .tb-move-sheet-empty { padding: 16px; font-size: 12px; color: #999; font-style: italic; text-align: center; }
@@ -2162,16 +2183,19 @@
       .tb-move-table tbody tr.tb-advice-frame { box-shadow: inset 0 0 0 1.5px var(--advice-brown); }
       .tb-move-table tbody tr.tb-advice-frame .tb-advice-pill { top: -8px; font-size: 9px; padding: 2px 8px; }
     }
-    .tb-studio-footer { flex-shrink: 0; padding: 12px 16px; background: var(--studio-dark, #606070); border-top: 1px solid rgba(255,255,255,0.15); transition: background 0.3s; }
-    .tb-studio-done-btn { width: 100%; padding: 12px; border-radius: 24px; background: var(--studio-dark, #606070); border: 1.5px solid rgba(255,255,255,0.5); font-size: 14px; font-weight: 700; color: white; cursor: pointer; transition: opacity 0.15s, transform 0.1s; text-transform: uppercase; letter-spacing: 0.4px; }
+    /* Footer — same gradient technique as the header (see the big comment above .tb-studio-header):
+       solid dark fading to transparent, sitting on top of the panel's flat --studio-bg, so there's
+       no separate hard-edged solid-color strip behind the button (round 2's gap #8). Recycled
+       directly from #info-pinned-bottom. */
+    .tb-studio-footer { flex-shrink: 0; position: relative; z-index: 2; background: linear-gradient(to top, var(--studio-dark, #606070) 0%, transparent 100%); transition: background 0.3s; padding: 24px 16px 14px; display: flex; justify-content: center; }
+    /* "Add to team" — recycled from the Info card's own .info-action-btn format: a modest pill
+       (not full-width), normal-case, font-weight 600 — not the old bold/uppercase/edge-to-edge
+       button from round 2. */
+    .tb-studio-done-btn { padding: 10px 40px; border-radius: 24px; background: var(--studio-dark, #606070); border: 1.5px solid rgba(255,255,255,0.5); font-size: 13px; font-weight: 600; color: white; cursor: pointer; transition: background 0.15s, opacity 0.15s, transform 0.1s; text-align: center; text-transform: none; letter-spacing: 0; }
     .tb-studio-done-btn:hover { opacity: 0.85; transform: translateY(-1px); }
-    /* The footer now sits on the same full-height --studio-dark background as the rest of the
-       card, so the button's old same-color-as-its-background fill (distinguished only by a faint
-       white border) would nearly disappear into it. Scoped to just the Studio card's own footer —
-       .tb-studio-done-btn is reused as-is (dark bg, unchanged) by the EVs/IVs sheet's "Confirm
-       Spread" button, which sits on that sheet's white background and still needs its original
-       contrast there. */
-    .tb-studio-footer .tb-studio-done-btn { background: white; color: var(--studio-dark, #606070); border: 1.5px solid white; }
+    /* The EVs/IVs sheet's own "Confirm Spread" button reuses this same class as-is (dark bg, white
+       border) — it sits on that sheet's plain white background where the base style already reads
+       fine with no override needed. */
 
     /* ══════════ DEX PICKER — fully self-contained overlay, parallel to the main grid ══════════ */
     .tb-dexpick-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 200; display: none; align-items: center; justify-content: center; padding: 10px 20px; }
@@ -3758,11 +3782,11 @@
           <div class="tb-studio-header">
             <div class="tb-studio-species-title" id="tb-studio-species-title"></div>
             <button class="tb-studio-close" id="tb-studio-close" title="Close">✕</button>
-            <img class="tb-studio-sprite" id="tb-studio-sprite" alt="">
             <div class="tb-studio-nickname-wrap">
               <input type="text" class="tb-studio-nickname-input" id="tb-studio-nickname-input" maxlength="12" placeholder="Nickname">
               <span class="tb-studio-nickname-pencil">✎</span>
             </div>
+            <img class="tb-studio-sprite" id="tb-studio-sprite" alt="">
             <!-- Badge row: 2 type badges + a 3rd Tera Type badge-button (id kept as
                  tb-studio-tera-pill so the existing setupMobileSheet/click-handler bindings
                  keep working unchanged — only its DOM position + CSS moved). Gen9-gated: hidden
@@ -6314,11 +6338,13 @@
         } else {
           pct = Math.round((base/255)*100);
         }
-        const arrow = natureClass === 'tb-studio-final-boost' ? ' <span class="tb-studio-stat-arrow boost">▲</span>'
-          : natureClass === 'tb-studio-final-drop' ? ' <span class="tb-studio-stat-arrow drop">▼</span>' : '';
+        // Arrow goes BEFORE the number (Diego, round 3) — trailing it threw off the right-aligned
+        // column since rows with an arrow read wider than rows without one.
+        const arrow = natureClass === 'tb-studio-final-boost' ? '<span class="tb-studio-stat-arrow boost">▲</span> '
+          : natureClass === 'tb-studio-final-drop' ? '<span class="tb-studio-stat-arrow drop">▼</span> ' : '';
         const row = document.createElement('div');
         row.className = 'tb-studio-stat-row';
-        row.innerHTML = `<div class="tb-studio-stat-name">${label}</div><div class="tb-studio-stat-bar-bg"><div class="tb-studio-stat-bar-fill" style="width:${pct}%;background:${statColor(base)}"></div></div><div class="tb-studio-stat-num ${natureClass}">${displayVal}${arrow}</div>`;
+        row.innerHTML = `<div class="tb-studio-stat-name">${label}</div><div class="tb-studio-stat-bar-bg"><div class="tb-studio-stat-bar-fill" style="width:${pct}%;background:${statColor(base)}"></div></div><div class="tb-studio-stat-num ${natureClass}">${arrow}${displayVal}</div>`;
         statsBlock.appendChild(row);
       });
       // BST now renders into its own inline slot (#tb-studio-bst-inline) instead of appending
@@ -7730,26 +7756,13 @@
             catIcon.onerror = ()=>{ catIcon.style.display='none'; };
             slot.appendChild(catIcon);
           }
-          const clearBtn = document.createElement('button');
-          clearBtn.className = 'tb-move-slot-clear';
-          clearBtn.type = 'button';
-          clearBtn.title = 'Clear move';
-          clearBtn.textContent = '✕';
-          clearBtn.addEventListener('click', e=>{
-            e.stopPropagation();
-            if(!tbStudioTeam || tbStudioSlotIndex === null) return;
-            const m = tbStudioTeam.party[tbStudioSlotIndex];
-            if(!m || !Array.isArray(m.moves)) return;
-            m.moves[i] = null;
-            touchTeam(tbStudioTeam);
-            tbRenderStudioMoveSlots(m);
-            tbRenderStudioAdvice(m);
-          });
-          slot.appendChild(clearBtn);
+          // No delete/clear (X) button, per Diego (round 3): tapping a filled slot reopens the
+          // picker sheet, where choosing any move simply overwrites this slot's contents — there's
+          // no separate "empty this slot" action needed, so the X was just wasting card space.
           slot.addEventListener('click', ()=> tbOpenMoveSheet(i));
         }else{
           slot.className = 'tb-studio-move-slot';
-          slot.textContent = '+ Move';
+          slot.textContent = '+ Add Move';
           slot.addEventListener('click', ()=> tbOpenMoveSheet(i));
         }
         movesGrid.appendChild(slot);
