@@ -1861,6 +1861,32 @@
     .tb-studio-pill-btn { flex: 1; padding: 10px 8px; border-radius: 24px; background: var(--studio-dark, #606070); border: 1.5px solid rgba(255,255,255,0.5); font-size: 13px; font-weight: 600; color: white; cursor: pointer; transition: background 0.15s, opacity 0.15s, transform 0.1s; text-align: center; }
     .tb-studio-pill-btn:hover { opacity: 0.85; transform: translateY(-1px); }
     .tb-studio-pill-hint { font-size: 11px; color: var(--studio-dark, #606070); font-style: italic; min-height: 14px; transition: color 0.3s; }
+    .tb-studio-pill-btn.tb-studio-pill-set { background: var(--studio-bg, #fafafa); color: var(--studio-dark, #606070); border: 1.5px solid var(--studio-dark, #606070); }
+    .tb-studio-tera-pill.tb-studio-pill-set { background: var(--studio-bg, #fafafa); color: var(--studio-dark, #606070); display: flex; align-items: center; gap: 6px; }
+    .tb-studio-tera-pill.tb-studio-pill-set img { width: 16px; height: 16px; }
+
+    /* ── Ability/Nature/Tera picker sheets — reuse the exact tb-dexpick-sheet visual language
+       (same slide-up card, header, close button) at a higher z-index so they stack above the
+       Studio overlay (z-index 210). Own classes so Studio styling stays fully isolated. ── */
+    .tb-studio-sheet-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 310; display: none; }
+    .tb-studio-sheet-backdrop.open { display: block; }
+    .tb-studio-sheet { position: fixed; left: 0; right: 0; bottom: -100%; max-height: 70%; overflow-y: auto; background: white; border-radius: 16px 16px 0 0; z-index: 320; transition: bottom 0.25s ease; box-shadow: 0 -4px 20px rgba(0,0,0,0.2); }
+    .tb-studio-sheet.open { bottom: 0; }
+    .tb-studio-sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #eee; position: sticky; top: 0; background: white; }
+    .tb-studio-sheet-title { font-weight: 700; font-size: 13px; }
+    .tb-studio-sheet-close { width: 26px; height: 26px; border-radius: 50%; background: #eee; border: none; cursor: pointer; font-size: 13px; }
+    .tb-studio-sheet-body { padding: 8px 16px 16px; display: flex; flex-direction: column; }
+    .tb-studio-sheet-empty { padding: 16px 0; font-size: 12px; color: #999; font-style: italic; text-align: center; }
+
+    .tb-studio-opt-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 4px; border-bottom: 1px solid #f0f0f0; cursor: pointer; background: none; border-left: none; border-right: none; border-top: none; width: 100%; text-align: left; font: inherit; }
+    .tb-studio-opt-row:last-child { border-bottom: none; }
+    .tb-studio-opt-row:hover { background: #fafafa; }
+    .tb-studio-opt-row.selected { background: #f3f3fb; }
+    .tb-studio-opt-name { font-size: 14px; font-weight: 600; color: #1a1a1a; text-transform: capitalize; }
+    .tb-studio-opt-sub { font-size: 12px; color: #888; }
+    .tb-studio-opt-hidden-tag { font-size: 10px; color: #9f009f; font-style: italic; font-weight: 700; margin-left: 8px; }
+    .tb-studio-opt-left { display: flex; align-items: center; gap: 10px; }
+    .tb-studio-opt-row img.type-badge-img { width: 20px; height: 20px; }
     .tb-studio-moves-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .tb-studio-move-slot { background: white; border: 2px dashed #d4ccbc; border-radius: 12px; min-height: 56px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: border-color 0.15s, background 0.15s; font-size: 12px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.3px; }
     .tb-studio-move-slot:hover { border-color: var(--studio-dark, #606070); background: rgba(0,0,0,0.02); }
@@ -3474,6 +3500,26 @@
             <button class="tb-studio-done-btn" id="tb-studio-done-btn">Done</button>
           </div>
         </div>
+      </div>
+
+      <!-- Ability / Nature / Tera Type picker sheets — siblings of the Studio backdrop, own
+           z-index stack (see .tb-studio-sheet-backdrop) so they layer above it. -->
+      <div class="tb-studio-sheet-backdrop" id="tb-studio-ability-sheet-backdrop"></div>
+      <div class="tb-studio-sheet" id="tb-studio-ability-sheet">
+        <div class="tb-studio-sheet-header"><span class="tb-studio-sheet-title">Ability</span><button class="tb-studio-sheet-close" id="tb-studio-ability-sheet-close">✕</button></div>
+        <div class="tb-studio-sheet-body" id="tb-studio-ability-sheet-body"></div>
+      </div>
+
+      <div class="tb-studio-sheet-backdrop" id="tb-studio-nature-sheet-backdrop"></div>
+      <div class="tb-studio-sheet" id="tb-studio-nature-sheet">
+        <div class="tb-studio-sheet-header"><span class="tb-studio-sheet-title">Nature</span><button class="tb-studio-sheet-close" id="tb-studio-nature-sheet-close">✕</button></div>
+        <div class="tb-studio-sheet-body" id="tb-studio-nature-sheet-body"></div>
+      </div>
+
+      <div class="tb-studio-sheet-backdrop" id="tb-studio-tera-sheet-backdrop"></div>
+      <div class="tb-studio-sheet" id="tb-studio-tera-sheet">
+        <div class="tb-studio-sheet-header"><span class="tb-studio-sheet-title">Tera Type</span><button class="tb-studio-sheet-close" id="tb-studio-tera-sheet-close">✕</button></div>
+        <div class="tb-studio-sheet-body" id="tb-studio-tera-sheet-body"></div>
       </div>
 
     </div>
@@ -5463,6 +5509,40 @@
     // Gen-9 game ids — used to gate the Tera Type slot's visibility.
     const TB_STUDIO_GEN9_GAMES = new Set(['scarlet','violet','legends-za']);
 
+    // Standard 25-nature chart — universal to every Pokémon (PokéAPI's /nature/ endpoint has no
+    // per-species filtering, so this well-established public game data is hardcoded rather than
+    // fetched). Each nature boosts one stat +10% and drops another -10%, except the 5 neutral
+    // natures (boost === drop) which have no effect. Stat keys match STAT_LABELS above.
+    const TB_NATURES = [
+      {name:'Hardy',   boost:null,    drop:null},
+      {name:'Lonely',  boost:'atk',   drop:'def'},
+      {name:'Brave',   boost:'atk',   drop:'spe'},
+      {name:'Adamant', boost:'atk',   drop:'spa'},
+      {name:'Naughty', boost:'atk',   drop:'spd'},
+      {name:'Bold',    boost:'def',   drop:'atk'},
+      {name:'Docile',  boost:null,    drop:null},
+      {name:'Relaxed', boost:'def',   drop:'spe'},
+      {name:'Impish',  boost:'def',   drop:'spa'},
+      {name:'Lax',     boost:'def',   drop:'spd'},
+      {name:'Timid',   boost:'spe',   drop:'atk'},
+      {name:'Hasty',   boost:'spe',   drop:'def'},
+      {name:'Serious', boost:null,    drop:null},
+      {name:'Jolly',   boost:'spe',   drop:'spa'},
+      {name:'Naive',   boost:'spe',   drop:'spd'},
+      {name:'Modest',  boost:'spa',   drop:'atk'},
+      {name:'Mild',    boost:'spa',   drop:'def'},
+      {name:'Quiet',   boost:'spa',   drop:'spe'},
+      {name:'Bashful', boost:null,    drop:null},
+      {name:'Rash',    boost:'spa',   drop:'spd'},
+      {name:'Calm',    boost:'spd',   drop:'atk'},
+      {name:'Gentle',  boost:'spd',   drop:'def'},
+      {name:'Sassy',   boost:'spd',   drop:'spe'},
+      {name:'Careful', boost:'spd',   drop:'spa'},
+      {name:'Quirky',  boost:null,    drop:null},
+    ];
+    const TB_NATURE_STAT_LABELS = {atk:'Atk',def:'Def',spa:'SpA',spd:'SpD',spe:'Spe'};
+    let tbStudioAbilitiesForMember = []; // [{name, isHidden}] for whichever member's Studio is currently open
+
     // Studio's own theme function — reads the same read-only POKEMON_PALETTE lookup the main
     // info panel uses, but only ever writes to NEW Studio-scoped elements/CSS vars. Never
     // touches currentPalette or any #info-*/#right-panel element.
@@ -5490,7 +5570,8 @@
       const species = await speciesRes.json();
       const data = {
         colorName: species.color?.name || 'white',
-        stats: (pokemon.stats||[]).map(s=>({ name: s.stat.name, base: s.base_stat }))
+        stats: (pokemon.stats||[]).map(s=>({ name: s.stat.name, base: s.base_stat })),
+        abilities: (pokemon.abilities||[]).map(a=>({ name: a.ability.name, isHidden: !!a.is_hidden }))
       };
       tbStudioSpeciesCache[speciesId] = data;
       return data;
@@ -5520,8 +5601,11 @@
       const teraSection = document.getElementById('tb-studio-tera-section');
       teraSection.style.display = (team.game && TB_STUDIO_GEN9_GAMES.has(team.game)) ? '' : 'none';
 
-      // Ability/Nature/Item + moves are stubs this round
+      // Ability/Nature/Tera pills reflect any already-saved selection; Item + Moves are stubs
+      // this round.
       document.getElementById('tb-studio-pill-hint').textContent = '';
+      tbStudioAbilitiesForMember = [];
+      tbUpdateStudioPillLabels(member);
       const movesGrid = document.getElementById('tb-studio-moves-grid');
       movesGrid.innerHTML = '';
       for(let i=0;i<4;i++){
@@ -5546,6 +5630,7 @@
         // Bail if the Studio was closed or moved to a different member/team while fetching.
         if(tbStudioTeam !== team || tbStudioSlotIndex !== slotIndex) return;
         applyStudioTheme(data.colorName);
+        tbStudioAbilitiesForMember = data.abilities || [];
         const STAT_LABELS = {hp:'HP',attack:'ATK',defense:'DEF','special-attack':'SpA','special-defense':'SpD',speed:'SPD'};
         statsBlock.innerHTML = '';
         let total = 0;
@@ -5600,12 +5685,130 @@
     document.getElementById('tb-studio-backdrop')?.addEventListener('click', e=>{
       if(e.target === document.getElementById('tb-studio-backdrop')) tbCloseStudio();
     });
-    document.getElementById('tb-studio-tera-pill')?.addEventListener('click', ()=>{
-      document.getElementById('tb-studio-pill-hint').textContent = 'Tera Type picker is coming in a later round.';
+    document.getElementById('tb-studio-item-pill')?.addEventListener('click', ()=>{
+      document.getElementById('tb-studio-pill-hint').textContent = 'Item is coming in a later round.';
     });
-    ['tb-studio-ability-pill','tb-studio-nature-pill','tb-studio-item-pill'].forEach(id=>{
-      document.getElementById(id)?.addEventListener('click', ()=>{
-        document.getElementById('tb-studio-pill-hint').textContent = 'This is coming in a later round.';
+
+    // Closes one of the Ability/Nature/Tera sheets directly (used after a selection is made,
+    // instead of re-dispatching a click on the trigger — which would also re-run that trigger's
+    // body-population listener for no reason).
+    function tbCloseStudioSheet(sheetId, backdropId, triggerId){
+      document.getElementById(sheetId)?.classList.remove('open');
+      document.getElementById(backdropId)?.classList.remove('open');
+      document.getElementById(triggerId)?.setAttribute('aria-expanded','false');
+    }
+
+    // Updates the Ability/Nature/Tera pill labels to reflect the currently-open member's saved
+    // state (called on Studio open, and again right after each selection).
+    function tbUpdateStudioPillLabels(member){
+      if(!member) return;
+      const abilityPill = document.getElementById('tb-studio-ability-pill');
+      if(abilityPill){
+        abilityPill.textContent = member.ability ? member.ability.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) : 'Ability';
+        abilityPill.classList.toggle('tb-studio-pill-set', !!member.ability);
+      }
+      const naturePill = document.getElementById('tb-studio-nature-pill');
+      if(naturePill){
+        naturePill.textContent = member.nature || 'Nature';
+        naturePill.classList.toggle('tb-studio-pill-set', !!member.nature);
+      }
+      const teraPill = document.getElementById('tb-studio-tera-pill');
+      if(teraPill){
+        if(member.teraType){
+          teraPill.innerHTML = '';
+          teraPill.appendChild(makeBadgeImg(member.teraType, false));
+          const lbl = document.createElement('span');
+          lbl.textContent = member.teraType.charAt(0).toUpperCase()+member.teraType.slice(1);
+          teraPill.appendChild(lbl);
+          teraPill.classList.add('tb-studio-pill-set');
+        }else{
+          teraPill.textContent = '+ Tera Type';
+          teraPill.classList.remove('tb-studio-pill-set');
+        }
+      }
+    }
+
+    // ── Ability picker ──
+    setupMobileSheet('tb-studio-ability-pill','tb-studio-ability-sheet','tb-studio-ability-sheet-backdrop','tb-studio-ability-sheet-close');
+    document.getElementById('tb-studio-ability-pill')?.addEventListener('click', ()=>{
+      const body = document.getElementById('tb-studio-ability-sheet-body');
+      if(!body) return;
+      body.innerHTML = '';
+      if(!tbStudioAbilitiesForMember.length){
+        body.innerHTML = '<div class="tb-studio-sheet-empty">Loading abilities…</div>';
+        return;
+      }
+      const member = tbStudioTeam && tbStudioSlotIndex !== null ? tbStudioTeam.party[tbStudioSlotIndex] : null;
+      tbStudioAbilitiesForMember.forEach(a=>{
+        const row = document.createElement('button');
+        row.className = 'tb-studio-opt-row' + (member && member.ability === a.name ? ' selected' : '');
+        row.innerHTML = `<span class="tb-studio-opt-name">${a.name.replace(/-/g,' ')}</span>` + (a.isHidden ? '<span class="tb-studio-opt-hidden-tag">Hidden</span>' : '');
+        row.addEventListener('click', ()=>{
+          if(!tbStudioTeam || tbStudioSlotIndex === null) return;
+          const m = tbStudioTeam.party[tbStudioSlotIndex];
+          if(!m) return;
+          m.ability = a.name; // PokéAPI's own lowercase-kebab slug — matches ABILITY_MODIFIERS' keys directly
+          touchTeam(tbStudioTeam);
+          tbUpdateStudioPillLabels(m);
+          tbCloseStudioSheet('tb-studio-ability-sheet','tb-studio-ability-sheet-backdrop','tb-studio-ability-pill');
+        });
+        body.appendChild(row);
+      });
+    });
+
+    // ── Nature picker ──
+    setupMobileSheet('tb-studio-nature-pill','tb-studio-nature-sheet','tb-studio-nature-sheet-backdrop','tb-studio-nature-sheet-close');
+    document.getElementById('tb-studio-nature-pill')?.addEventListener('click', ()=>{
+      const body = document.getElementById('tb-studio-nature-sheet-body');
+      if(!body) return;
+      body.innerHTML = '';
+      const member = tbStudioTeam && tbStudioSlotIndex !== null ? tbStudioTeam.party[tbStudioSlotIndex] : null;
+      TB_NATURES.forEach(n=>{
+        const row = document.createElement('button');
+        row.className = 'tb-studio-opt-row' + (member && member.nature === n.name ? ' selected' : '');
+        const sub = n.boost ? `+${TB_NATURE_STAT_LABELS[n.boost]} / −${TB_NATURE_STAT_LABELS[n.drop]}` : 'No effect';
+        row.innerHTML = `<span class="tb-studio-opt-name">${n.name}</span><span class="tb-studio-opt-sub">${sub}</span>`;
+        row.addEventListener('click', ()=>{
+          if(!tbStudioTeam || tbStudioSlotIndex === null) return;
+          const m = tbStudioTeam.party[tbStudioSlotIndex];
+          if(!m) return;
+          m.nature = n.name;
+          touchTeam(tbStudioTeam);
+          tbUpdateStudioPillLabels(m);
+          tbCloseStudioSheet('tb-studio-nature-sheet','tb-studio-nature-sheet-backdrop','tb-studio-nature-pill');
+        });
+        body.appendChild(row);
+      });
+    });
+
+    // ── Tera Type picker ──
+    setupMobileSheet('tb-studio-tera-pill','tb-studio-tera-sheet','tb-studio-tera-sheet-backdrop','tb-studio-tera-sheet-close');
+    document.getElementById('tb-studio-tera-pill')?.addEventListener('click', ()=>{
+      const body = document.getElementById('tb-studio-tera-sheet-body');
+      if(!body) return;
+      body.innerHTML = '';
+      const member = tbStudioTeam && tbStudioSlotIndex !== null ? tbStudioTeam.party[tbStudioSlotIndex] : null;
+      TYPE_ORDER.forEach(type=>{
+        const row = document.createElement('button');
+        row.className = 'tb-studio-opt-row' + (member && member.teraType === type ? ' selected' : '');
+        const left = document.createElement('span');
+        left.className = 'tb-studio-opt-left';
+        left.appendChild(makeBadgeImg(type, false));
+        const nm = document.createElement('span');
+        nm.className = 'tb-studio-opt-name';
+        nm.textContent = type;
+        left.appendChild(nm);
+        row.appendChild(left);
+        row.addEventListener('click', ()=>{
+          if(!tbStudioTeam || tbStudioSlotIndex === null) return;
+          const m = tbStudioTeam.party[tbStudioSlotIndex];
+          if(!m) return;
+          m.teraType = type;
+          touchTeam(tbStudioTeam);
+          tbUpdateStudioPillLabels(m);
+          tbCloseStudioSheet('tb-studio-tera-sheet','tb-studio-tera-sheet-backdrop','tb-studio-tera-pill');
+        });
+        body.appendChild(row);
       });
     });
 
