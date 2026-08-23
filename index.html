@@ -1765,6 +1765,45 @@
     .tb-slot-shiny-thumb { width: 9px; height: 9px; border-radius: 50%; background: white; position: absolute; top: 2px; left: 2px; transition: left 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
     .tb-slot-shiny-track.on .tb-slot-shiny-thumb { left: 11px; }
 
+    /* ══════════ POKÉMON STUDIO — fully self-contained overlay, parallel to the main grid's
+       info detail panel. Own DOM ids, own CSS vars (--studio-*), own theme function
+       (applyStudioTheme). Never touches --theme-*, #right-panel, #info-*, or .card.selected. ══ */
+    .tb-studio-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 210; display: none; align-items: center; justify-content: center; padding: 10px 20px; }
+    .tb-studio-backdrop.visible { display: flex; }
+    .tb-studio-panel { width: 100%; max-width: 640px; height: 92%; background: var(--studio-bg, #fafafa); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.25); border-left: 3px solid var(--studio-dark, #606070); transition: background 0.3s, border-color 0.3s; }
+    .tb-studio-header { flex-shrink: 0; padding: 18px 16px 24px; background: linear-gradient(to bottom, var(--studio-dark, #606070) 0%, var(--studio-dark, #606070) 55%, var(--studio-bg, #fafafa) 100%); transition: background 0.3s; display: flex; flex-direction: column; align-items: center; position: relative; }
+    .tb-studio-close { position: absolute; top: 10px; right: 10px; width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.25); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; color: white; transition: background 0.15s; }
+    .tb-studio-close:hover { background: rgba(255,255,255,0.4); }
+    .tb-studio-sprite { width: 120px; height: 120px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.25)); }
+    .tb-studio-nickname-input { margin-top: 6px; font-family: 'Archivo Black', sans-serif; font-size: 18px; font-weight: 900; text-align: center; text-transform: uppercase; color: white; background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.5); border-radius: 10px; padding: 6px 10px; width: 80%; max-width: 260px; }
+    .tb-studio-nickname-input::placeholder { color: rgba(255,255,255,0.7); }
+    .tb-studio-nickname-input:focus { outline: none; background: rgba(255,255,255,0.25); }
+    .tb-studio-badges { display: flex; gap: 6px; margin-top: 8px; }
+    .tb-studio-body { flex: 1; overflow-y: auto; background: var(--studio-bg, #fafafa); padding: 16px; transition: background 0.3s; display: flex; flex-direction: column; gap: 18px; }
+    .tb-studio-section-title { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.6px; color: var(--studio-dark, #606070); transition: color 0.3s; }
+    .tb-studio-tera-pill { align-self: flex-start; padding: 8px 16px; border-radius: 24px; background: var(--studio-dark, #606070); border: 1.5px solid rgba(255,255,255,0.5); font-size: 13px; font-weight: 600; color: white; cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
+    .tb-studio-tera-pill:hover { opacity: 0.85; transform: translateY(-1px); }
+    .tb-studio-stats-block { display: flex; flex-direction: column; gap: 8px; }
+    .tb-studio-stat-row { display: flex; align-items: center; gap: 8px; }
+    .tb-studio-stat-name { font-size: 12px; font-weight: 900; width: 32px; flex-shrink: 0; text-align: right; color: var(--studio-dark, #606070); transition: color 0.3s; }
+    .tb-studio-stat-bar-bg { flex: 1; height: 14px; background: rgba(0,0,0,0.08); border-radius: 7px; overflow: hidden; }
+    .tb-studio-stat-bar-fill { height: 100%; border-radius: 7px; transition: width 0.5s ease, background 0.4s; }
+    .tb-studio-stat-num { font-size: 12px; font-weight: 700; color: #444; width: 28px; flex-shrink: 0; text-align: right; }
+    .tb-studio-bst-row { display: flex; align-items: center; gap: 8px; border-top: 1.5px solid rgba(0,0,0,0.1); padding-top: 6px; margin-top: 2px; }
+    .tb-studio-bst-label { font-size: 12px; font-weight: 900; color: var(--studio-dark, #606070); width: 32px; text-align: right; transition: color 0.3s; }
+    .tb-studio-bst-num { font-size: 13px; font-weight: 900; color: #1a1a1a; flex: 1; text-align: right; }
+    .tb-studio-stats-note { font-size: 11px; color: #999; font-style: italic; line-height: 1.4; }
+    .tb-studio-pill-row { display: flex; gap: 8px; }
+    .tb-studio-pill-btn { flex: 1; padding: 10px 8px; border-radius: 24px; background: var(--studio-dark, #606070); border: 1.5px solid rgba(255,255,255,0.5); font-size: 13px; font-weight: 600; color: white; cursor: pointer; transition: background 0.15s, opacity 0.15s, transform 0.1s; text-align: center; }
+    .tb-studio-pill-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+    .tb-studio-pill-hint { font-size: 11px; color: var(--studio-dark, #606070); font-style: italic; min-height: 14px; transition: color 0.3s; }
+    .tb-studio-moves-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .tb-studio-move-slot { background: white; border: 2px dashed #d4ccbc; border-radius: 12px; min-height: 56px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: border-color 0.15s, background 0.15s; font-size: 12px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.3px; }
+    .tb-studio-move-slot:hover { border-color: var(--studio-dark, #606070); background: rgba(0,0,0,0.02); }
+    .tb-studio-footer { flex-shrink: 0; padding: 12px 16px; background: var(--studio-bg, #fafafa); border-top: 1px solid rgba(0,0,0,0.08); transition: background 0.3s; }
+    .tb-studio-done-btn { width: 100%; padding: 12px; border-radius: 24px; background: var(--studio-dark, #606070); border: 1.5px solid rgba(255,255,255,0.5); font-size: 14px; font-weight: 700; color: white; cursor: pointer; transition: opacity 0.15s, transform 0.1s; text-transform: uppercase; letter-spacing: 0.4px; }
+    .tb-studio-done-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
     /* ══════════ DEX PICKER — fully self-contained overlay, parallel to the main grid ══════════ */
     .tb-dexpick-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 200; display: none; align-items: center; justify-content: center; padding: 10px 20px; }
     .tb-dexpick-backdrop.visible { display: flex; }
@@ -3230,6 +3269,49 @@
       <div class="tb-dexpick-sheet" id="tb-dexpick-gen-sheet">
         <div class="tb-dexpick-sheet-header"><span class="tb-dexpick-sheet-title">Generation</span><button class="tb-dexpick-sheet-close" id="tb-dexpick-gen-sheet-close">✕</button></div>
         <div class="tb-dexpick-sheet-body" id="tb-dexpick-gen-sheet-body"></div>
+      </div>
+
+      <!-- ══════════ POKÉMON STUDIO — fully self-contained per-member overlay ══════════
+           Own DOM, own state, own theme function (applyStudioTheme). Reads shared read-only
+           data (POKEMON_PALETTE, statColor, getEvoSpriteUrl, setSpriteSrc, makeBadgeImg,
+           GAME_LIST) but never calls applyPokemonTheme/resetPokemonTheme and never touches
+           #right-panel/#info-*/.card.selected. -->
+      <div class="tb-studio-backdrop" id="tb-studio-backdrop">
+        <div class="tb-studio-panel" id="tb-studio-panel">
+          <div class="tb-studio-header">
+            <button class="tb-studio-close" id="tb-studio-close" title="Close">✕</button>
+            <img class="tb-studio-sprite" id="tb-studio-sprite" alt="">
+            <input type="text" class="tb-studio-nickname-input" id="tb-studio-nickname-input" maxlength="12" placeholder="Nickname">
+            <div class="tb-studio-badges" id="tb-studio-badges"></div>
+          </div>
+          <div class="tb-studio-body">
+            <div id="tb-studio-tera-section" style="display:none;">
+              <div class="tb-studio-section-title">Tera Type</div>
+              <button class="tb-studio-tera-pill" id="tb-studio-tera-pill">+ Tera Type</button>
+            </div>
+            <div>
+              <div class="tb-studio-section-title">Base Stats</div>
+              <div class="tb-studio-stats-block" id="tb-studio-stats-block"></div>
+              <div class="tb-studio-stats-note">Showing base stats. Final stats will appear once Nature/EVs are added in a later round.</div>
+            </div>
+            <div>
+              <div class="tb-studio-section-title">Ability · Nature · Item</div>
+              <div class="tb-studio-pill-row">
+                <button class="tb-studio-pill-btn" id="tb-studio-ability-pill">Ability</button>
+                <button class="tb-studio-pill-btn" id="tb-studio-nature-pill">Nature</button>
+                <button class="tb-studio-pill-btn" id="tb-studio-item-pill">Item</button>
+              </div>
+              <div class="tb-studio-pill-hint" id="tb-studio-pill-hint"></div>
+            </div>
+            <div>
+              <div class="tb-studio-section-title">Moves</div>
+              <div class="tb-studio-moves-grid" id="tb-studio-moves-grid"></div>
+            </div>
+          </div>
+          <div class="tb-studio-footer">
+            <button class="tb-studio-done-btn" id="tb-studio-done-btn">Done</button>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -4769,7 +4851,7 @@
             <div class="tb-party-slot-filled-row">
               <img class="tb-party-slot-sprite" src="${getEvoSpriteUrl(member.speciesId, member.shiny)}" alt="${escapeHtml(member.speciesName||'')}">
               <div>
-                <div class="tb-party-slot-name">${escapeHtml(member.speciesName||'')}</div>
+                <div class="tb-party-slot-name">${escapeHtml(member.nickname || member.speciesName||'')}</div>
                 ${member.shiny ? '<div class="tb-party-slot-shiny">✨ Shiny</div>' : ''}
                 ${Array.isArray(member.types) && member.types.length ? '<div class="tb-party-slot-badges type-badges"></div>' : ''}
               </div>
@@ -4800,11 +4882,10 @@
             touchTeam(team);
             renderTeamPartyGrid(team);
           });
-          // Tapping the slot body itself (not the controls above) does nothing yet — Pokémon
-          // Studio (per-member customization) is still a future round, same stub pattern as
-          // Round 1 used for empty slots.
+          // Tapping the slot body itself (not the controls above) opens the Pokémon Studio
+          // for this party member.
           slot.addEventListener('click', ()=>{
-            // no-op — customization comes in a later round
+            tbOpenStudio(team, i);
           });
         } else {
           slot.innerHTML = `<div class="tb-party-slot-plus">+</div><div class="tb-party-slot-label">Add Team Member</div>`;
@@ -4815,6 +4896,162 @@
         grid.appendChild(slot);
       }
     }
+
+    // ══════════════════════════════════════════════════════════════════════════════
+    // POKÉMON STUDIO — fully parallel/self-contained per-member overlay for the Team
+    // Builder. Own state, own DOM, own theme function. Reads shared read-only data
+    // (POKEMON_PALETTE, statColor, getEvoSpriteUrl, setSpriteSrc, makeBadgeImg, GAME_LIST)
+    // but never calls applyPokemonTheme()/resetPokemonTheme() and never touches
+    // #right-panel/#info-*/.card.selected/currentPalette.
+    // ══════════════════════════════════════════════════════════════════════════════
+    let tbStudioTeam = null;        // team object the open Studio belongs to
+    let tbStudioSlotIndex = null;   // party slot index the open Studio is editing
+    const tbStudioSpeciesCache = {}; // speciesId -> { colorName, stats: [{name,base}], types }
+
+    // Gen-9 game ids — used to gate the Tera Type slot's visibility.
+    const TB_STUDIO_GEN9_GAMES = new Set(['scarlet','violet','legends-za']);
+
+    // Studio's own theme function — reads the same read-only POKEMON_PALETTE lookup the main
+    // info panel uses, but only ever writes to NEW Studio-scoped elements/CSS vars. Never
+    // touches currentPalette or any #info-*/#right-panel element.
+    function applyStudioTheme(colorName){
+      const p = POKEMON_PALETTE[colorName] || POKEMON_PALETTE.white;
+      const panel = document.getElementById('tb-studio-panel');
+      if(!panel) return;
+      panel.style.setProperty('--studio-dark', p.dark);
+      panel.style.setProperty('--studio-bg', p.bg);
+      panel.style.setProperty('--studio-border', p.border);
+      return p;
+    }
+
+    async function tbFetchStudioSpeciesData(speciesId){
+      if(tbStudioSpeciesCache[speciesId]) return tbStudioSpeciesCache[speciesId];
+      const [speciesRes, pokemonRes] = await Promise.all([
+        fetch(`https://pokeapi.co/api/v2/pokemon-species/${speciesId}/`),
+        fetch(`https://pokeapi.co/api/v2/pokemon/${speciesId}/`)
+      ]);
+      const species = await speciesRes.json();
+      const pokemon = await pokemonRes.json();
+      const data = {
+        colorName: species.color?.name || 'white',
+        stats: (pokemon.stats||[]).map(s=>({ name: s.stat.name, base: s.base_stat }))
+      };
+      tbStudioSpeciesCache[speciesId] = data;
+      return data;
+    }
+
+    async function tbOpenStudio(team, slotIndex){
+      const member = team.party[slotIndex];
+      if(!member || !member.speciesId) return;
+      tbStudioTeam = team;
+      tbStudioSlotIndex = slotIndex;
+
+      // Reset to a neutral theme immediately so the overlay doesn't flash the previous
+      // Pokémon's colors while the new species data loads.
+      applyStudioTheme('white');
+
+      // Hero card
+      const sprite = document.getElementById('tb-studio-sprite');
+      setSpriteSrc(sprite, member.speciesId, member.shiny);
+      const nickInput = document.getElementById('tb-studio-nickname-input');
+      nickInput.value = member.nickname || '';
+      nickInput.placeholder = member.speciesName || '';
+      const badgesEl = document.getElementById('tb-studio-badges');
+      badgesEl.innerHTML = '';
+      if(Array.isArray(member.types)) member.types.forEach(t=>badgesEl.appendChild(makeBadgeImg(t, false)));
+
+      // Tera Type slot — only for Gen 9 contexts
+      const teraSection = document.getElementById('tb-studio-tera-section');
+      teraSection.style.display = (team.game && TB_STUDIO_GEN9_GAMES.has(team.game)) ? '' : 'none';
+
+      // Ability/Nature/Item + moves are stubs this round
+      document.getElementById('tb-studio-pill-hint').textContent = '';
+      const movesGrid = document.getElementById('tb-studio-moves-grid');
+      movesGrid.innerHTML = '';
+      for(let i=0;i<4;i++){
+        const slot = document.createElement('div');
+        slot.className = 'tb-studio-move-slot';
+        slot.textContent = '+ Move';
+        slot.addEventListener('click', ()=>{
+          document.getElementById('tb-studio-pill-hint').textContent = 'Moves are coming in a later round.';
+        });
+        movesGrid.appendChild(slot);
+      }
+
+      // Stats block — placeholder while species data loads
+      const statsBlock = document.getElementById('tb-studio-stats-block');
+      statsBlock.innerHTML = `<div class="tb-studio-stats-note">Loading stats…</div>`;
+
+      document.getElementById('tb-studio-backdrop').classList.add('visible');
+
+      // Fetch (or read cached) species data, then theme + render stats
+      try{
+        const data = await tbFetchStudioSpeciesData(member.speciesId);
+        // Bail if the Studio was closed or moved to a different member/team while fetching.
+        if(tbStudioTeam !== team || tbStudioSlotIndex !== slotIndex) return;
+        applyStudioTheme(data.colorName);
+        const STAT_LABELS = {hp:'HP',attack:'ATK',defense:'DEF','special-attack':'SpA','special-defense':'SpD',speed:'SPD'};
+        statsBlock.innerHTML = '';
+        let total = 0;
+        data.stats.forEach(s=>{
+          total += s.base;
+          const pct = Math.round((s.base/255)*100);
+          const label = STAT_LABELS[s.name] || s.name;
+          const row = document.createElement('div');
+          row.className = 'tb-studio-stat-row';
+          row.innerHTML = `<div class="tb-studio-stat-name">${label}</div><div class="tb-studio-stat-bar-bg"><div class="tb-studio-stat-bar-fill" style="width:${pct}%;background:${statColor(s.base)}"></div></div><div class="tb-studio-stat-num">${s.base}</div>`;
+          statsBlock.appendChild(row);
+        });
+        const bst = document.createElement('div');
+        bst.className = 'tb-studio-bst-row';
+        bst.innerHTML = `<div class="tb-studio-bst-label">BST</div><div class="tb-studio-bst-num">${total}</div>`;
+        statsBlock.appendChild(bst);
+        const note = document.createElement('div');
+        note.className = 'tb-studio-stats-note';
+        note.textContent = 'Showing base stats. Final stats will appear once Nature/EVs are added in a later round.';
+        statsBlock.appendChild(note);
+      }catch(err){
+        if(tbStudioTeam === team && tbStudioSlotIndex === slotIndex){
+          statsBlock.innerHTML = `<div class="tb-studio-stats-note">Couldn't load stats right now.</div>`;
+        }
+      }
+    }
+
+    function tbCloseStudio(){
+      // Persist any pending nickname edit before closing.
+      tbSaveStudioNickname();
+      document.getElementById('tb-studio-backdrop').classList.remove('visible');
+      if(tbStudioTeam) renderTeamPartyGrid(tbStudioTeam);
+      tbStudioTeam = null;
+      tbStudioSlotIndex = null;
+    }
+
+    function tbSaveStudioNickname(){
+      if(!tbStudioTeam || tbStudioSlotIndex === null) return;
+      const member = tbStudioTeam.party[tbStudioSlotIndex];
+      if(!member) return;
+      const input = document.getElementById('tb-studio-nickname-input');
+      const val = (input.value||'').trim().slice(0,12);
+      if(member.nickname !== val){
+        member.nickname = val;
+        touchTeam(tbStudioTeam);
+      }
+    }
+
+    document.getElementById('tb-studio-nickname-input')?.addEventListener('blur', tbSaveStudioNickname);
+    document.getElementById('tb-studio-close')?.addEventListener('click', tbCloseStudio);
+    document.getElementById('tb-studio-done-btn')?.addEventListener('click', tbCloseStudio);
+    document.getElementById('tb-studio-backdrop')?.addEventListener('click', e=>{
+      if(e.target === document.getElementById('tb-studio-backdrop')) tbCloseStudio();
+    });
+    document.getElementById('tb-studio-tera-pill')?.addEventListener('click', ()=>{
+      document.getElementById('tb-studio-pill-hint').textContent = 'Tera Type picker is coming in a later round.';
+    });
+    ['tb-studio-ability-pill','tb-studio-nature-pill','tb-studio-item-pill'].forEach(id=>{
+      document.getElementById(id)?.addEventListener('click', ()=>{
+        document.getElementById('tb-studio-pill-hint').textContent = 'This is coming in a later round.';
+      });
+    });
 
     // ══════════════════════════════════════════════════════════════════════════════
     // DEX PICKER — fully parallel/self-contained Pokémon-selection overlay for the Team
