@@ -2089,6 +2089,9 @@
        Studio bottom sheet, but selectable (row tap fills the slot in progress) instead of a
        read-only viewer. Kept fully tb-prefixed/parallel; never touches .moveset-* classes. ── */
     .tb-studio-sheet.tb-move-sheet { max-height: 82%; }
+    .tb-studio-sheet.tb-evsivs-sheet { max-height: 85%; }
+    .tb-evsivs-confirm-wrap { margin-top: 18px; }
+    @media (max-width: 600px) { .tb-evsivs-confirm-wrap { margin-top: 14px; } }
     .tb-move-sheet-body { padding: 8px 0 16px; display: flex; flex-direction: column; gap: 10px; }
     .tb-move-sheet-empty { padding: 16px; font-size: 12px; color: #999; font-style: italic; text-align: center; }
     .tb-move-section { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); background: white; flex-shrink: 0; margin: 0 16px; }
@@ -3784,7 +3787,7 @@
            column, and a totals row. Built fresh into tb-studio-evsivs-sheet-body on every pill
            click by tbRenderEvsIvsSheet(), same as the Tera/Item sheets above. -->
       <div class="tb-studio-sheet-backdrop" id="tb-studio-evsivs-sheet-backdrop"></div>
-      <div class="tb-studio-sheet" id="tb-studio-evsivs-sheet">
+      <div class="tb-studio-sheet tb-evsivs-sheet" id="tb-studio-evsivs-sheet">
         <div class="tb-studio-sheet-header"><span class="tb-studio-sheet-title">EVs / IVs</span><button class="tb-studio-sheet-close" id="tb-studio-evsivs-sheet-close">✕</button></div>
         <div class="tb-studio-sheet-body" id="tb-studio-evsivs-sheet-body"></div>
       </div>
@@ -5089,7 +5092,7 @@
         types: Array.isArray(types) ? types : [],
         ability: null, item: null, nature: null, teraType: null,
         evs: { hp:0, atk:0, def:0, spa:0, spd:0, spe:0 },
-        ivs: { hp:31, atk:31, def:31, spa:31, spd:31, spe:31 },
+        ivs: { hp:0, atk:0, def:0, spa:0, spd:0, spe:0 },
         moves: []
       };
     }
@@ -6007,7 +6010,7 @@
     // Sums the 6 IV values — mirrors tbStudioEvTotal's shape, but IVs have no shared budget so
     // this is a plain sum, purely for the sheet's bottom totals row.
     function tbStudioIvTotal(ivs){
-      return TB_STUDIO_STAT_ORDER.reduce((sum,k)=> sum + ((ivs[k]!=null) ? ivs[k] : 31), 0);
+      return TB_STUDIO_STAT_ORDER.reduce((sum,k)=> sum + ((ivs[k]!=null) ? ivs[k] : 0), 0);
     }
 
     // Builds the EVs/IVs sheet's 5-column table (Stat / Base / EVs / IVs / Final) into
@@ -6035,6 +6038,18 @@
           recommendedEvs = report.recommended_blueprint.ev_spread || null;
         }
       }catch(e){ recommendedEvs = null; }
+
+      // First-open prefill: if this member's EV spread is still completely untouched (all zero),
+      // seed the boxes with the Advice engine's own recommended values instead of leaving them at
+      // 0 with just a frame around an empty box. Only fires once per member in practice — as soon
+      // as any EV is nonzero (whether from this prefill or a manual edit), later sheet-opens leave
+      // the user's own numbers alone.
+      if(recommendedEvs && member && tbStudioEvTotal(member.evs) === 0){
+        TB_STUDIO_STAT_ORDER.forEach(k=>{
+          if(recommendedEvs[k]) member.evs[k] = recommendedEvs[k];
+        });
+        touchTeam(tbStudioTeam);
+      }
 
       body.innerHTML = '';
       const table = document.createElement('table');
@@ -6077,7 +6092,7 @@
       function computeFinal(statKey){
         const natureEntry = TB_NATURES.find(n=>n.name === member.nature) || null;
         const base = tbStudioBaseStats[statKey];
-        const iv = (member.ivs[statKey]!=null) ? member.ivs[statKey] : 31;
+        const iv = (member.ivs[statKey]!=null) ? member.ivs[statKey] : 0;
         const ev = member.evs[statKey] || 0;
         let natureMod = 1.0, natureClass = '';
         if(natureEntry && statKey !== 'hp'){
@@ -6109,7 +6124,7 @@
         }
 
         const evVal = member.evs[statKey] || 0;
-        const ivVal = (member.ivs[statKey]!=null) ? member.ivs[statKey] : 31;
+        const ivVal = (member.ivs[statKey]!=null) ? member.ivs[statKey] : 0;
         const { val: finalVal, natureClass } = computeFinal(statKey);
         const isRecommended = recommendedEvs && (recommendedEvs[statKey] || 0) > 0;
 
@@ -6177,6 +6192,25 @@
         tbRenderStudioFinalStats(member);
         tbRenderStudioAdvice(member);
       };
+
+      // Confirm Spread — sits at the bottom of the sheet, same look as the Studio's own Done
+      // button (.tb-studio-done-btn). EVs/IVs already autosave on every keystroke (no Apply/Done
+      // gate on the data itself), so this button's only job is to close the sheet back to the card,
+      // giving the user an explicit "I'm happy with this spread" action to end on, matching the
+      // sketch.
+      const confirmWrap = document.createElement('div');
+      confirmWrap.className = 'tb-evsivs-confirm-wrap';
+      confirmWrap.innerHTML = '<button class="tb-studio-done-btn" id="tb-evsivs-confirm-btn">Confirm Spread</button>';
+      body.appendChild(confirmWrap);
+      confirmWrap.querySelector('#tb-evsivs-confirm-btn').addEventListener('click', ()=>{
+        tbCloseStudioSheet('tb-studio-evsivs-sheet','tb-studio-evsivs-sheet-backdrop','tb-studio-evsivs-pill');
+      });
+
+      // If this render just ran the first-open prefill above, the card behind the sheet (Final
+      // Stats bar graph + Sevii Advice panel) needs to reflect the newly-seeded EVs immediately,
+      // not just after the user closes the sheet.
+      tbRenderStudioFinalStats(member);
+      tbRenderStudioAdvice(member);
     }
 
     // Renders the live Final Stats block from tbStudioBaseStats + member.evs/ivs/nature. Reuses
@@ -6191,7 +6225,7 @@
       TB_STUDIO_STAT_ORDER.forEach(statKey=>{
         const base = tbStudioBaseStats[statKey];
         if(base == null) return;
-        const iv = (member.ivs[statKey]!=null) ? member.ivs[statKey] : 31;
+        const iv = (member.ivs[statKey]!=null) ? member.ivs[statKey] : 0;
         const ev = member.evs[statKey] || 0;
         let natureMod = 1.0;
         let natureClass = '';
