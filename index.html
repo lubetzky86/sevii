@@ -1944,6 +1944,25 @@
       .tb-advice-pill { font-size: 9px; padding: 2px 8px; top: -9px; }
       .tb-advice-frame { border-width: 3px; padding: 8px; border-radius: 14px; }
     }
+
+    /* Ability picker (Step 2 of the 5-step Studio picker visual rebuild) — vertical stack of
+       full-width cards (name + optional "Hidden Ability" tag on one row, description below),
+       replacing the old plain .tb-studio-opt-row list. Reuses .tb-advice-frame/.tb-advice-pill
+       as-is for the recommended card; no new advice colors introduced. */
+    .tb-studio-ability-card { position: relative; display: flex; flex-direction: column; gap: 8px; text-align: left; width: 100%; background: white; border: 1.5px solid #1a1a1a; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; cursor: pointer; font: inherit; transition: opacity 0.15s; }
+    .tb-studio-ability-card:last-child { margin-bottom: 0; }
+    .tb-studio-ability-card:hover { opacity: 0.85; }
+    .tb-studio-ability-card.selected { border-color: var(--studio-dark, #606070); background: #f7f7fb; }
+    .tb-studio-ability-card-toprow { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+    .tb-studio-ability-card-name { font-family: 'Archivo Black', sans-serif; font-size: 22px; font-weight: 900; color: #1a1a1a; text-transform: capitalize; line-height: 1.15; }
+    .tb-studio-ability-hidden-tag { flex-shrink: 0; font-size: 11px; font-weight: 900; color: var(--advice-brown); text-transform: uppercase; letter-spacing: 0.4px; }
+    .tb-studio-ability-card-desc { font-size: 15px; font-weight: 400; color: #333; line-height: 1.4; }
+    .tb-studio-ability-card-desc.loading { color: #999; font-style: italic; }
+    @media (max-width: 600px) {
+      .tb-studio-ability-card { padding: 14px 16px; margin-bottom: 12px; }
+      .tb-studio-ability-card-name { font-size: 19px; }
+      .tb-studio-ability-card-desc { font-size: 14px; }
+    }
     .tb-studio-item-cat { margin-bottom: 6px; }
     .tb-studio-item-cat-header { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 12px 4px; background: none; border: none; border-bottom: 1px solid #eee; cursor: pointer; font: inherit; text-align: left; }
     .tb-studio-item-cat-title { font-size: 13px; font-weight: 700; color: #1a1a1a; letter-spacing: 0.2px; }
@@ -5842,6 +5861,11 @@
     ];
     const TB_NATURE_STAT_LABELS = {atk:'Atk',def:'Def',spa:'SpA',spd:'SpD',spe:'Spe'};
     let tbStudioAbilitiesForMember = []; // [{name, isHidden}] for whichever member's Studio is currently open
+    // Team Builder's own isolated ability-effect cache (Step 2 picker rebuild). Mirrors the main
+    // app's abDetailCache fetch/parse logic against the same PokéAPI endpoint but is a SEPARATE
+    // object per the standing rule that Team Builder state stays parallel to the main app's.
+    // name -> short_effect string, or null if PokéAPI had none for that ability.
+    let tbAbilityEffectCache = {};
 
     // PokéAPI's /pokemon/ stat names ('hp','attack','defense','special-attack','special-defense',
     // 'speed') vs the short keys used by member.evs/member.ivs and TB_NATURES ('hp','atk','def',
@@ -6865,6 +6889,28 @@
     }
 
     // ── Ability picker ──
+    // ── Ability picker ──
+    // Rebuilt (Step 2 of the 5-step Studio picker visual rebuild, from Diego's hand-drawn sketch)
+    // from a plain vertical row list into full-width cards showing each ability's name, an
+    // optional "Hidden Ability" tag, and its PokéAPI effect-description text. Behavior (what a
+    // tap does) is unchanged, only the visual layout + the added description fetch. The
+    // recommended ability is read from tbEvaluateBuild's cached recommended_blueprint, same
+    // guarded pattern the Tera Type round established, rather than re-deriving via
+    // tbAdviceRecommendAbility directly.
+    async function tbFetchAbilityEffect(name){
+      if(tbAbilityEffectCache[name] !== undefined) return tbAbilityEffectCache[name];
+      try{
+        const res = await fetch(`https://pokeapi.co/api/v2/ability/${name}/`);
+        const data = await res.json();
+        const ee = data.effect_entries?.find(e => e.language.name === 'en');
+        const text = ee?.short_effect || ee?.effect || null;
+        tbAbilityEffectCache[name] = text;
+        return text;
+      }catch(e){
+        tbAbilityEffectCache[name] = null;
+        return null;
+      }
+    }
     setupMobileSheet('tb-studio-ability-pill','tb-studio-ability-sheet','tb-studio-ability-sheet-backdrop','tb-studio-ability-sheet-close');
     document.getElementById('tb-studio-ability-pill')?.addEventListener('click', ()=>{
       const body = document.getElementById('tb-studio-ability-sheet-body');
@@ -6875,11 +6921,53 @@
         return;
       }
       const member = tbStudioTeam && tbStudioSlotIndex !== null ? tbStudioTeam.party[tbStudioSlotIndex] : null;
+      // Guarded: tbEvaluateBuild computes a lot of unrelated diagnostics beyond the ability pick,
+      // and a failure anywhere in that report must never prevent the card list itself from rendering.
+      let recommendedAbility = null;
+      try{
+        if(member && tbStudioTeam && tbStudioBaseStats){
+          const report = tbEvaluateBuild(member, tbStudioTeam, tbStudioBaseStats);
+          recommendedAbility = report.recommended_blueprint.ability;
+        }
+      }catch(e){ recommendedAbility = null; }
       tbStudioAbilitiesForMember.forEach(a=>{
-        const row = document.createElement('button');
-        row.className = 'tb-studio-opt-row' + (member && member.ability === a.name ? ' selected' : '');
-        row.innerHTML = `<span class="tb-studio-opt-name">${a.name.replace(/-/g,' ')}</span>` + (a.isHidden ? '<span class="tb-studio-opt-hidden-tag">Hidden</span>' : '');
-        row.addEventListener('click', ()=>{
+        const isRecommended = !!recommendedAbility && recommendedAbility === a.name;
+        const card = document.createElement('button');
+        card.className = 'tb-studio-ability-card' + (isRecommended ? ' tb-advice-frame' : '') + (member && member.ability === a.name ? ' selected' : '');
+        if(isRecommended){
+          const pill = document.createElement('span');
+          pill.className = 'tb-advice-pill';
+          pill.textContent = 'Sevii Advice';
+          card.appendChild(pill);
+        }
+        const topRow = document.createElement('div');
+        topRow.className = 'tb-studio-ability-card-toprow';
+        const nameEl = document.createElement('span');
+        nameEl.className = 'tb-studio-ability-card-name';
+        nameEl.textContent = toTitleCase(a.name.replace(/-/g,' '));
+        topRow.appendChild(nameEl);
+        if(a.isHidden){
+          const tag = document.createElement('span');
+          tag.className = 'tb-studio-ability-hidden-tag';
+          tag.textContent = 'Hidden Ability';
+          topRow.appendChild(tag);
+        }
+        card.appendChild(topRow);
+        const descEl = document.createElement('div');
+        descEl.className = 'tb-studio-ability-card-desc loading';
+        descEl.textContent = 'Loading description…';
+        card.appendChild(descEl);
+        const cached = tbAbilityEffectCache[a.name];
+        if(cached !== undefined){
+          descEl.textContent = cached || 'No description available.';
+          descEl.classList.remove('loading');
+        } else {
+          tbFetchAbilityEffect(a.name).then(text=>{
+            descEl.textContent = text || 'No description available.';
+            descEl.classList.remove('loading');
+          });
+        }
+        card.addEventListener('click', ()=>{
           if(!tbStudioTeam || tbStudioSlotIndex === null) return;
           const m = tbStudioTeam.party[tbStudioSlotIndex];
           if(!m) return;
@@ -6889,7 +6977,7 @@
           tbRenderStudioAdvice(m);
           tbCloseStudioSheet('tb-studio-ability-sheet','tb-studio-ability-sheet-backdrop','tb-studio-ability-pill');
         });
-        body.appendChild(row);
+        body.appendChild(card);
       });
     });
 
