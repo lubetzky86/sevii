@@ -5581,15 +5581,31 @@
       icon.replaceWith(span);
       return span;
     }
-    // Fetches the sprite (if any) and applies it to `icon`, or swaps in the fallback badge —
-    // shared by both the sheet rows and the selected-item pill so they never diverge.
+    // Resolves the icon in three tiers: 1) a locally-supplied sprite at icons/items/{slug}.png
+    // (same convention as icons/games/{id}.png elsewhere in this app) 2) PokéAPI's live sprite
+    // 3) the lettered fallback badge. Tier 1 is tried via the <img>'s own onerror (a missing
+    // local file 404s instantly and silently, same as the game-logo pattern) rather than a
+    // HEAD precheck, so the ~300+ items that already load fine from PokéAPI see no delay/flash.
+    // Shared by both the sheet rows and the selected-item pill so they never diverge.
     function tbApplyItemIcon(icon, slug){
-      icon.onerror = ()=> tbItemIconFallback(icon, slug);
-      tbFetchItemSprite(slug).then(url=>{
-        if(!icon.parentNode) return; // row/pill was replaced or sheet closed before this resolved
-        if(url) icon.src = url;
-        else tbItemIconFallback(icon, slug);
-      });
+      icon.dataset.tbStage = 'local';
+      icon.onerror = ()=>{
+        if(icon.dataset.tbStage === 'local'){
+          icon.dataset.tbStage = 'pokeapi';
+          tbFetchItemSprite(slug).then(url=>{
+            if(!icon.parentNode) return; // row/pill was replaced or sheet closed before this resolved
+            if(url){
+              icon.onerror = ()=> tbItemIconFallback(icon, slug);
+              icon.src = url;
+            }else{
+              tbItemIconFallback(icon, slug);
+            }
+          });
+        }else{
+          tbItemIconFallback(icon, slug);
+        }
+      };
+      icon.src = `icons/items/${slug}.png`;
     }
 
     // Whether `item` (a taxonomy entry) is visible at all for the given team, per the mode gate
