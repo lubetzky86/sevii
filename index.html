@@ -2039,6 +2039,43 @@
       .tb-studio-item-card-desc { font-size: 14px; }
       .tb-studio-item-card-icon { width: 44px; height: 44px; }
     }
+    /* EVs/IVs picker (Step 2 of the 5-step Studio picker visual rebuild — 5th and final screen).
+       Replaces the old always-visible tb-studio-ev-block/tb-studio-iv-block card sections with a
+       single pill (reuses .tb-studio-tera-pill styling as-is) that opens a sheet containing a
+       5-column table: Stat / Base / EVs / IVs / Final. Full stat names here (TB_NATURE_STAT_LABELS
+       + a special-cased 'HP'), NOT the short labels used by the card's own bar-graph blocks. */
+    .tb-evsivs-table { width: 100%; border-collapse: collapse; }
+    .tb-evsivs-table th, .tb-evsivs-table td { padding: 8px 6px; text-align: center; font-size: 12px; }
+    .tb-evsivs-table thead th { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; color: #999; border-bottom: 1.5px solid #eee; }
+    .tb-evsivs-table td.tb-evsivs-statcell { text-align: left; font-weight: 900; color: #1a1a1a; white-space: nowrap; }
+    .tb-evsivs-statcell-arrow { font-size: 10px; margin-left: 3px; }
+    .tb-evsivs-statcell-arrow.boost { color: #c0392b; }
+    .tb-evsivs-statcell-arrow.drop { color: #2c6fbb; }
+    .tb-evsivs-table td.tb-evsivs-base { color: #555; font-weight: 700; }
+    .tb-evsivs-table td.tb-evsivs-final { font-weight: 900; color: #1a1a1a; }
+    .tb-evsivs-table td.tb-evsivs-final.tb-studio-final-boost { color: #c0392b; }
+    .tb-evsivs-table td.tb-evsivs-final.tb-studio-final-drop { color: #2c6fbb; }
+    .tb-evsivs-table tbody tr { border-bottom: 1px solid #f5f5f5; }
+    .tb-evsivs-table tfoot td { border-top: 1.5px solid #eee; font-weight: 900; color: var(--studio-dark, #606070); padding-top: 10px; }
+    /* Wrapping element around a single EV/IV <input> — position:relative so a .tb-advice-pill
+       badge (absolutely positioned) anchors correctly, matching how .tb-studio-tera-cell/
+       .tb-studio-nature-row already establish that same relative-positioning role. */
+    .tb-evsivs-cell-wrap { position: relative; display: inline-block; }
+    .tb-evsivs-input { width: 48px; font-size: 12px; font-weight: 700; text-align: center; padding: 5px 3px; border: 1.5px solid #ddd; border-radius: 8px; color: #333; font-family: inherit; }
+    .tb-evsivs-input:focus { outline: none; border-color: var(--studio-dark, #606070); }
+    /* Combined selector so the wrap's own (absent) border can never lose a source-order tie
+       against .tb-advice-frame's border — the exact bug that hit the Ability round's card border,
+       repeated in every picker screen since; fixed proactively here from the start. */
+    .tb-evsivs-cell-wrap.tb-advice-frame { border: 4px solid var(--advice-brown); border-radius: 14px; padding: 4px; }
+    .tb-evsivs-iv-th { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .tb-studio-iv-maxall-btn { font-size: 11px; font-weight: 700; color: var(--studio-dark, #606070); background: none; border: 1.5px solid var(--studio-dark, #606070); border-radius: 12px; padding: 4px 10px; cursor: pointer; transition: opacity 0.15s; white-space: nowrap; text-transform: none; letter-spacing: 0; }
+    .tb-studio-iv-maxall-btn:hover { opacity: 0.7; }
+    @media (max-width: 600px) {
+      .tb-evsivs-table th, .tb-evsivs-table td { padding: 6px 3px; font-size: 11px; }
+      .tb-evsivs-input { width: 40px; font-size: 11px; }
+      .tb-evsivs-cell-wrap.tb-advice-frame { border-width: 3px; padding: 3px; border-radius: 11px; }
+    }
+
     .tb-studio-moves-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .tb-studio-move-slot { background: white; border: 2px dashed #d4ccbc; border-radius: 12px; min-height: 56px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: border-color 0.15s, background 0.15s; font-size: 12px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.3px; }
     .tb-studio-move-slot:hover { border-color: var(--studio-dark, #606070); background: rgba(0,0,0,0.02); }
@@ -3684,24 +3721,13 @@
             </div>
             <div>
               <div class="tb-studio-evs-header-row">
-                <div class="tb-studio-section-title">EVs</div>
-                <div class="tb-studio-ev-total" id="tb-studio-ev-total">0 / 510 EVs used</div>
-              </div>
-              <div class="tb-studio-ev-hint">EVs in multiples of 4 are the meaningful increments — the rest is wasted.</div>
-              <div class="tb-studio-ev-block" id="tb-studio-ev-block"></div>
-            </div>
-            <div>
-              <div class="tb-studio-evs-header-row">
-                <div class="tb-studio-section-title">IVs</div>
-                <button class="tb-studio-iv-maxall-btn" id="tb-studio-iv-maxall-btn">Set All to 31</button>
-              </div>
-              <div class="tb-studio-iv-block" id="tb-studio-iv-block"></div>
-            </div>
-            <div>
-              <div class="tb-studio-evs-header-row">
                 <div class="tb-studio-section-title">Final Stats <span class="tb-studio-final-lv">(Lv. 50)</span></div>
               </div>
               <div class="tb-studio-final-block" id="tb-studio-final-block"></div>
+            </div>
+            <div id="tb-studio-evsivs-section">
+              <div class="tb-studio-section-title">EVs / IVs</div>
+              <button class="tb-studio-tera-pill" id="tb-studio-evsivs-pill">+ EVs / IVs</button>
             </div>
             <div>
               <div class="tb-studio-section-title">Ability · Nature · Item</div>
@@ -3750,6 +3776,17 @@
       <div class="tb-studio-sheet" id="tb-studio-tera-sheet">
         <div class="tb-studio-sheet-header"><span class="tb-studio-sheet-title">Tera Type</span><button class="tb-studio-sheet-close" id="tb-studio-tera-sheet-close">✕</button></div>
         <div class="tb-studio-sheet-body" id="tb-studio-tera-sheet-body"></div>
+      </div>
+
+      <!-- EVs/IVs picker sheet — 5th and final of the Studio picker sheets (Step 2 of the 5-step
+           visual rebuild). Unlike the flat-list/grid sheets above, its body is a table: one row
+           per stat (Stat / Base / EVs / IVs / Final), a "Set All to 31" button above the IV
+           column, and a totals row. Built fresh into tb-studio-evsivs-sheet-body on every pill
+           click by tbRenderEvsIvsSheet(), same as the Tera/Item sheets above. -->
+      <div class="tb-studio-sheet-backdrop" id="tb-studio-evsivs-sheet-backdrop"></div>
+      <div class="tb-studio-sheet" id="tb-studio-evsivs-sheet">
+        <div class="tb-studio-sheet-header"><span class="tb-studio-sheet-title">EVs / IVs</span><button class="tb-studio-sheet-close" id="tb-studio-evsivs-sheet-close">✕</button></div>
+        <div class="tb-studio-sheet-body" id="tb-studio-evsivs-sheet-body"></div>
       </div>
 
       <!-- Item picker sheet — same setupMobileSheet pattern as Ability/Nature/Tera above, but its
@@ -5967,33 +6004,133 @@
       return TB_STUDIO_STAT_ORDER.reduce((sum,k)=>sum + (evs[k]||0), 0);
     }
 
-    // Renders the EV editor (0-252 per stat, 510 shared total, live-clamped) and the IV editor
-    // (0-31 per stat, independent). Both write straight into member.evs/member.ivs and call
-    // touchTeam + tbRenderStudioFinalStats on every change — no Apply/Done gate, matching every
-    // other Studio field's autosave-as-you-go convention.
-    function tbRenderStudioEvIvBlocks(member){
-      const evBlock = document.getElementById('tb-studio-ev-block');
-      const ivBlock = document.getElementById('tb-studio-iv-block');
-      const totalEl = document.getElementById('tb-studio-ev-total');
-      evBlock.innerHTML = '';
-      ivBlock.innerHTML = '';
+    // Sums the 6 IV values — mirrors tbStudioEvTotal's shape, but IVs have no shared budget so
+    // this is a plain sum, purely for the sheet's bottom totals row.
+    function tbStudioIvTotal(ivs){
+      return TB_STUDIO_STAT_ORDER.reduce((sum,k)=> sum + ((ivs[k]!=null) ? ivs[k] : 31), 0);
+    }
 
-      function refreshEvTotal(){
-        const total = tbStudioEvTotal(member.evs);
-        totalEl.textContent = `${total} / 510 EVs used`;
-        totalEl.classList.toggle('tb-studio-ev-total-maxed', total >= 510);
+    // Builds the EVs/IVs sheet's 5-column table (Stat / Base / EVs / IVs / Final) into
+    // #tb-studio-evsivs-sheet-body. Replaces the old always-visible tb-studio-ev-block/
+    // tb-studio-iv-block card sections — this is the 5th and final Studio picker screen (Step 2
+    // of the 5-step visual rebuild). The EV clamping (0-252, step 4, shared 510 budget) and IV
+    // clamping (0-31) formulas below are copied verbatim from the old tbRenderStudioEvIvBlocks —
+    // only the DOM targets and the added Base/Final columns + totals row are new. Both write
+    // straight into member.evs/member.ivs and call touchTeam + tbRenderStudioFinalStats (the
+    // CARD's own Final Stats bar graph) + tbRenderStudioAdvice on every change — no Apply/Done
+    // gate, matching every other Studio field's autosave-as-you-go convention. Also refreshes
+    // this row's own Final cell in the sheet, so both stay in sync whether the sheet is open or
+    // the user has closed it and is looking at the card.
+    function tbRenderEvsIvsSheet(member){
+      const body = document.getElementById('tb-studio-evsivs-sheet-body');
+      if(!body || !tbStudioBaseStats) return;
+
+      // Guarded exactly like the Tera/Ability/Nature/Item sheets: tbEvaluateBuild computes a lot
+      // of unrelated diagnostics beyond the EV spread, and a failure anywhere in that report must
+      // never prevent the table itself from rendering.
+      let recommendedEvs = null;
+      try{
+        if(member && tbStudioTeam && tbStudioBaseStats){
+          const report = tbEvaluateBuild(member, tbStudioTeam, tbStudioBaseStats);
+          recommendedEvs = report.recommended_blueprint.ev_spread || null;
+        }
+      }catch(e){ recommendedEvs = null; }
+
+      body.innerHTML = '';
+      const table = document.createElement('table');
+      table.className = 'tb-evsivs-table';
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Stat</th>
+            <th>Base</th>
+            <th>EVs</th>
+            <th class="tb-evsivs-iv-th"><span>IVs</span><button class="tb-studio-iv-maxall-btn" id="tb-evsivs-maxall-btn">Set All to 31</button></th>
+            <th>Final</th>
+          </tr>
+        </thead>
+        <tbody id="tb-evsivs-tbody"></tbody>
+        <tfoot>
+          <tr>
+            <td>Total</td>
+            <td id="tb-evsivs-base-total"></td>
+            <td id="tb-evsivs-ev-total">0 / 510</td>
+            <td id="tb-evsivs-iv-total"></td>
+            <td></td>
+          </tr>
+        </tfoot>`;
+      body.appendChild(table);
+      const tbody = table.querySelector('#tb-evsivs-tbody');
+      const evTotalEl = table.querySelector('#tb-evsivs-ev-total');
+      const ivTotalEl = table.querySelector('#tb-evsivs-iv-total');
+      const baseTotalEl = table.querySelector('#tb-evsivs-base-total');
+
+      function refreshTotals(){
+        const evTotal = tbStudioEvTotal(member.evs);
+        evTotalEl.textContent = `${evTotal} / 510`;
+        evTotalEl.classList.toggle('tb-studio-ev-total-maxed', evTotal >= 510);
+        ivTotalEl.textContent = tbStudioIvTotal(member.ivs);
       }
 
-      TB_STUDIO_STAT_ORDER.forEach(statKey=>{
-        const label = TB_STUDIO_STAT_SHORT_LABELS[statKey];
+      // Same final-stat/nature-modifier logic as tbRenderStudioFinalStats — reused (not
+      // re-derived) so the sheet's Final column and the card's Final Stats block never disagree.
+      function computeFinal(statKey){
+        const natureEntry = TB_NATURES.find(n=>n.name === member.nature) || null;
+        const base = tbStudioBaseStats[statKey];
+        const iv = (member.ivs[statKey]!=null) ? member.ivs[statKey] : 31;
+        const ev = member.evs[statKey] || 0;
+        let natureMod = 1.0, natureClass = '';
+        if(natureEntry && statKey !== 'hp'){
+          if(natureEntry.boost === statKey && natureEntry.drop !== statKey){ natureMod = 1.1; natureClass = 'tb-studio-final-boost'; }
+          else if(natureEntry.drop === statKey && natureEntry.boost !== statKey){ natureMod = 0.9; natureClass = 'tb-studio-final-drop'; }
+        }
+        return { val: tbCalcFinalStat(statKey, base, iv, ev, natureMod), natureClass };
+      }
 
-        // EV row
-        const evRow = document.createElement('div');
-        evRow.className = 'tb-studio-ev-row';
-        const evPct = Math.round(((member.evs[statKey]||0)/252)*100);
-        evRow.innerHTML = `<div class="tb-studio-ev-name">${label}</div><div class="tb-studio-ev-bar-bg"><div class="tb-studio-ev-bar-fill" style="width:${evPct}%"></div></div><input type="number" class="tb-studio-ev-input" min="0" max="252" step="4" value="${member.evs[statKey]||0}">`;
-        const evInput = evRow.querySelector('.tb-studio-ev-input');
-        const evFill = evRow.querySelector('.tb-studio-ev-bar-fill');
+      function refreshFinalCell(statKey){
+        const cell = tbody.querySelector(`.tb-evsivs-final[data-stat="${statKey}"]`);
+        if(!cell) return;
+        const { val, natureClass } = computeFinal(statKey);
+        cell.textContent = val;
+        cell.className = 'tb-evsivs-final' + (natureClass ? ' ' + natureClass : '');
+      }
+
+      let baseTotal = 0;
+      TB_STUDIO_STAT_ORDER.forEach(statKey=>{
+        const base = tbStudioBaseStats[statKey];
+        if(base == null) return;
+        baseTotal += base;
+        const fullLabel = (statKey === 'hp') ? 'HP' : TB_NATURE_STAT_LABELS[statKey];
+        const natureEntry = TB_NATURES.find(n=>n.name === member.nature) || null;
+        let arrow = '';
+        if(natureEntry && statKey !== 'hp'){
+          if(natureEntry.boost === statKey && natureEntry.drop !== statKey) arrow = '<span class="tb-evsivs-statcell-arrow boost">▲</span>';
+          else if(natureEntry.drop === statKey && natureEntry.boost !== statKey) arrow = '<span class="tb-evsivs-statcell-arrow drop">▼</span>';
+        }
+
+        const evVal = member.evs[statKey] || 0;
+        const ivVal = (member.ivs[statKey]!=null) ? member.ivs[statKey] : 31;
+        const { val: finalVal, natureClass } = computeFinal(statKey);
+        const isRecommended = recommendedEvs && (recommendedEvs[statKey] || 0) > 0;
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="tb-evsivs-statcell">${fullLabel}${arrow}</td>
+          <td class="tb-evsivs-base">${base}</td>
+          <td>
+            <div class="tb-evsivs-cell-wrap${isRecommended ? ' tb-advice-frame' : ''}">
+              ${isRecommended ? '<span class="tb-advice-pill">Sevii Advice</span>' : ''}
+              <input type="number" class="tb-evsivs-input tb-evsivs-ev-input" min="0" max="252" step="4" value="${evVal}">
+            </div>
+          </td>
+          <td>
+            <div class="tb-evsivs-cell-wrap">
+              <input type="number" class="tb-evsivs-input tb-evsivs-iv-input" min="0" max="31" step="1" value="${ivVal}">
+            </div>
+          </td>
+          <td class="tb-evsivs-final${natureClass ? ' ' + natureClass : ''}" data-stat="${statKey}">${finalVal}</td>`;
+
+        const evInput = row.querySelector('.tb-evsivs-ev-input');
         evInput.addEventListener('input', ()=>{
           let v = parseInt(evInput.value, 10);
           if(isNaN(v) || v < 0) v = 0;
@@ -6005,43 +6142,38 @@
           if(v > room) v = Math.max(0, room);
           member.evs[statKey] = v;
           evInput.value = v;
-          evFill.style.width = Math.round((v/252)*100) + '%';
-          refreshEvTotal();
+          refreshTotals();
+          refreshFinalCell(statKey);
           touchTeam(tbStudioTeam);
           tbRenderStudioFinalStats(member);
           tbRenderStudioAdvice(member);
         });
-        evBlock.appendChild(evRow);
 
-        // IV row
-        const ivRow = document.createElement('div');
-        ivRow.className = 'tb-studio-iv-row';
-        const ivVal = (member.ivs[statKey]!=null) ? member.ivs[statKey] : 31;
-        const ivPct = Math.round((ivVal/31)*100);
-        ivRow.innerHTML = `<div class="tb-studio-iv-name">${label}</div><div class="tb-studio-iv-bar-bg"><div class="tb-studio-iv-bar-fill" style="width:${ivPct}%"></div></div><input type="number" class="tb-studio-iv-input" min="0" max="31" step="1" value="${ivVal}">`;
-        const ivInput = ivRow.querySelector('.tb-studio-iv-input');
-        const ivFill = ivRow.querySelector('.tb-studio-iv-bar-fill');
+        const ivInput = row.querySelector('.tb-evsivs-iv-input');
         ivInput.addEventListener('input', ()=>{
           let v = parseInt(ivInput.value, 10);
           if(isNaN(v) || v < 0) v = 0;
           if(v > 31) v = 31;
           member.ivs[statKey] = v;
           ivInput.value = v;
-          ivFill.style.width = Math.round((v/31)*100) + '%';
+          refreshTotals();
+          refreshFinalCell(statKey);
           touchTeam(tbStudioTeam);
           tbRenderStudioFinalStats(member);
           tbRenderStudioAdvice(member);
         });
-        ivBlock.appendChild(ivRow);
+
+        tbody.appendChild(row);
       });
 
-      refreshEvTotal();
+      baseTotalEl.textContent = baseTotal;
+      refreshTotals();
 
-      const maxAllBtn = document.getElementById('tb-studio-iv-maxall-btn');
+      const maxAllBtn = document.getElementById('tb-evsivs-maxall-btn');
       maxAllBtn.onclick = ()=>{
         TB_STUDIO_STAT_ORDER.forEach(k=>{ member.ivs[k] = 31; });
         touchTeam(tbStudioTeam);
-        tbRenderStudioEvIvBlocks(member);
+        tbRenderEvsIvsSheet(member);
         tbRenderStudioFinalStats(member);
         tbRenderStudioAdvice(member);
       };
@@ -6852,7 +6984,6 @@
         // Base stats captured for this member's session — EV/IV editors and the Final Stats
         // block below read from this on every keystroke without re-fetching.
         tbStudioBaseStats = baseByShortKey;
-        tbRenderStudioEvIvBlocks(member);
         tbRenderStudioFinalStats(member);
 
         // Warm the full move-detail cache for this species BEFORE the first Advice render, so
@@ -7247,6 +7378,16 @@
         grid.appendChild(cell);
       });
       body.appendChild(grid);
+    });
+
+    // ── EVs/IVs picker (5th and final Studio picker screen) ──
+    // Table-based sheet, not a grid/list, so there's no per-cell click-to-select — every field is
+    // a live-editing input. tbRenderEvsIvsSheet does all the work; this just opens/rebuilds it.
+    setupMobileSheet('tb-studio-evsivs-pill','tb-studio-evsivs-sheet','tb-studio-evsivs-sheet-backdrop','tb-studio-evsivs-sheet-close');
+    document.getElementById('tb-studio-evsivs-pill')?.addEventListener('click', ()=>{
+      const member = tbStudioTeam && tbStudioSlotIndex !== null ? tbStudioTeam.party[tbStudioSlotIndex] : null;
+      if(!member) return;
+      tbRenderEvsIvsSheet(member);
     });
 
     // ── Item picker ──
