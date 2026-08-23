@@ -1690,16 +1690,24 @@
     .tb-hub-title { font-family: 'Archivo Black', sans-serif; font-size: 18px; font-weight: 900; color: #43656e; text-transform: uppercase; letter-spacing: 0.4px; }
     .tb-create-btn { padding: 9px 18px; border-radius: 24px; border: none; background: #43656e; color: white; font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
     .tb-create-btn:hover { opacity: 0.85; }
+    /* Full-width, prominent "CREATE NEW TEAM" button per the sketch — placed below the filters
+       row rather than in the toolbar. Kept as a distinct class from .tb-create-btn (still used
+       by the empty-state variant) so neither styling change risks the other's layout. */
+    .tb-create-btn-full { width: 100%; padding: 14px; border-radius: 26px; border: none; background: #43656e; color: white; font-family: 'Archivo Black', sans-serif; font-size: 14px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; transition: opacity 0.15s, transform 0.1s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .tb-create-btn-full:hover { opacity: 0.88; }
+    .tb-create-btn-full:active { transform: scale(0.99); }
 
-    /* Hub filter/sort row — same pill visual language as .tb-game-pill, plus the app's
-       standard .grid-sort-dir arrow button reused as-is (see Lists' #lists-sort-dir-btn). */
-    .tb-hub-filters { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; }
-    .tb-hub-filter-group { display: flex; gap: 6px; flex-wrap: wrap; }
-    .tb-hub-filter-pill { padding: 7px 13px; border-radius: 16px; border: 1.5px solid #e2ddd0; background: #f7f5f0; font-size: 12px; font-weight: 700; color: #43656e; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; }
-    .tb-hub-filter-pill:hover { border-color: #43656e; }
-    .tb-hub-filter-pill.active { background: #43656e; border-color: #43656e; color: white; }
-    .tb-hub-sort { display: flex; align-items: center; gap: 6px; margin-left: auto; }
-    .tb-hub-sort select { height: 30px; font-size: 12px; padding: 0 8px; border-radius: 8px; border: 1.5px solid #ddd; background: white; color: #444; cursor: pointer; }
+    /* Hub filter row — "FILTERS" label + "Clear all" link above three unified pill triggers
+       (Format / Game / Sort), each of which opens a bottom sheet on tap (setupMobileSheet). */
+    .tb-hub-filters-label-row { display: flex; align-items: center; justify-content: space-between; }
+    .tb-hub-filters-label { font-size: 11px; font-weight: 900; color: #999; text-transform: uppercase; letter-spacing: 0.6px; }
+    .tb-hub-clear-link { background: none; border: none; font-size: 12px; font-weight: 700; color: #43656e; cursor: pointer; padding: 2px 4px; text-decoration: underline; }
+    .tb-hub-clear-link:hover { opacity: 0.7; }
+    .tb-hub-filters { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+    .tb-pill-trigger { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 18px; border: 1.5px solid #c8bfaf; background: transparent; font-size: 12px; font-weight: 700; color: #43656e; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+    .tb-pill-trigger:hover { border-color: #43656e; background: rgba(67,101,110,0.06); }
+    .tb-pill-trigger.has-selection { border-color: #43656e; background: rgba(67,101,110,0.1); }
+    .tb-pill-trigger .tb-pill-chevron { font-size: 9px; color: #999; }
 
     /* One team per row — a vertical list of full-width cards rather than the auto-fill grid
        every other section uses, so a team's full context reads at a glance without opening it. */
@@ -1712,22 +1720,34 @@
     .tb-badge { font-size: 10px; font-weight: 800; color: #43656e; text-transform: uppercase; letter-spacing: 0.4px; background: rgba(67,101,110,0.1); padding: 3px 8px; border-radius: 10px; }
     .tb-team-card-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
     .tb-team-card-sprites { display: flex; gap: 4px; }
-    .tb-team-card-sprite-slot { width: 34px; height: 34px; border-radius: 8px; background: #f0efe9; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .tb-team-card-sprite-slot { width: 34px; height: 34px; border-radius: 8px; background: #f0efe9; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
     .tb-team-card-sprite-slot img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
     .tb-team-card-meta { font-size: 11px; color: #999; white-space: nowrap; }
+    /* Shiny sparkle indicator overlaid on a hub-card sprite slot whose member is shiny — purely
+       decorative, doesn't touch member data. */
+    .tb-sprite-shiny-badge { position: absolute; top: -2px; right: -2px; font-size: 10px; line-height: 1; filter: drop-shadow(0 0 1px rgba(0,0,0,0.4)); pointer-events: none; }
+    /* Small branded game-logo image used inside badges/pills wherever a game needs to be shown.
+       Falls back to text-only (via onerror hiding the <img>) if a filename doesn't exist. */
+    .tb-game-logo-img { height: 14px; width: auto; max-width: 46px; object-fit: contain; vertical-align: middle; border-radius: 2px; }
+    .tb-badge.tb-badge-game { display: inline-flex; align-items: center; gap: 4px; }
 
-    /* Canvas topbar + context header */
-    .tb-canvas-topbar { display: flex; }
-    .tb-back-btn { background: none; border: none; color: #43656e; font-size: 13px; font-weight: 700; cursor: pointer; padding: 4px 0; }
-    .tb-back-btn:hover { text-decoration: underline; }
+    /* Canvas topbar — dark teal-gray header bar: title, (muted) Save button, circular close. */
+    .tb-canvas-topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #43656e; border-radius: 14px; padding: 12px 14px; margin: -4px -4px 0; }
+    .tb-canvas-topbar-title { font-family: 'Archivo Black', sans-serif; font-size: 14px; font-weight: 900; color: white; text-transform: uppercase; letter-spacing: 0.6px; }
+    .tb-canvas-topbar-right { display: flex; align-items: center; gap: 8px; }
+    .tb-canvas-save-btn { padding: 7px 14px; border-radius: 18px; border: 1.5px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.12); color: white; font-size: 12px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+    .tb-canvas-save-btn:hover { background: rgba(255,255,255,0.25); }
+    .tb-back-btn { width: 30px; height: 30px; border-radius: 50%; border: none; background: rgba(255,255,255,0.18); color: white; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+    .tb-back-btn:hover { background: rgba(255,255,255,0.32); }
     .tb-context-header { background: #eae3d7; border: 1px solid #d4ccbc; border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
     .tb-name-row { display: flex; align-items: center; gap: 8px; }
-    .tb-name-input { font-family: 'Archivo Black', sans-serif; font-size: 18px; font-weight: 900; color: #1a1a1a; border: none; background: transparent; outline: none; flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: 0.3px; padding: 4px 2px; border-radius: 6px; transition: background 0.15s; }
-    .tb-name-input:focus { background: rgba(255,255,255,0.6); }
+    .tb-name-input { font-family: 'Archivo Black', sans-serif; font-size: 16px; font-weight: 900; color: #1a1a1a; border: 1.5px solid #c8bfaf; background: white; outline: none; flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: 0.3px; padding: 9px 12px; border-radius: 12px; transition: border-color 0.15s, background 0.15s; }
+    .tb-name-input:focus { border-color: #43656e; background: white; }
     .tb-name-edit-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: rgba(67,101,110,0.12); color: #43656e; font-size: 13px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
     .tb-name-edit-btn:hover { background: rgba(67,101,110,0.22); }
 
     .tb-header-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .tb-battle-mode-label { font-size: 11px; font-weight: 900; color: #999; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 2px; }
     .tb-toggle-group { display: inline-flex; background: rgba(255,255,255,0.55); border: 1.5px solid #c8bfaf; border-radius: 20px; padding: 2px; }
     .tb-toggle-btn { border: none; background: none; padding: 6px 14px; border-radius: 18px; font-size: 12px; font-weight: 700; color: #43656e; cursor: pointer; transition: background 0.15s, color 0.15s; }
     .tb-toggle-btn.active { background: #43656e; color: white; }
@@ -1742,10 +1762,13 @@
        sizing/proportions mirror .card's own breakpoints (185px desktop / 155px / 122px) even
        though the slot's content is different (a "+ Add" label vs sprite+name+badges). */
     .tb-party-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 640px; margin: 0 auto; width: 100%; }
-    .tb-party-slot { background: white; border: 2px dashed #d4ccbc; border-radius: 14px; min-height: 185px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
-    .tb-party-slot:hover { border-color: #43656e; background: rgba(67,101,110,0.04); }
-    .tb-party-slot-plus { font-size: 26px; color: #b8ad9a; line-height: 1; }
-    .tb-party-slot-label { font-size: 12px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.4px; text-align: center; }
+    /* Empty slots: solid muted tan/greige fill (no dashed border) per the sketch, instead of the
+       old white-with-dashed-border look. Filled slots keep their existing white-card treatment
+       below (untouched). */
+    .tb-party-slot { background: #e8e0d0; border: 2px solid transparent; border-radius: 14px; min-height: 185px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+    .tb-party-slot:hover { background: #ddd2bc; border-color: #c8bfaf; }
+    .tb-party-slot-plus { font-size: 26px; color: #8f8570; line-height: 1; }
+    .tb-party-slot-label { font-size: 12px; font-weight: 700; color: #8f8570; text-transform: uppercase; letter-spacing: 0.4px; text-align: center; }
     .tb-party-slot.filled { border-style: solid; border-color: #e8e4dd; cursor: default; align-items: stretch; justify-content: flex-start; padding: 10px; }
     .tb-party-slot-filled-row { display: flex; align-items: center; gap: 10px; }
     .tb-party-slot-sprite { width: 56px; height: 56px; object-fit: contain; image-rendering: pixelated; flex-shrink: 0; }
@@ -1836,12 +1859,13 @@
     /* Coverage accordions — copies the Obtain modal's egg-group accordion pattern exactly
        (.obtain-egg-accordion-*), just tb-prefixed and scoped under the party grid. */
     .tb-coverage-accordion { display: flex; flex-direction: column; gap: 8px; max-width: 640px; margin: 4px auto 0; width: 100%; }
-    .tb-coverage-accordion-item { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); background: white; }
-    .tb-coverage-accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; user-select: none; font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.3px; color: #43656e; transition: background 0.15s; }
-    .tb-coverage-accordion-header:hover { background: rgba(0,0,0,0.03); }
-    .tb-coverage-accordion-arrow { font-size: 11px; color: #aaa; transition: transform 0.2s; }
-    .tb-coverage-accordion-item.open .tb-coverage-accordion-arrow { transform: rotate(180deg); }
-    .tb-coverage-accordion-body { display: none; padding: 14px 16px; border-top: 1px solid rgba(0,0,0,0.06); font-size: 12px; color: #999; font-style: italic; }
+    .tb-coverage-accordion-item { border-radius: 14px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); background: white; border: 1px solid rgba(0,0,0,0.04); transition: box-shadow 0.15s; }
+    .tb-coverage-accordion-item.open { box-shadow: 0 3px 12px rgba(0,0,0,0.1); }
+    .tb-coverage-accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; cursor: pointer; user-select: none; font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; color: #43656e; transition: background 0.15s; }
+    .tb-coverage-accordion-header:hover { background: rgba(67,101,110,0.05); }
+    .tb-coverage-accordion-arrow { font-size: 11px; color: #b8ad9a; transition: transform 0.2s; }
+    .tb-coverage-accordion-item.open .tb-coverage-accordion-arrow { transform: rotate(180deg); color: #43656e; }
+    .tb-coverage-accordion-body { display: none; padding: 4px 18px 16px; border-top: 1px solid rgba(0,0,0,0.06); font-size: 12px; color: #999; font-style: italic; line-height: 1.5; }
     .tb-coverage-accordion-item.open .tb-coverage-accordion-body { display: block; }
 
     /* Game picker sheet — same slide-up-from-bottom mechanics as the app's other
@@ -1857,10 +1881,11 @@
     .tb-game-sheet-body { overflow-y: auto; padding: 10px 16px 20px; }
     .tb-game-gen-group { margin-bottom: 14px; }
     .tb-game-gen-label { font-size: 11px; font-weight: 800; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-    .tb-game-pill-row { display: flex; flex-wrap: wrap; gap: 6px; }
-    .tb-game-pill { padding: 7px 13px; border-radius: 16px; border: 1.5px solid #e2ddd0; background: #f7f5f0; font-size: 12px; font-weight: 700; color: #43656e; cursor: pointer; }
+    .tb-game-pill-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .tb-game-pill { padding: 7px 10px; border-radius: 16px; border: 1.5px solid #e2ddd0; background: #f7f5f0; font-size: 12px; font-weight: 700; color: #43656e; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; text-align: center; }
     .tb-game-pill:hover { border-color: #43656e; }
     .tb-game-pill.selected { background: #43656e; border-color: #43656e; color: white; }
+    .tb-game-pill img.tb-game-logo-img { height: 16px; }
 
     @media (max-width: 900px) {
       .app-header { padding: 0 8px; gap: 6px; }
@@ -3128,26 +3153,17 @@
       <div class="tb-hub" id="tb-hub">
         <div class="tb-hub-toolbar">
           <div class="tb-hub-title">My Teams</div>
-          <button class="tb-create-btn" id="tb-create-team-btn">+ Create New Team</button>
+        </div>
+        <div class="tb-hub-filters-label-row">
+          <span class="tb-hub-filters-label">Filters</span>
+          <button class="tb-hub-clear-link" id="tb-hub-clear-filters-btn">Clear all</button>
         </div>
         <div class="tb-hub-filters">
-          <div class="tb-hub-filter-group" id="tb-hub-mode-filters">
-            <button class="tb-hub-filter-pill" data-filter-mode="story">Story</button>
-            <button class="tb-hub-filter-pill" data-filter-mode="competitive">Competitive</button>
-          </div>
-          <div class="tb-hub-filter-group" id="tb-hub-format-filters">
-            <button class="tb-hub-filter-pill" data-filter-format="singles">Singles</button>
-            <button class="tb-hub-filter-pill" data-filter-format="doubles">Doubles</button>
-          </div>
-          <div class="tb-hub-sort">
-            <select id="tb-hub-sort-select">
-              <option value="updated">Last updated</option>
-              <option value="alpha">Alphabetical</option>
-              <option value="count">Pokémon count</option>
-            </select>
-            <div class="grid-sort-dir" id="tb-hub-sort-dir-btn">↓</div>
-          </div>
+          <button class="tb-pill-trigger" id="tb-hub-format-pill">Format<span class="tb-pill-chevron">▾</span></button>
+          <button class="tb-pill-trigger" id="tb-hub-game-pill">Game<span class="tb-pill-chevron">▾</span></button>
+          <button class="tb-pill-trigger" id="tb-hub-sort-pill">Sort: Last updated<span class="tb-pill-chevron">↓</span></button>
         </div>
+        <button class="tb-create-btn-full" id="tb-create-team-btn">+ Create New Team</button>
         <div class="grid-wrapper">
           <div class="grid tb-teams-grid" id="tb-teams-grid"></div>
         </div>
@@ -3156,33 +3172,35 @@
       <!-- Screen 2: Team Canvas — context header + 2×3 party grid -->
       <div class="tb-canvas" id="tb-canvas" style="display:none;">
         <div class="tb-canvas-topbar">
-          <button class="tb-back-btn" id="tb-back-to-hub-btn">← My Teams</button>
+          <span class="tb-canvas-topbar-title">Team Builder</span>
+          <div class="tb-canvas-topbar-right">
+            <button class="tb-canvas-save-btn" id="tb-canvas-save-btn">Save</button>
+            <button class="tb-back-btn" id="tb-back-to-hub-btn" title="Close">✕</button>
+          </div>
         </div>
 
         <div class="tb-context-header">
           <div class="tb-name-row">
-            <input type="text" class="tb-name-input" id="tb-team-name-input" maxlength="40" placeholder="Team name">
+            <input type="text" class="tb-name-input" id="tb-team-name-input" maxlength="40" placeholder="Enter team name">
             <button class="tb-name-edit-btn" id="tb-team-name-edit-btn" title="Rename">✎</button>
           </div>
 
-          <div class="tb-header-controls">
-            <!-- Mode toggle: Story / Competitive — visual/local-state only in Round 1 -->
-            <div class="tb-toggle-group" id="tb-mode-toggle">
-              <button class="tb-toggle-btn" data-mode="story">Story</button>
-              <button class="tb-toggle-btn" data-mode="competitive">Competitive</button>
-            </div>
+          <div>
+            <div class="tb-battle-mode-label">Battle Mode</div>
+            <div class="tb-header-controls">
+              <!-- Unified Format pill — merges the old separate Mode (Story/Competitive) and
+                   Format (Singles/Doubles) toggles into one concept, opening the shared
+                   #tb-format-sheet (context: canvas). Still sets team.mode/team.format underneath. -->
+              <button class="tb-pill-trigger" id="tb-canvas-format-pill">
+                <span id="tb-canvas-format-label">Format</span><span class="tb-pill-chevron">▾</span>
+              </button>
 
-            <!-- Format toggle: Singles / Doubles — hidden/disabled while Mode = Story -->
-            <div class="tb-toggle-group" id="tb-format-toggle">
-              <button class="tb-toggle-btn" data-format="singles">Singles</button>
-              <button class="tb-toggle-btn" data-format="doubles">Doubles</button>
+              <!-- Game selector: opens a bottom-sheet picker grouped by generation, built from
+                   the existing GAME_LIST constant. Visual only — no legality filtering yet. -->
+              <button class="tb-game-select-btn" id="tb-game-select-btn">
+                <span id="tb-game-select-label">Select a game</span><span class="tb-game-select-chevron">▾</span>
+              </button>
             </div>
-
-            <!-- Game selector: opens a bottom-sheet picker grouped by generation, built from
-                 the existing GAME_LIST constant. Visual only — no legality filtering yet. -->
-            <button class="tb-game-select-btn" id="tb-game-select-btn">
-              <span id="tb-game-select-label">Select a game</span><span class="tb-game-select-chevron">▾</span>
-            </button>
           </div>
         </div>
 
@@ -3218,6 +3236,57 @@
           <button class="tb-game-sheet-close" id="tb-game-sheet-close">✕</button>
         </div>
         <div class="tb-game-sheet-body" id="tb-game-sheet-body"></div>
+      </div>
+
+      <!-- Unified Format sheet — shared by the Hub's FORMAT filter pill and the Canvas's Battle
+           Mode FORMAT pill (context tracked in JS via tbFormatSheetContext). Groups options into
+           "Competitive / VGC" (Doubles, Singles) and "Casual / Story Mode" (Playthrough), the
+           deliberate merge of the old separate Mode+Format toggles into one concept. -->
+      <div class="tb-game-sheet-backdrop" id="tb-format-sheet-backdrop"></div>
+      <div class="tb-game-sheet" id="tb-format-sheet">
+        <div class="tb-game-sheet-header">
+          <span class="tb-game-sheet-title">Format</span>
+          <button class="tb-game-sheet-close" id="tb-format-sheet-close">✕</button>
+        </div>
+        <div class="tb-game-sheet-body" id="tb-format-sheet-body"></div>
+      </div>
+
+      <!-- Hub-scoped Game filter sheet — filters the Hub's team list by game. Kept fully separate
+           from the Canvas's #tb-game-sheet (which sets a team's actual game and can trigger the
+           confirm-before-clearing-team dialog) so neither can ever affect the other's logic. -->
+      <div class="tb-game-sheet-backdrop" id="tb-hub-game-sheet-backdrop"></div>
+      <div class="tb-game-sheet" id="tb-hub-game-sheet">
+        <div class="tb-game-sheet-header">
+          <span class="tb-game-sheet-title">Filter by Game</span>
+          <button class="tb-game-sheet-close" id="tb-hub-game-sheet-close">✕</button>
+        </div>
+        <div class="tb-game-sheet-body" id="tb-hub-game-sheet-body"></div>
+      </div>
+
+      <!-- Hub Sort sheet — same sort options + direction toggle as before, restyled as a pill
+           opening a sheet instead of a bare <select>. -->
+      <div class="tb-game-sheet-backdrop" id="tb-hub-sort-sheet-backdrop"></div>
+      <div class="tb-game-sheet" id="tb-hub-sort-sheet">
+        <div class="tb-game-sheet-header">
+          <span class="tb-game-sheet-title">Sort</span>
+          <button class="tb-game-sheet-close" id="tb-hub-sort-sheet-close">✕</button>
+        </div>
+        <div class="tb-game-sheet-body" id="tb-hub-sort-sheet-body">
+          <div class="tb-game-gen-group">
+            <div class="tb-game-pill-row" id="tb-hub-sort-options" style="grid-template-columns:1fr;">
+              <button class="tb-game-pill" data-sort="updated">Last updated</button>
+              <button class="tb-game-pill" data-sort="alpha">Alphabetical</button>
+              <button class="tb-game-pill" data-sort="count">Pokémon count</button>
+            </div>
+          </div>
+          <div class="tb-game-gen-group">
+            <div class="tb-game-gen-label">Direction</div>
+            <div class="tb-game-pill-row" style="grid-template-columns:1fr 1fr;">
+              <button class="tb-game-pill" id="tb-hub-sort-desc-btn">↓ Descending</button>
+              <button class="tb-game-pill" id="tb-hub-sort-asc-btn">↑ Ascending</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- ══════════ DEX PICKER — fully self-contained overlay for filling a party slot ══════════
@@ -4645,20 +4714,28 @@
     }
 
     // ── Screen 1: Saved Teams Hub ──
-    // Filter/sort state for the Hub's team list. Multiple active pills within the same group
-    // (Mode, Format) combine as AND, matching how the search box and pills all compose together
-    // in renderTeamBuilderHub below.
-    let tbHubActiveModes = new Set();
-    let tbHubActiveFormats = new Set();
+    // Filter/sort state for the Hub's team list. tbHubActiveFormatKeys holds unified Format
+    // options ('story' | 'singles' | 'doubles' — the "Casual/Story Mode" vs "Competitive/VGC"
+    // consolidation), tbHubActiveGames holds game ids. Both combine with each other (and the
+    // search box) as AND; an empty set means that facet doesn't filter at all.
+    let tbHubActiveFormatKeys = new Set();
+    let tbHubActiveGames = new Set();
     let tbHubSortMode = 'updated'; // 'updated' | 'alpha' | 'count'
     let tbHubSortAscending = false; // most-recently-updated-first by default
+
+    // A team matches a unified Format key if: 'story' <-> team.mode==='story', or
+    // 'singles'/'doubles' <-> team.mode==='competitive' && team.format matches.
+    function tbTeamMatchesFormatKey(team, key){
+      if(key === 'story') return team.mode === 'story';
+      return team.mode === 'competitive' && team.format === key;
+    }
 
     function tbHubFilteredSortedTeams(){
       let teams = getTeams().slice();
       const q = (activeSection === 'teambuilder' ? (document.getElementById('search-input')?.value || '') : '').trim().toLowerCase();
       if (q) teams = teams.filter(t => t.name.toLowerCase().includes(q));
-      if (tbHubActiveModes.size) teams = teams.filter(t => tbHubActiveModes.has(t.mode));
-      if (tbHubActiveFormats.size) teams = teams.filter(t => tbHubActiveFormats.has(t.format));
+      if (tbHubActiveFormatKeys.size) teams = teams.filter(t => [...tbHubActiveFormatKeys].some(k => tbTeamMatchesFormatKey(t, k)));
+      if (tbHubActiveGames.size) teams = teams.filter(t => t.game && tbHubActiveGames.has(t.game));
       teams.sort((a,b)=>{
         let cmp;
         if (tbHubSortMode === 'alpha') cmp = a.name.localeCompare(b.name);
@@ -4669,6 +4746,15 @@
       return teams;
     }
 
+    // Real branded game-logo PNGs at icons/games/{id}.png, relative to index.html — GAME_LIST's
+    // ids already match the filenames directly (kebab-case throughout), so no remapping table is
+    // needed. onerror hides the <img> so a missing file falls back gracefully to text-only rather
+    // than showing a broken-image icon.
+    function tbGameIconImgHtml(gameId, extraClass){
+      if(!gameId) return '';
+      return `<img class="tb-game-logo-img${extraClass?(' '+extraClass):''}" src="icons/games/${gameId}.png" alt="" onerror="this.remove()">`;
+    }
+
     function renderTeamBuilderHub(){
       const grid = document.getElementById('tb-teams-grid');
       if(!grid) return;
@@ -4676,7 +4762,7 @@
       const teams = tbHubFilteredSortedTeams();
       grid.innerHTML = '';
       if(allTeams.length===0){
-        grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🧩</div><div class="empty-title">No teams yet</div><div class="empty-sub" style="margin-top:6px;">Build your first team to get started.</div><button class="tb-create-btn" id="tb-hub-empty-create-btn" style="margin-top:14px;">+ Create New Team</button></div>`;
+        grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🧩</div><div class="empty-title">No teams yet</div><div class="empty-sub" style="margin-top:6px;">Build your first team to get started.</div><button class="tb-create-btn-full" id="tb-hub-empty-create-btn" style="margin-top:14px;">+ Create New Team</button></div>`;
         document.getElementById('tb-hub-empty-create-btn')?.addEventListener('click', tbCreateAndOpenTeam);
         return;
       }
@@ -4693,9 +4779,8 @@
           <div class="tb-team-card-info">
             <div class="tb-team-card-name">${escapeHtml(team.name)}</div>
             <div class="tb-team-card-badges">
-              <span class="tb-badge">${team.mode==='competitive'?'Competitive':'Story'}</span>
-              <span class="tb-badge">${team.format==='doubles'?'Doubles':'Singles'}</span>
-              <span class="tb-badge">${escapeHtml(gameLabel)}</span>
+              <span class="tb-badge">${team.mode==='competitive'?(team.format==='doubles'?'Doubles':'Singles'):'Playthrough'}</span>
+              <span class="tb-badge tb-badge-game">${tbGameIconImgHtml(team.game)}${escapeHtml(gameLabel)}</span>
             </div>
           </div>
           <div class="tb-team-card-right">
@@ -4712,6 +4797,12 @@
             img.src = getEvoSpriteUrl(member.speciesId, member.shiny);
             img.alt = member.speciesName || '';
             slot.appendChild(img);
+            if(member.shiny){
+              const spark = document.createElement('span');
+              spark.className = 'tb-sprite-shiny-badge';
+              spark.textContent = '✨';
+              slot.appendChild(spark);
+            }
           }
           spriteRow.appendChild(slot);
         });
@@ -4720,34 +4811,6 @@
       });
     }
 
-    // Filter pills — Mode and Format each toggle independently within their own group and
-    // combine with each other (and the search box) as AND; no pill active in a group means
-    // that group doesn't filter at all.
-    document.getElementById('tb-hub-mode-filters')?.addEventListener('click', e=>{
-      const btn = e.target.closest('.tb-hub-filter-pill');
-      if(!btn) return;
-      const mode = btn.dataset.filterMode;
-      if(tbHubActiveModes.has(mode)) tbHubActiveModes.delete(mode); else tbHubActiveModes.add(mode);
-      btn.classList.toggle('active', tbHubActiveModes.has(mode));
-      renderTeamBuilderHub();
-    });
-    document.getElementById('tb-hub-format-filters')?.addEventListener('click', e=>{
-      const btn = e.target.closest('.tb-hub-filter-pill');
-      if(!btn) return;
-      const format = btn.dataset.filterFormat;
-      if(tbHubActiveFormats.has(format)) tbHubActiveFormats.delete(format); else tbHubActiveFormats.add(format);
-      btn.classList.toggle('active', tbHubActiveFormats.has(format));
-      renderTeamBuilderHub();
-    });
-    document.getElementById('tb-hub-sort-select')?.addEventListener('change', e=>{
-      tbHubSortMode = e.target.value;
-      renderTeamBuilderHub();
-    });
-    document.getElementById('tb-hub-sort-dir-btn')?.addEventListener('click', ()=>{
-      tbHubSortAscending = !tbHubSortAscending;
-      document.getElementById('tb-hub-sort-dir-btn').textContent = tbHubSortAscending ? '↑' : '↓';
-      renderTeamBuilderHub();
-    });
     // Small helper — the app doesn't seem to have a generic HTML-escape utility yet, and team
     // names are free-typed user input, so escape before dropping them into innerHTML.
     function escapeHtml(s){
@@ -4768,6 +4831,143 @@
     document.getElementById('tb-create-team-btn')?.addEventListener('click', tbCreateAndOpenTeam);
     document.getElementById('tb-back-to-hub-btn')?.addEventListener('click', tbShowHub);
 
+    // ── Hub filter pills: Format / Game / Sort — each opens a shared-pattern bottom sheet ──
+    document.getElementById('tb-hub-clear-filters-btn')?.addEventListener('click', ()=>{
+      tbHubActiveFormatKeys.clear();
+      tbHubActiveGames.clear();
+      tbHubSortMode = 'updated';
+      tbHubSortAscending = false;
+      document.getElementById('tb-hub-format-pill')?.classList.remove('has-selection');
+      document.getElementById('tb-hub-game-pill')?.classList.remove('has-selection');
+      const sortPill = document.getElementById('tb-hub-sort-pill');
+      if(sortPill) sortPill.innerHTML = 'Sort: Last updated<span class="tb-pill-chevron">↓</span>';
+      renderTeamBuilderHub();
+    });
+
+    // Format sheet is shared between the Hub (filter, multi-select) and the Canvas (sets a
+    // single team's mode/format, single-select) — tbFormatSheetContext picks which behavior
+    // renderFormatSheet uses. Declared before first use below.
+    let tbFormatSheetContext = 'hub'; // 'hub' | 'canvas'
+    function renderFormatSheet(){
+      const body = document.getElementById('tb-format-sheet-body');
+      if(!body) return;
+      const team = tbFormatSheetContext === 'canvas' ? getTeam(tbActiveTeamId) : null;
+      const isSelected = (key)=> tbFormatSheetContext === 'canvas'
+        ? (team ? tbTeamMatchesFormatKey(team, key) : false)
+        : tbHubActiveFormatKeys.has(key);
+      const pill = (key,label)=> `<button class="tb-game-pill${isSelected(key)?' selected':''}" data-format-key="${key}" style="flex:1;">${label}</button>`;
+      body.innerHTML = `
+        <div class="tb-game-gen-group">
+          <div class="tb-game-gen-label">Competitive / VGC</div>
+          <div class="tb-game-pill-row" style="grid-template-columns:1fr 1fr;">
+            ${pill('doubles','Doubles')}
+            ${pill('singles','Singles')}
+          </div>
+        </div>
+        <div class="tb-game-gen-group">
+          <div class="tb-game-gen-label">Casual / Story Mode</div>
+          <div class="tb-game-pill-row" style="grid-template-columns:1fr;">
+            ${pill('story','Playthrough')}
+          </div>
+        </div>
+      `;
+      body.querySelectorAll('[data-format-key]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const key = btn.dataset.formatKey;
+          if(tbFormatSheetContext === 'canvas'){
+            const t = getTeam(tbActiveTeamId);
+            if(!t) return;
+            if(key === 'story'){ t.mode = 'story'; }
+            else { t.mode = 'competitive'; t.format = key; }
+            if(t.mode === 'competitive' && t.game){
+              const gen = (function(){ for(const g of GAME_LIST){ if(g.games.some(x=>x.id===t.game)) return g.gen; } return null; })();
+              if(gen !== null && gen < 8) t.game = null;
+            }
+            touchTeam(t);
+            document.getElementById('tb-format-sheet')?.classList.remove('open');
+            document.getElementById('tb-format-sheet-backdrop')?.classList.remove('open');
+            renderTeamCanvas();
+          } else {
+            if(tbHubActiveFormatKeys.has(key)) tbHubActiveFormatKeys.delete(key); else tbHubActiveFormatKeys.add(key);
+            document.getElementById('tb-hub-format-pill')?.classList.toggle('has-selection', tbHubActiveFormatKeys.size>0);
+            renderFormatSheet();
+            renderTeamBuilderHub();
+          }
+        });
+      });
+    }
+    setupMobileSheet('tb-hub-format-pill','tb-format-sheet','tb-format-sheet-backdrop','tb-format-sheet-close');
+    document.getElementById('tb-hub-format-pill')?.addEventListener('click', ()=>{ tbFormatSheetContext = 'hub'; renderFormatSheet(); });
+
+    function renderHubGameSheet(){
+      const body = document.getElementById('tb-hub-game-sheet-body');
+      if(!body) return;
+      body.innerHTML = '';
+      GAME_LIST.forEach(genGroup=>{
+        const group = document.createElement('div');
+        group.className = 'tb-game-gen-group';
+        const label = document.createElement('div');
+        label.className = 'tb-game-gen-label';
+        label.textContent = `Generation ${genGroup.gen}`;
+        const row = document.createElement('div');
+        row.className = 'tb-game-pill-row';
+        genGroup.games.forEach(game=>{
+          const pill = document.createElement('button');
+          pill.className = 'tb-game-pill' + (tbHubActiveGames.has(game.id) ? ' selected' : '');
+          pill.innerHTML = `${tbGameIconImgHtml(game.id)}<span>${escapeHtml(game.name)}</span>`;
+          pill.addEventListener('click', ()=>{
+            if(tbHubActiveGames.has(game.id)) tbHubActiveGames.delete(game.id); else tbHubActiveGames.add(game.id);
+            document.getElementById('tb-hub-game-pill')?.classList.toggle('has-selection', tbHubActiveGames.size>0);
+            renderHubGameSheet();
+            renderTeamBuilderHub();
+          });
+          row.appendChild(pill);
+        });
+        group.appendChild(label);
+        group.appendChild(row);
+        body.appendChild(group);
+      });
+    }
+    setupMobileSheet('tb-hub-game-pill','tb-hub-game-sheet','tb-hub-game-sheet-backdrop','tb-hub-game-sheet-close');
+    document.getElementById('tb-hub-game-pill')?.addEventListener('click', renderHubGameSheet);
+
+    function tbSortLabel(mode){
+      return mode==='alpha' ? 'Alphabetical' : mode==='count' ? 'Pokémon count' : 'Last updated';
+    }
+    function renderHubSortSheet(){
+      document.querySelectorAll('#tb-hub-sort-options .tb-game-pill').forEach(btn=>{
+        btn.classList.toggle('selected', btn.dataset.sort === tbHubSortMode);
+      });
+      document.getElementById('tb-hub-sort-desc-btn')?.classList.toggle('selected', !tbHubSortAscending);
+      document.getElementById('tb-hub-sort-asc-btn')?.classList.toggle('selected', tbHubSortAscending);
+    }
+    function tbApplySortPillLabel(){
+      const pill = document.getElementById('tb-hub-sort-pill');
+      if(pill) pill.innerHTML = `Sort: ${tbSortLabel(tbHubSortMode)}<span class="tb-pill-chevron">${tbHubSortAscending?'↑':'↓'}</span>`;
+    }
+    document.getElementById('tb-hub-sort-options')?.addEventListener('click', e=>{
+      const btn = e.target.closest('[data-sort]');
+      if(!btn) return;
+      tbHubSortMode = btn.dataset.sort;
+      tbApplySortPillLabel();
+      renderHubSortSheet();
+      renderTeamBuilderHub();
+    });
+    document.getElementById('tb-hub-sort-desc-btn')?.addEventListener('click', ()=>{
+      tbHubSortAscending = false;
+      tbApplySortPillLabel();
+      renderHubSortSheet();
+      renderTeamBuilderHub();
+    });
+    document.getElementById('tb-hub-sort-asc-btn')?.addEventListener('click', ()=>{
+      tbHubSortAscending = true;
+      tbApplySortPillLabel();
+      renderHubSortSheet();
+      renderTeamBuilderHub();
+    });
+    setupMobileSheet('tb-hub-sort-pill','tb-hub-sort-sheet','tb-hub-sort-sheet-backdrop','tb-hub-sort-sheet-close');
+    document.getElementById('tb-hub-sort-pill')?.addEventListener('click', renderHubSortSheet);
+
     // ── Screen 2: Team Canvas ──
     function renderTeamCanvas(){
       const team = getTeam(tbActiveTeamId);
@@ -4776,22 +4976,14 @@
       const nameInput = document.getElementById('tb-team-name-input');
       nameInput.value = team.name;
 
-      // Mode toggle
-      document.querySelectorAll('#tb-mode-toggle .tb-toggle-btn').forEach(btn=>{
-        btn.classList.toggle('active', btn.dataset.mode === team.mode);
-      });
-      // Format toggle — hidden/disabled entirely while Mode is Story, per the Story/Competitive
-      // resolution: Story mode has no singles/doubles distinction to make.
-      const formatGroup = document.getElementById('tb-format-toggle');
-      const isStory = team.mode === 'story';
-      formatGroup.classList.toggle('tb-disabled', isStory);
-      formatGroup.style.display = isStory ? 'none' : '';
-      document.querySelectorAll('#tb-format-toggle .tb-toggle-btn').forEach(btn=>{
-        btn.classList.toggle('active', btn.dataset.format === team.format);
-      });
+      // Unified Format pill label — reflects the merged Mode+Format concept (Doubles / Singles /
+      // Playthrough) in one place.
+      const formatLabel = document.getElementById('tb-canvas-format-label');
+      if(formatLabel) formatLabel.textContent = team.mode === 'competitive' ? (team.format === 'doubles' ? 'Doubles' : 'Singles') : 'Playthrough';
 
-      // Game selector label
-      document.getElementById('tb-game-select-label').textContent = tbGameLabelFor(team.game) || 'Select a game';
+      // Game selector label (+ logo, when available)
+      const gameLabelEl = document.getElementById('tb-game-select-label');
+      if(gameLabelEl) gameLabelEl.innerHTML = `${tbGameIconImgHtml(team.game)}<span>${escapeHtml(tbGameLabelFor(team.game) || 'Select a game')}</span>`;
 
       renderTeamPartyGrid(team);
     }
@@ -4809,30 +5001,24 @@
       document.getElementById('tb-team-name-input')?.select();
     });
 
-    document.getElementById('tb-mode-toggle')?.addEventListener('click', e=>{
-      const btn = e.target.closest('.tb-toggle-btn');
-      if(!btn) return;
+    // Unified Format pill — opens the shared #tb-format-sheet in 'canvas' context; the sheet's
+    // click handler (see renderFormatSheet, Hub section) sets team.mode/team.format and re-renders.
+    setupMobileSheet('tb-canvas-format-pill','tb-format-sheet','tb-format-sheet-backdrop','tb-format-sheet-close');
+    document.getElementById('tb-canvas-format-pill')?.addEventListener('click', ()=>{ tbFormatSheetContext = 'canvas'; renderFormatSheet(); });
+
+    // Save button — autosave already persists every change immediately (touchTeam ->
+    // saveTeamsData), so this is a reassuring explicit action rather than new save logic: it
+    // re-touches the team (bumping updatedAt) and gives brief visual confirmation.
+    document.getElementById('tb-canvas-save-btn')?.addEventListener('click', ()=>{
       const team = getTeam(tbActiveTeamId);
       if(!team) return;
-      team.mode = btn.dataset.mode;
-      // If the team already had a pre-Gen-8 game selected and just switched to Competitive,
-      // that game is no longer a valid option — clear it so the player re-picks a real one
-      // instead of the header silently showing a game that can't actually be chosen anymore.
-      if(team.mode === 'competitive' && team.game){
-        const gen = (function(){ for(const g of GAME_LIST){ if(g.games.some(x=>x.id===team.game)) return g.gen; } return null; })();
-        if(gen !== null && gen < 8) team.game = null;
+      touchTeam(team);
+      const btn = document.getElementById('tb-canvas-save-btn');
+      if(btn){
+        const original = btn.textContent;
+        btn.textContent = 'Saved ✓';
+        setTimeout(()=>{ btn.textContent = original; }, 1200);
       }
-      touchTeam(team);
-      renderTeamCanvas();
-    });
-    document.getElementById('tb-format-toggle')?.addEventListener('click', e=>{
-      const btn = e.target.closest('.tb-toggle-btn');
-      if(!btn) return;
-      const team = getTeam(tbActiveTeamId);
-      if(!team) return;
-      team.format = btn.dataset.format;
-      touchTeam(team);
-      renderTeamCanvas();
     });
 
     // Party grid: 6 slots, empty ones are a stub "Add Team Member" card (Dex Picker/Studio
@@ -5365,7 +5551,7 @@
         genGroup.games.forEach(game=>{
           const pill = document.createElement('button');
           pill.className = 'tb-game-pill' + (team && team.game===game.id ? ' selected' : '');
-          pill.textContent = game.name;
+          pill.innerHTML = `${tbGameIconImgHtml(game.id)}<span>${escapeHtml(game.name)}</span>`;
           pill.addEventListener('click', ()=>{
             const t = getTeam(tbActiveTeamId);
             if(!t) return;
@@ -5378,7 +5564,8 @@
             }
             t.game = game.id;
             touchTeam(t);
-            document.getElementById('tb-game-select-label').textContent = game.name;
+            const gameLabelEl = document.getElementById('tb-game-select-label');
+            if(gameLabelEl) gameLabelEl.innerHTML = `${tbGameIconImgHtml(game.id)}<span>${escapeHtml(game.name)}</span>`;
             document.getElementById('tb-game-sheet').classList.remove('open');
             document.getElementById('tb-game-sheet-backdrop').classList.remove('open');
             renderTeamGameSheet();
