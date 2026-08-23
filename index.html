@@ -2015,6 +2015,7 @@
     .tb-studio-item-cat.collapsed { background: #f7f7f5; border-color: #e8e4dd; }
     .tb-studio-item-cat-header { display: flex; align-items: center; gap: 8px; width: 100%; padding: 14px 16px; background: none; border: none; cursor: pointer; font: inherit; text-align: left; user-select: none; }
     .tb-studio-item-cat-title { flex: 1; font-family: 'Archivo Black', sans-serif; font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; color: #43656e; }
+    .tb-studio-item-cat-header .tb-advice-pill { position: static; transform: none; flex-shrink: 0; }
     .tb-studio-item-cat-chevron { font-size: 11px; color: #b8ad9a; transition: transform 0.2s; }
     .tb-studio-item-cat.open .tb-studio-item-cat-chevron { transform: rotate(180deg); color: #43656e; }
     .tb-studio-item-cat-body { display: none; flex-direction: column; gap: 12px; padding: 4px 16px 16px; }
@@ -2098,6 +2099,7 @@
     .tb-move-section-header { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; cursor: pointer; user-select: none; font-size: 13px; color: #333; transition: background 0.15s; }
     .tb-move-section-header:hover { background: rgba(0,0,0,0.02); }
     .tb-move-section-label strong { font-weight: 700; }
+    .tb-move-section-header .tb-advice-pill { position: static; transform: none; margin-left: auto; margin-right: 8px; flex-shrink: 0; }
     .tb-move-section-arrow { font-size: 10px; color: #aaa; transition: transform 0.2s; }
     .tb-move-section.open .tb-move-section-arrow { transform: rotate(180deg); }
     .tb-move-section-body { display: none; border-top: 1px solid rgba(0,0,0,0.06); max-height: 360px; overflow-y: auto; }
@@ -2110,6 +2112,13 @@
     .tb-move-table thead th.tb-mv-col-type { width: 40px; }
     .tb-move-table thead th.tb-mv-col-cat { width: 44px; }
     .tb-move-table thead th.right { text-align: right; padding-right: 10px; width: 36px; }
+    /* Click-to-sort — same visual language as the main Moveset modal's .moveset-table
+       (.sortable/.sort-asc/.sort-desc), just re-scoped to .tb-move-table since that's a
+       separate stylesheet block; attachTableSort() itself is the exact same shared function. */
+    .tb-move-table thead th.sortable { cursor: pointer; user-select: none; }
+    .tb-move-table thead th.sortable:hover { color: #555; }
+    .tb-move-table thead th.sort-asc::after { content: '\25B2'; font-size: 7px; margin-left: 3px; vertical-align: middle; }
+    .tb-move-table thead th.sort-desc::after { content: '\25BC'; font-size: 7px; margin-left: 3px; vertical-align: middle; }
     .tb-move-table tbody tr { border-bottom: 1px solid rgba(0,0,0,0.04); cursor: pointer; transition: background 0.1s; }
     .tb-move-table tbody tr:last-child { border-bottom: none; }
     .tb-move-table tbody tr:hover { background: rgba(0,0,0,0.025); }
@@ -2121,6 +2130,18 @@
     .tb-move-name-cell { font-weight: 600; color: #1a1a1a; display: flex; align-items: center; gap: 6px; }
     .tb-move-type-icon { width: 30px; height: 30px; object-fit: contain; display: block; }
     .tb-move-taken-tag { font-size: 9px; font-weight: 700; color: #9f009f; text-transform: uppercase; letter-spacing: 0.3px; flex-shrink: 0; }
+    /* Recommended-move row framing. A <tr> can't take the shared .tb-advice-frame's border-radius/
+       padding the way a card or grid cell can (table rendering ignores border-radius on rows), so
+       this is a deliberate table-appropriate variant of the same idea: a solid brown inset border
+       around the row plus a tinted background, with the "Sevii Advice" pill sitting inline before
+       the move name (rather than the absolute-positioned overlap used on the card/grid screens) —
+       both read as "recommended" without fighting the table's own layout. */
+    .tb-move-table tbody tr.tb-advice-frame { box-shadow: inset 0 0 0 2px var(--advice-brown); background: rgba(92,74,46,0.05); }
+    .tb-move-table tbody tr.tb-advice-frame:hover { background: rgba(92,74,46,0.09); }
+    .tb-move-name-cell .tb-advice-pill { position: static; transform: none; flex-shrink: 0; font-size: 9px; padding: 2px 7px; }
+    @media (max-width: 600px) {
+      .tb-move-table tbody tr.tb-advice-frame { box-shadow: inset 0 0 0 1.5px var(--advice-brown); }
+    }
     .tb-studio-footer { flex-shrink: 0; padding: 12px 16px; background: var(--studio-bg, #fafafa); border-top: 1px solid rgba(0,0,0,0.08); transition: background 0.3s; }
     .tb-studio-done-btn { width: 100%; padding: 12px; border-radius: 24px; background: var(--studio-dark, #606070); border: 1.5px solid rgba(255,255,255,0.5); font-size: 14px; font-weight: 700; color: white; cursor: pointer; transition: opacity 0.15s, transform 0.1s; text-transform: uppercase; letter-spacing: 0.4px; }
     .tb-studio-done-btn:hover { opacity: 0.85; transform: translateY(-1px); }
@@ -7478,7 +7499,18 @@
         section.className = 'tb-studio-item-cat collapsed';
         const header = document.createElement('button');
         header.className = 'tb-studio-item-cat-header';
-        header.innerHTML = `<span class="tb-studio-item-cat-title">${label}</span><span class="tb-studio-item-cat-chevron">▼</span>`;
+        header.innerHTML = `<span class="tb-studio-item-cat-title">${label}</span>`;
+        // Category-level Sevii Advice pill — same convention as the Nature accordion's category
+        // header (this was the gap Diego flagged: Nature had it, Item never did). Flags the
+        // collapsed header when the recommended item lives inside this category.
+        const catHasRecommendation = !!recommendedItem && slugs.includes(recommendedItem);
+        if(catHasRecommendation){
+          const pill = document.createElement('span');
+          pill.className = 'tb-advice-pill';
+          pill.textContent = 'Sevii Advice';
+          header.appendChild(pill);
+        }
+        header.insertAdjacentHTML('beforeend', '<span class="tb-studio-item-cat-chevron">▼</span>');
         header.addEventListener('click', ()=>{
           section.classList.toggle('open');
           section.classList.toggle('collapsed');
@@ -7657,10 +7689,19 @@
         body.innerHTML = '<div class="tb-move-sheet-empty">No move data available for this game.</div>';
         return;
       }
-      tbRenderMoveSections(body, moves, member);
+      // Guarded exactly like every other picker sheet: tbEvaluateBuild computes a lot beyond the
+      // move recommendations, and a failure anywhere in that report must never block the table.
+      let recommendedMoveNames = [];
+      try{
+        if(member && tbStudioTeam && tbStudioBaseStats){
+          const report = tbEvaluateBuild(member, tbStudioTeam, tbStudioBaseStats);
+          recommendedMoveNames = report.recommended_blueprint.moves || [];
+        }
+      }catch(e){ recommendedMoveNames = []; }
+      tbRenderMoveSections(body, moves, member, recommendedMoveNames);
     }
 
-    function tbRenderMoveSections(body, moves, member){
+    function tbRenderMoveSections(body, moves, member, recommendedMoveNames){
       body.innerHTML = '';
       const groups = {
         'level-up': {label:'Moves learned by <strong>Level Up</strong>', col:'Lvl', moves:[]},
@@ -7686,9 +7727,19 @@
         const header = document.createElement('div');
         header.className = 'tb-move-section-header';
         header.innerHTML = `<span class="tb-move-section-label">${g.label}</span><span class="tb-move-section-arrow">▼</span>`;
+        // Section-level Sevii Advice pill: if the recommended moveset has any move that lives in
+        // THIS section (level-up/TM/egg/tutor), flag the collapsed header so it's findable without
+        // opening every section — same pattern as the Nature/Item category-header pill.
+        const sectionHasRecommendation = g.moves.some(m => recommendedMoveNames.includes(m.name));
+        if(sectionHasRecommendation){
+          const pill = document.createElement('span');
+          pill.className = 'tb-advice-pill';
+          pill.textContent = 'Sevii Advice';
+          header.insertBefore(pill, header.querySelector('.tb-move-section-arrow'));
+        }
         const sBody = document.createElement('div');
         sBody.className = 'tb-move-section-body';
-        sBody.appendChild(tbBuildMoveTable(g.moves, key, g.col, member));
+        sBody.appendChild(tbBuildMoveTable(g.moves, key, g.col, member, recommendedMoveNames));
         section.appendChild(header); section.appendChild(sBody);
         header.addEventListener('click', ()=>{
           const isOpen = section.classList.contains('open');
@@ -7700,33 +7751,40 @@
       });
     }
 
-    function tbBuildMoveTable(moves, method, col, member){
+    function tbBuildMoveTable(moves, method, col, member, recommendedMoveNames){
       const wrap = document.createElement('div');
       const isLevelUp = method === 'level-up';
       const showNum = col.length > 0;
       const takenNames = new Set((member.moves||[]).filter((m,i)=> m && m.name && i!==tbMoveFillSlotIndex).map(m=>m.name));
       const table = document.createElement('table');
       table.className = 'tb-move-table';
+      // data-sort-key/data-sort-type on each th mirror the main Moveset modal's buildMoveTable
+      // exactly, so the same generic attachTableSort() (already defined for that modal) can be
+      // reused here as-is — click-to-sort behavior is identical, not reimplemented.
       table.innerHTML = `<thead><tr>
-        ${showNum?`<th style="${isLevelUp?'width:30px':'width:38px'}">${col}</th>`:''}
-        <th class="tb-mv-col-move">Move</th>
-        <th class="tb-mv-col-type">Type</th>
-        <th class="tb-mv-col-cat">Cat.</th>
-        <th class="right">Pwr</th>
-        <th class="right">Acc</th>
-        <th class="right">PP</th>
+        ${showNum?`<th data-sort-key="num" data-sort-type="number" style="${isLevelUp?'width:30px':'width:38px'}">${col}</th>`:''}
+        <th class="tb-mv-col-move" data-sort-key="name" data-sort-type="string">Move</th>
+        <th class="tb-mv-col-type" data-sort-key="type" data-sort-type="string">Type</th>
+        <th class="tb-mv-col-cat" data-sort-key="cat" data-sort-type="string">Cat.</th>
+        <th class="right" data-sort-key="power" data-sort-type="number">Pwr</th>
+        <th class="right" data-sort-key="acc" data-sort-type="number">Acc</th>
+        <th class="right" data-sort-key="pp" data-sort-type="number">PP</th>
       </tr></thead>`;
       const tbody = document.createElement('tbody');
       moves.forEach(m=>{
         const tr = document.createElement('tr');
         const isTaken = takenNames.has(m.name);
+        const isRecommended = !!recommendedMoveNames && recommendedMoveNames.includes(m.name);
         if(isTaken) tr.classList.add('tb-move-row-taken');
+        if(isRecommended) tr.classList.add('tb-advice-frame');
         tr.dataset.moveName = m.name;
+        tr.dataset.name = toTitleCase(m.name.replace(/-/g,' '));
+        tr.dataset.num = isLevelUp ? (m.level||0) : '';
         let numCell = '';
         if(isLevelUp) numCell = `<td>${m.level||'—'}</td>`;
         else if(showNum) numCell = `<td class="tb-move-tm-cell" data-move="${m.name}">—</td>`;
         tr.innerHTML = `${numCell}
-          <td><span class="tb-move-name-cell">${toTitleCase(m.name.replace(/-/g,' '))}${isTaken?'<span class="tb-move-taken-tag">In use</span>':''}</span></td>
+          <td><span class="tb-move-name-cell">${isRecommended?'<span class="tb-advice-pill">Sevii Advice</span>':''}${toTitleCase(m.name.replace(/-/g,' '))}${isTaken?'<span class="tb-move-taken-tag">In use</span>':''}</span></td>
           <td><div style="width:30px;height:30px;background:#eee;border-radius:50%;"></div></td>
           <td>…</td>
           <td class="right">…</td>
@@ -7739,11 +7797,12 @@
       });
       table.appendChild(tbody);
       wrap.appendChild(table);
-      tbFetchMoveSheetDetails(moves, tbody, method, col);
+      tbFetchMoveSheetDetails(moves, tbody, method, col, wrap);
+      attachTableSort(table, tbody);
       return wrap;
     }
 
-    async function tbFetchMoveSheetDetails(moves, tbody, method, col){
+    async function tbFetchMoveSheetDetails(moves, tbody, method, col, wrap){
       const showNum = col.length > 0;
       const isLevelUp = method === 'level-up';
       for(const m of moves){
@@ -7772,6 +7831,13 @@
         cells[offset+3].textContent = power!==null ? power : '—'; cells[offset+3].className='right';
         cells[offset+4].textContent = acc!==null ? acc+'%' : '—'; cells[offset+4].className='right';
         cells[offset+5].textContent = pp!==null ? pp : '—'; cells[offset+5].className='right';
+        // Sortable values, kept separate from rendered text (e.g. "85%") — same convention as
+        // the main Moveset modal's fetchMoveDetails.
+        tr.dataset.type = typeName || '';
+        tr.dataset.cat = catName || '';
+        tr.dataset.power = power!==null ? power : -1;
+        tr.dataset.acc = acc!==null ? acc : -1;
+        tr.dataset.pp = pp!==null ? pp : -1;
 
         if(showNum && !isLevelUp && det?.machines?.length){
           const vg = GAME_TO_VERSION_GROUP[(tbStudioTeam&&tbStudioTeam.game)] || 'scarlet-violet';
@@ -7789,9 +7855,25 @@
               const tmNum = numMatch ? parseInt(numMatch[0],10).toString() : '—';
               const tmCell = tr.querySelector('.tb-move-tm-cell');
               if(tmCell) tmCell.textContent = tmNum;
+              tr.dataset.num = numMatch ? parseInt(numMatch[0],10) : -1;
             }catch(e){}
           }
         }
+      }
+      // After all TM numbers resolve, re-sort non-level-up tables by TM number ascending — but
+      // only if the user hasn't already picked a different sort column by clicking a header.
+      // Same guard as the main Moveset modal's fetchMoveDetails.
+      const sortTable = wrap?.querySelector('table');
+      if(showNum && !isLevelUp && !sortTable?.dataset.sortKey){
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        rows.sort((a,b)=>{
+          const ca = a.querySelector('.tb-move-tm-cell');
+          const cb = b.querySelector('.tb-move-tm-cell');
+          const na = ca ? parseInt(ca.textContent)||9999 : 9999;
+          const nb = cb ? parseInt(cb.textContent)||9999 : 9999;
+          return na-nb;
+        });
+        rows.forEach(r=>tbody.appendChild(r));
       }
     }
 
