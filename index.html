@@ -1776,20 +1776,12 @@
     .tb-dexpick-toolbar { flex-shrink: 0; padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; border-bottom: 1px solid #e8e4dd; background: white; }
     .tb-dexpick-search { flex: 1; min-width: 140px; padding: 8px 12px; border-radius: 20px; border: 1px solid #d4ccbc; font-size: 13px; }
     .tb-dexpick-toolbar select { padding: 7px 10px; border-radius: 8px; border: 1px solid #d4ccbc; font-size: 12px; background: white; }
-    .tb-dexpick-scope { display: flex; border-radius: 20px; overflow: hidden; border: 1px solid #d4ccbc; }
-    .tb-dexpick-scope button { border: none; background: white; padding: 7px 12px; font-size: 12px; font-weight: 700; cursor: pointer; color: #777; }
-    .tb-dexpick-scope button.active { background: #43656e; color: white; }
     .tb-dexpick-filter-btn { padding: 7px 12px; border-radius: 20px; border: 1px solid #d4ccbc; background: white; font-size: 12px; font-weight: 700; cursor: pointer; color: #555; }
     .tb-dexpick-filter-btn.has-selection { border-color: #43656e; color: #43656e; background: rgba(67,101,110,0.08); }
     .tb-dexpick-body { flex: 1; overflow-y: auto; padding: 14px; }
-    .tb-dexpick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(138px, 1fr)); gap: 10px; }
-    .tb-dexpick-card { background: white; border-radius: 12px; padding: 10px 8px 12px; display: flex; flex-direction: column; align-items: center; gap: 0; border: 2px solid #e8e4dd; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.07); min-height: 185px; }
-    .tb-dexpick-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.11); border-color: #c8bfaf; transform: translateY(-2px); }
-    .tb-dexpick-card-sprite-zone { display: flex; align-items: center; justify-content: center; margin-bottom: 8px; flex-shrink: 0; }
-    .tb-dexpick-card img.tb-dexpick-sprite { width: 88px; height: 88px; image-rendering: pixelated; display: block; }
-    .tb-dexpick-card-number { font-size: 10px; color: #a09890; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 3px; }
-    .tb-dexpick-card-name { font-family: 'Archivo Black', sans-serif; font-size: 12px; font-weight: 900; text-transform: capitalize; text-align: center; color: #1a1a1a; line-height: 1.2; margin-bottom: 7px; }
-    .tb-dexpick-card-badges { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; min-height: 34px; align-items: center; }
+    /* Result cards now reuse the main grid's own .card/.sprite/etc. classes (Fix 2) for pixel
+       parity — these tb-dexpick-* rules stay only as harmless legacy hooks, no longer load-bearing. */
+    .tb-dexpick-grid.grid { grid-template-columns: repeat(3, 1fr) !important; }
     /* Type/Gen filter sheets — same slide-up pattern as the game-select sheet, own IDs */
     .tb-dexpick-sheet-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 210; display: none; }
     .tb-dexpick-sheet-backdrop.open { display: block; }
@@ -3201,10 +3193,6 @@
           </div>
           <div class="tb-dexpick-toolbar">
             <input type="text" class="tb-dexpick-search" id="tb-dexpick-search" placeholder="Search Pokémon...">
-            <div class="tb-dexpick-scope" id="tb-dexpick-scope" style="display:none;">
-              <button data-scope="regional">Regional</button>
-              <button data-scope="national">National</button>
-            </div>
             <button class="tb-dexpick-filter-btn" id="tb-dexpick-type-trigger">Types</button>
             <button class="tb-dexpick-filter-btn" id="tb-dexpick-gen-trigger">Gen</button>
             <select id="tb-dexpick-sort-select">
@@ -3213,7 +3201,7 @@
             </select>
           </div>
           <div class="tb-dexpick-body">
-            <div class="tb-dexpick-grid" id="tb-dexpick-grid"></div>
+            <div class="tb-dexpick-grid grid" id="tb-dexpick-grid"></div>
           </div>
         </div>
       </div>
@@ -4816,26 +4804,31 @@
     let tbDexPickActiveTypes = new Set();
     let tbDexPickActiveGen = 'all';     // 'all' | '1'..'9'
     let tbDexPickSort = 'number';       // 'number' | 'alpha'
-    let tbDexPickScope = 'regional';    // 'regional' | 'national' — only meaningful when the toggle is shown
+    let tbDexPickResolvedRoster = undefined; // undefined = not yet resolved for this open; null = no restriction (no game, or fallback); Set or {type:'idrange',...} = curated roster
 
-    function tbOpenDexPicker(slotIndex){
+    async function tbOpenDexPicker(slotIndex){
       tbDexPickSlotIndex = slotIndex;
       // Reset filters fresh each time the picker opens.
       tbDexPickSearch = '';
       tbDexPickActiveTypes = new Set();
       tbDexPickActiveGen = 'all';
       tbDexPickSort = 'number';
+      tbDexPickResolvedRoster = undefined;
       const team = getTeam(tbActiveTeamId);
-      const canScopeToGame = !!(team && team.mode === 'story' && team.game);
-      tbDexPickScope = canScopeToGame ? 'regional' : 'national';
-      const scopeToggle = document.getElementById('tb-dexpick-scope');
-      scopeToggle.style.display = canScopeToGame ? 'flex' : 'none';
-      scopeToggle.querySelectorAll('button').forEach(b=>b.classList.toggle('active', b.dataset.scope===tbDexPickScope));
       document.getElementById('tb-dexpick-search').value = '';
       document.getElementById('tb-dexpick-sort-select').value = 'number';
       document.getElementById('tb-dexpick-type-trigger').classList.remove('has-selection');
       document.getElementById('tb-dexpick-gen-trigger').classList.remove('has-selection');
       document.getElementById('tb-dexpick-backdrop').classList.add('visible');
+      if(team && team.game){
+        const grid = document.getElementById('tb-dexpick-grid');
+        if(grid) grid.innerHTML = `<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-title">Loading available Pokémon for this game…</div></div>`;
+        tbDexPickResolvedRoster = await loadGameDexRoster(team.game);
+        // If the picker was closed or re-opened for a different slot while the fetch was in flight, don't render stale results.
+        if(tbDexPickSlotIndex !== slotIndex) return;
+      } else {
+        tbDexPickResolvedRoster = null;
+      }
       renderTbDexPickGrid();
     }
     function tbCloseDexPicker(){
@@ -4857,13 +4850,24 @@
 
     function tbDexPickFilteredSorted(){
       let list = [...allPokemon, ...regionalForms];
-      if(tbDexPickScope === 'regional'){
-        const versions = tbDexPickGameVersions();
-        if(versions){
-          list = list.filter(p=>{
-            const data = cardData(p);
-            return Array.isArray(data.game_indices) && data.game_indices.some(gi => versions.includes(gi.version.name));
-          });
+      const team = getTeam(tbActiveTeamId);
+      if(team && team.game){
+        const roster = tbDexPickResolvedRoster;
+        if(roster instanceof Set){
+          list = list.filter(p => roster.has(cardData(p).name));
+        } else if(roster && roster.type === 'idrange'){
+          list = list.filter(p => { const id = cardDexId(p); return id>=roster.min && id<=roster.max; });
+        } else {
+          // roster is null: either a pre-Gen-8 game (use the existing game_indices approach)
+          // or the curated-dex fetch failed (fail open — fall back to the same approach rather
+          // than showing nothing).
+          const versions = tbDexPickGameVersions();
+          if(versions){
+            list = list.filter(p=>{
+              const data = cardData(p);
+              return Array.isArray(data.game_indices) && data.game_indices.some(gi => versions.includes(gi.version.name));
+            });
+          }
         }
       }
       const q = tbDexPickSearch.trim().toLowerCase();
@@ -4872,8 +4876,11 @@
         const [min,max] = GEN_RANGES[parseInt(tbDexPickActiveGen)];
         list = list.filter(p => { const id = cardDexId(p); return id>=min && id<=max; });
       }
-      if(tbDexPickActiveTypes.size){
-        list = list.filter(p => cardTypes(p).some(t => tbDexPickActiveTypes.has(t.type.name)));
+      if(tbDexPickActiveTypes.size===1){
+        const [t] = tbDexPickActiveTypes;
+        list = list.filter(p => cardTypes(p).some(x => x.type.name===t));
+      } else if(tbDexPickActiveTypes.size>1){
+        list = list.filter(p => [...tbDexPickActiveTypes].every(t => cardTypes(p).some(x => x.type.name===t)));
       }
       list = [...list].sort((a,b)=>{
         if(tbDexPickSort === 'alpha') return cardLabelText(a).localeCompare(cardLabelText(b));
@@ -4895,20 +4902,20 @@
         const entryData = cardData(pokemon);
         const dexId = cardDexId(pokemon);
         const card = document.createElement('div');
-        card.className = 'tb-dexpick-card';
+        card.className = 'tb-dexpick-card card';
         const si = document.createElement('img');
         si.src = getSprite(entryData, false);
         si.alt = entryData.name;
-        si.className = 'tb-dexpick-sprite';
+        si.className = 'tb-dexpick-sprite sprite';
         si.loading = 'lazy';
         si.decoding = 'async';
         si.width = 88; si.height = 88;
         const spriteZone = document.createElement('div');
-        spriteZone.className = 'tb-dexpick-card-sprite-zone';
+        spriteZone.className = 'tb-dexpick-card-sprite-zone card-sprite-zone';
         spriteZone.appendChild(si);
-        const ne = document.createElement('div'); ne.className = 'tb-dexpick-card-number'; ne.textContent = `#${String(dexId).padStart(3,'0')}`;
-        const nm = document.createElement('div'); nm.className = 'tb-dexpick-card-name'; nm.textContent = cardLabelText(pokemon);
-        const bd = document.createElement('div'); bd.className = 'tb-dexpick-card-badges';
+        const ne = document.createElement('div'); ne.className = 'tb-dexpick-card-number card-number'; ne.textContent = `#${String(dexId).padStart(3,'0')}`;
+        const nm = document.createElement('div'); nm.className = 'tb-dexpick-card-name card-name'; nm.textContent = cardLabelText(pokemon);
+        const bd = document.createElement('div'); bd.className = 'tb-dexpick-card-badges type-badges';
         cardTypes(pokemon).forEach(t => bd.appendChild(makeBadgeImg(t.type.name, false)));
         card.appendChild(spriteZone); card.appendChild(ne); card.appendChild(nm); card.appendChild(bd);
         card.addEventListener('click', ()=> tbDexPickSelect(pokemon));
@@ -4936,14 +4943,6 @@
       tbDexPickSort = e.target.value;
       renderTbDexPickGrid();
     });
-    document.getElementById('tb-dexpick-scope')?.addEventListener('click', e=>{
-      const btn = e.target.closest('button[data-scope]');
-      if(!btn) return;
-      tbDexPickScope = btn.dataset.scope;
-      document.querySelectorAll('#tb-dexpick-scope button').forEach(b=>b.classList.toggle('active', b.dataset.scope===tbDexPickScope));
-      renderTbDexPickGrid();
-    });
-
     // Type filter sheet — multi-select OR logic (a card matches if it has ANY selected type).
     setupMobileSheet('tb-dexpick-type-trigger','tb-dexpick-type-sheet','tb-dexpick-type-sheet-backdrop','tb-dexpick-type-sheet-close');
     (function initTbDexPickTypeSheet(){
@@ -5021,12 +5020,20 @@
           pill.addEventListener('click', ()=>{
             const t = getTeam(tbActiveTeamId);
             if(!t) return;
+            const hasFilledMember = Array.isArray(t.party) && t.party.some(Boolean);
+            const isGameChange = t.game !== game.id;
+            if(hasFilledMember && isGameChange){
+              const ok = confirm("Changing game version will delete team members");
+              if(!ok) return; // leave the sheet open exactly as it was — game selection not applied
+              t.party = new Array(6).fill(null);
+            }
             t.game = game.id;
             touchTeam(t);
             document.getElementById('tb-game-select-label').textContent = game.name;
             document.getElementById('tb-game-sheet').classList.remove('open');
             document.getElementById('tb-game-sheet-backdrop').classList.remove('open');
             renderTeamGameSheet();
+            renderTeamPartyGrid(t);
           });
           row.appendChild(pill);
         });
@@ -7356,6 +7363,40 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
     const SPECIAL_OBTAIN={'bulbasaur':{red:'Starter Pokémon — chosen at the start of the game',blue:'Starter Pokémon — chosen at the start of the game',yellow:'Starter Pokémon — chosen at the start of the game',firered:'Starter Pokémon — chosen at the start of the game',leafgreen:'Starter Pokémon — chosen at the start of the game',heartgold:'Starter Pokémon — chosen at the start of the game',soulsilver:'Starter Pokémon — chosen at the start of the game'},'charmander':{red:'Starter Pokémon — chosen at the start of the game',blue:'Starter Pokémon — chosen at the start of the game',yellow:'Starter Pokémon — chosen at the start of the game',firered:'Starter Pokémon — chosen at the start of the game',leafgreen:'Starter Pokémon — chosen at the start of the game',x:'Gift — received from a trainer in Lumiose City after defeating the first Gym',y:'Gift — received from a trainer in Lumiose City after defeating the first Gym'},'squirtle':{red:'Starter Pokémon — chosen at the start of the game',blue:'Starter Pokémon — chosen at the start of the game',yellow:'Gift — received from Officer Jenny in Vermilion City',firered:'Starter Pokémon — chosen at the start of the game',leafgreen:'Starter Pokémon — chosen at the start of the game'},'omanyte':{all:'Fossil revival — revive from the Helix Fossil'},'kabuto':{all:'Fossil revival — revive from the Dome Fossil'},'aerodactyl':{all:'Fossil revival — revive from the Old Amber'},'hitmonlee':{red:'Gift — received from the Dojo Master in Saffron City (choose one)',blue:'Gift — received from the Dojo Master in Saffron City (choose one)',yellow:'Gift — received from the Dojo Master in Saffron City (choose one)',firered:'Gift — received from the Dojo Master in Saffron City (choose one)',leafgreen:'Gift — received from the Dojo Master in Saffron City (choose one)'},'hitmonchan':{red:'Gift — received from the Dojo Master in Saffron City (choose one)',blue:'Gift — received from the Dojo Master in Saffron City (choose one)',yellow:'Gift — received from the Dojo Master in Saffron City (choose one)',firered:'Gift — received from the Dojo Master in Saffron City (choose one)',leafgreen:'Gift — received from the Dojo Master in Saffron City (choose one)'},'eevee':{red:'Gift — received from the Pokémon Mansion in Celadon City',blue:'Gift — received from the Pokémon Mansion in Celadon City',yellow:'Gift — received from the Pokémon Mansion in Celadon City',firered:'Gift — received from the Pokémon Mansion in Celadon City',leafgreen:'Gift — received from the Pokémon Mansion in Celadon City'},'porygon':{red:'Purchase — bought with coins at the Celadon Game Corner',blue:'Purchase — bought with coins at the Celadon Game Corner',yellow:'Purchase — bought with coins at the Celadon Game Corner',firered:'Purchase — bought with coins at the Celadon Game Corner',leafgreen:'Purchase — bought with coins at the Celadon Game Corner'},'lapras':{red:'Gift — received from an employee in Silph Co.',blue:'Gift — received from an employee in Silph Co.',yellow:'Gift — received from an employee in Silph Co.',firered:'Gift — received from an employee in Silph Co.',leafgreen:'Gift — received from an employee in Silph Co.'},'scyther':{red:'Purchase — bought with coins at the Celadon Game Corner',yellow:'Purchase — bought with coins at the Celadon Game Corner',firered:'Purchase — bought with coins at the Celadon Game Corner'},'pinsir':{blue:'Purchase — bought with coins at the Celadon Game Corner',yellow:'Purchase — bought with coins at the Celadon Game Corner',leafgreen:'Purchase — bought with coins at the Celadon Game Corner'}};
     const DLC_VERSION_MAP={sword:['sword','the-isle-of-armor','the-crown-tundra'],shield:['shield','the-isle-of-armor','the-crown-tundra'],scarlet:['scarlet','the-teal-mask','the-indigo-disk'],violet:['violet','the-teal-mask','the-indigo-disk'],'legends-za':['legends-za','mega-dimension']};
     function getVersionsForGame(id){return DLC_VERSION_MAP[id]||[id];}
+
+    // Generation 8 onward abandoned the "National Dex" concept — each game has its own curated,
+    // non-overlapping roster. Mapped from live PokéAPI /pokedex/ data (verified against the real API).
+    // type 'pokedex': union these PokéAPI pokedex names' pokemon_entries.
+    // type 'idrange': every species whose national dex id falls in [min,max] (BDSP has no dedicated
+    // PokéAPI pokedex object of its own — its real roster is just Gen 1-4).
+    const GAME_CURATED_DEX = {
+      'sword':    { type:'pokedex', names:['galar','isle-of-armor','crown-tundra'] },
+      'shield':   { type:'pokedex', names:['galar','isle-of-armor','crown-tundra'] },
+      'brilliant-diamond': { type:'idrange', min:1, max:493 },
+      'shining-pearl':     { type:'idrange', min:1, max:493 },
+      'legends-arceus':    { type:'pokedex', names:['hisui'] },
+      'scarlet':  { type:'pokedex', names:['paldea','kitakami','blueberry'] },
+      'violet':   { type:'pokedex', names:['paldea','kitakami','blueberry'] },
+      'legends-za': { type:'pokedex', names:['lumiose-city','hyperspace'] },
+    };
+    const tbGameDexRosterCache = {}; // gameId -> Set of species names, or {type:'idrange',min,max}, or null (means "use the old game_indices approach")
+    async function loadGameDexRoster(gameId){
+      if(tbGameDexRosterCache[gameId] !== undefined) return tbGameDexRosterCache[gameId];
+      const curated = GAME_CURATED_DEX[gameId];
+      if(!curated){ tbGameDexRosterCache[gameId] = null; return null; } // pre-Gen-8 game — caller falls back to game_indices logic
+      if(curated.type === 'idrange'){ tbGameDexRosterCache[gameId] = curated; return curated; }
+      try{
+        const results = await Promise.all(curated.names.map(n=>fetch(`https://pokeapi.co/api/v2/pokedex/${n}/`).then(r=>r.json())));
+        const roster = new Set();
+        results.forEach(dex=>(dex.pokemon_entries||[]).forEach(e=>{ if(e.pokemon_species?.name) roster.add(e.pokemon_species.name); }));
+        tbGameDexRosterCache[gameId] = roster;
+        return roster;
+      }catch(e){
+        console.warn('Could not load curated dex for', gameId, e);
+        tbGameDexRosterCache[gameId] = null; // fail open — fall back to unrestricted rather than showing an empty picker
+        return null;
+      }
+    }
     function getSpecialObtain(name,gameId){const e=SPECIAL_OBTAIN[name.toLowerCase()];if(!e)return null;return e[gameId]||e['all']||null;}
     const MEGA_GAMES=new Set(['x','y','omega-ruby','alpha-sapphire','sun','moon','ultra-sun','ultra-moon','lets-go-pikachu','lets-go-eevee','legends-za']);
     const GMAX_GAMES=new Set(['sword','shield']);
