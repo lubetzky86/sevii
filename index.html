@@ -2009,6 +2009,16 @@
        matrix content replaces it, without touching the base rule other accordions may still use. */
     .tb-coverage-accordion-body.tb-coverage-body-grid { font-style: normal; color: inherit; padding: 10px 12px 14px; }
 
+    /* Sevii Advice — deliberately plain/unstyled (Step 1 of the planned build): default
+       black-on-white text, basic spacing only, no colors/icons/cards. Diego reviews the logic
+       first; visual treatment is a later round. */
+    .tb-advice-plain { font-size: 13px; line-height: 1.5; color: #222; }
+    .tb-advice-plain p { margin: 6px 0; }
+    .tb-advice-plain ul { margin: 4px 0 10px; padding-left: 20px; }
+    .tb-advice-plain dl { margin: 4px 0; }
+    .tb-advice-plain dt { font-weight: bold; margin-top: 8px; }
+    .tb-advice-plain dd { margin: 2px 0 0 0; }
+
     /* ── 18-type coverage matrix (Defensive/Offensive Coverage bodies) ──
        3 columns x 6 rows of [type badge | 3x2 mini-grid mirroring the party grid's own 3x2
        layout], so cell position N in a row always corresponds to party slot N. Built compact
@@ -3585,6 +3595,15 @@
             <div>
               <div class="tb-studio-section-title">Moves</div>
               <div class="tb-studio-moves-grid" id="tb-studio-moves-grid"></div>
+            </div>
+            <!-- Sevii Advice — Step 1 of the planned 5-step build: engine + plain results list
+                 only, deliberately unstyled (no badges/cards/colors yet) so the underlying
+                 recommendation logic can be judged before any visual work happens. Recomputed
+                 by tbRenderStudioAdvice() at the same trigger points that already re-render
+                 Final Stats / pill labels / move slots. -->
+            <div>
+              <div class="tb-studio-section-title">Sevii Advice</div>
+              <div class="tb-advice-plain" id="tb-studio-advice-block"></div>
             </div>
           </div>
           <div class="tb-studio-footer">
@@ -5860,6 +5879,7 @@
           refreshEvTotal();
           touchTeam(tbStudioTeam);
           tbRenderStudioFinalStats(member);
+          tbRenderStudioAdvice(member);
         });
         evBlock.appendChild(evRow);
 
@@ -5880,6 +5900,7 @@
           ivFill.style.width = Math.round((v/31)*100) + '%';
           touchTeam(tbStudioTeam);
           tbRenderStudioFinalStats(member);
+          tbRenderStudioAdvice(member);
         });
         ivBlock.appendChild(ivRow);
       });
@@ -5892,6 +5913,7 @@
         touchTeam(tbStudioTeam);
         tbRenderStudioEvIvBlocks(member);
         tbRenderStudioFinalStats(member);
+        tbRenderStudioAdvice(member);
       };
     }
 
@@ -5923,6 +5945,476 @@
         row.innerHTML = `<div class="tb-studio-final-name">${label}</div><div class="tb-studio-final-bar-bg"><div class="tb-studio-final-bar-fill" style="width:${pct}%;background:${statColor(base)}"></div></div><div class="tb-studio-final-num ${natureClass}">${val}</div>`;
         finalBlock.appendChild(row);
       });
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════════
+    // SEVII ADVICE — recommendation/diagnostic engine ("brain" only, round 1 of 5).
+    // Pure, read-only, synchronous per the spec (see tmp/advice-engine-spec.md). Never calls
+    // touchTeam() — this never mutates a team member, it only reads state that's already there
+    // (species base stats from tbStudioBaseStats/tbFetchStudioSpeciesData's cache, and the
+    // member's own ability/item/nature/tera/evs/ivs/moves). Deliberately isolated from the
+    // Coverage engine's own functions (tbCalcDefensiveCoverage/tbCalcOffensiveCoverage) which
+    // this reuses directly rather than re-deriving type math.
+    //
+    // Stage 1 (curated data/builds.json lookup) does not exist yet — always falls through to
+    // Stage 2/3, per the spec's explicit note. recommended_blueprint.source is therefore always
+    // 'signature_rule' or 'dynamic_fallback' this round.
+    // ══════════════════════════════════════════════════════════════════════════════
+
+    // ── SupportScore move/ability point tables (spec "Addendum") ──
+    const TB_ADVICE_MOVE_POINTS = (()=>{
+      const m = {};
+      const add = (pts, list)=> list.forEach(s=>{ m[s]=pts; });
+      add(3, ['follow-me','rage-powder','ally-switch','wide-guard','quick-guard','mat-block','tailwind','trick-room','fake-out','spore','encore','disable']);
+      add(2, ['icy-wind','electroweb','string-shot','quash','scary-face','bulldoze','pounce',
+               'will-o-wisp','thunder-wave','yawn','hypnosis','glare','toxic','stun-spore','sleep-powder',
+               'taunt','haze','clear-smog','parting-shot','roar','whirlwind','torment','feather-dance',
+               'reflect','light-screen','aurora-veil','safeguard','mist','crafty-shield',
+               'helping-hand','coaching','after-you','instruct','heal-pulse','life-dew','pollen-puff','wish','aromatherapy','heal-bell',
+               'stealth-rock','spikes','toxic-spikes','sticky-web','ceaseless-edge','stone-axe']);
+      add(1, ['rapid-spin','defog','court-change','mortal-spin','tidy-up','knock-off','switcheroo','trick','corrosive-gas',
+               'sunny-day','rain-dance','sandstorm','snowscape','electric-terrain','grassy-terrain','misty-terrain','psychic-terrain',
+               'recover','roost','slack-off','soft-boiled','synthesis','moonlight','morning-sun','milk-drink','shore-up','strength-sap','rest']);
+      return m;
+    })();
+    const TB_ADVICE_ABILITY_POINTS = {
+      prankster:3, 'good-as-gold':3,
+      intimidate:2, 'friend-guard':2, 'vessel-of-ruin':2, 'tablets-of-ruin':2, 'sword-of-ruin':2, 'beads-of-ruin':2, telepathy:2, commander:2,
+      drizzle:1, drought:1, 'snow-warning':1, 'sand-stream':1, 'grassy-surge':1, 'electric-surge':1, 'psychic-surge':1, 'misty-surge':1, unnerve:1
+    };
+    function tbAdviceSupportScore(member){
+      let score = 0;
+      (member.moves||[]).forEach(mv=>{
+        if(!mv || !mv.name) return;
+        score += TB_ADVICE_MOVE_POINTS[mv.name] || 0;
+      });
+      if(member.ability) score += TB_ADVICE_ABILITY_POINTS[member.ability] || 0;
+      return score;
+    }
+    function tbAdviceHasMove(member, slug){
+      return (member.moves||[]).some(mv=> mv && mv.name === slug);
+    }
+    function tbAdviceMoveCategory(mv){
+      return (mv && mv.damage_class && mv.damage_class.name) ? mv.damage_class.name : null;
+    }
+    function tbAdviceDamagingMoves(member){
+      return (member.moves||[]).filter(mv=> mv && mv.name && tbAdviceMoveCategory(mv) && tbAdviceMoveCategory(mv) !== 'status');
+    }
+    function tbAdviceStatusMoves(member){
+      return (member.moves||[]).filter(mv=> mv && mv.name && tbAdviceMoveCategory(mv) === 'status');
+    }
+    function tbAdviceCountByCategory(member, cat){
+      return (member.moves||[]).filter(mv=> mv && mv.name && tbAdviceMoveCategory(mv) === cat).length;
+    }
+
+    // ── Stage 2: signature trait/ability overrides ──
+    const TB_ADVICE_HUGE_POWER_ABILITIES = ['huge-power','pure-power'];
+    const TB_ADVICE_ORB_ABILITIES = ['guts','toxic-boost','quick-feet'];
+    const TB_ADVICE_ORB_COMPATIBLE_ABILITIES = ['guts','toxic-boost','quick-feet','poison-heal','magic-guard','flare-boost'];
+    function tbAdviceStage2(member){
+      const out = { forcePhysical:false, lockItem:null, lockItemReason:null, filterStatusMoves:false };
+      if(member.ability && TB_ADVICE_HUGE_POWER_ABILITIES.includes(member.ability)){
+        out.forcePhysical = true;
+      }
+      if(member.ability && TB_ADVICE_ORB_ABILITIES.includes(member.ability)){
+        out.lockItem = member.ability === 'quick-feet' ? 'toxic-orb' : (member.ability === 'toxic-boost' ? 'toxic-orb' : 'flame-orb');
+        out.lockItemReason = `${toTitleCase(member.ability.replace(/-/g,' '))} activates from a status condition, so an Orb keeps it up permanently.`;
+      }
+      if(member.ability === 'unburden'){
+        out.lockItem = 'white-herb';
+        out.lockItemReason = 'Unburden doubles Speed the instant its held item is consumed — a single-use consumable (White Herb, a Gem, a berry) is what triggers it.';
+      }
+      if(member.item === 'assault-vest'){
+        out.filterStatusMoves = true;
+      }
+      return out;
+    }
+
+    // ── Stage 3: archetype classification ──
+    const TB_ADVICE_ARCHETYPES = {
+      FAST_PHYSICAL_SWEEPER:  { label:'Fast Physical Sweeper',    statFocus:'Max Attack & Speed',                     evSpread:{hp:4,atk:252,def:0,spa:0,spd:0,spe:252},   natures:['Jolly','Adamant'] },
+      FAST_SPECIAL_SWEEPER:   { label:'Fast Special Sweeper',     statFocus:'Max Special Attack & Speed',             evSpread:{hp:4,atk:0,def:0,spa:252,spd:0,spe:252},   natures:['Timid','Modest'] },
+      FAST_MIXED_ATTACKER:    { label:'Fast Mixed Attacker',      statFocus:'Max Special Attack & Speed, Attack support', evSpread:{hp:0,atk:4,def:0,spa:252,spd:0,spe:252}, natures:['Naive','Hasty'] },
+      FAST_SUPPORT_DISRUPTOR: { label:'Fast Support / Disruptor', statFocus:'Max HP & Speed for utility',             evSpread:{hp:252,atk:0,def:4,spa:0,spd:0,spe:252},   natures:['Timid','Jolly'] },
+      BULKY_PHYSICAL_BRAWLER: { label:'Bulky Physical Brawler',   statFocus:'Max HP & Attack',                        evSpread:{hp:252,atk:252,def:4,spa:0,spd:0,spe:0},   natures:['Adamant','Brave'] },
+      BULKY_SPECIAL_BRAWLER:  { label:'Bulky Special Brawler',    statFocus:'Max HP & Special Attack',                evSpread:{hp:252,atk:0,def:0,spa:252,spd:4,spe:0},   natures:['Modest','Quiet'] },
+      PHYSICAL_WALL:          { label:'Physical Wall',            statFocus:'Max HP & Defense',                       evSpread:{hp:252,atk:0,def:252,spa:0,spd:4,spe:0},   natures:['Impish','Relaxed'] },
+      SPECIAL_WALL:           { label:'Special Wall',             statFocus:'Max HP & Special Defense',               evSpread:{hp:252,atk:0,def:0,spa:0,spd:252,spe:4},   natures:['Calm','Sassy'] },
+    };
+    // Sweeper/attacker roles (used by Rules 107/111 and the fast Δ_off ROLE_CONFLICT check).
+    const TB_ADVICE_OFFENSIVE_ROLES = ['FAST_PHYSICAL_SWEEPER','FAST_SPECIAL_SWEEPER','BULKY_PHYSICAL_BRAWLER','BULKY_SPECIAL_BRAWLER'];
+    const TB_ADVICE_SWEEPER_ROLES = ['FAST_PHYSICAL_SWEEPER','FAST_SPECIAL_SWEEPER','FAST_MIXED_ATTACKER'];
+
+    function tbAdviceClassify(member, baseStats, team, stage2){
+      const hp=baseStats.hp, atk=baseStats.atk, def=baseStats.def, spa=baseStats.spa, spd=baseStats.spd, spe=baseStats.spe;
+      const maxOffense = Math.max(atk, spa);
+      const deltaOff = atk - spa;
+      const maxBulk = Math.max(def, spd);
+      const isFast = spe >= 80;
+      const supportScore = tbAdviceSupportScore(member);
+      let role, rationale, confidence, roleConflict = null;
+
+      // Flat/equal-stat tie-breaker (Mew, Glalie, Silvally-style all-K spreads).
+      const allEqual = [atk,def,spa,spd,spe].every(v=>v===hp) && hp===atk;
+      if(allEqual){
+        const physCount = tbAdviceCountByCategory(member,'physical');
+        const specCount = tbAdviceCountByCategory(member,'special');
+        if(physCount>=2){
+          role = isFast ? 'FAST_PHYSICAL_SWEEPER' : 'BULKY_PHYSICAL_BRAWLER';
+          rationale = `All base stats are equal (${hp}) — ${physCount} equipped Physical moves point this Pokémon toward a Physical attacking role.`;
+          confidence = 0.7;
+        } else if(specCount>=2){
+          role = isFast ? 'FAST_SPECIAL_SWEEPER' : 'BULKY_SPECIAL_BRAWLER';
+          rationale = `All base stats are equal (${hp}) — ${specCount} equipped Special moves point this Pokémon toward a Special attacking role.`;
+          confidence = 0.7;
+        } else if((member.evs.atk||0) > 0 && (member.evs.atk||0) >= (member.evs.spa||0)){
+          role = isFast ? 'FAST_PHYSICAL_SWEEPER' : 'BULKY_PHYSICAL_BRAWLER';
+          rationale = `All base stats are equal (${hp}) — your EV investment leans Attack (${member.evs.atk} EVs), so this reads as a Physical build.`;
+          confidence = 0.55;
+        } else if((member.evs.spa||0) > 0){
+          role = isFast ? 'FAST_SPECIAL_SWEEPER' : 'BULKY_SPECIAL_BRAWLER';
+          rationale = `All base stats are equal (${hp}) — your EV investment leans Special Attack (${member.evs.spa} EVs), so this reads as a Special build.`;
+          confidence = 0.55;
+        } else {
+          const competitive = team && team.mode === 'competitive';
+          role = competitive ? 'FAST_SUPPORT_DISRUPTOR' : 'FAST_SPECIAL_SWEEPER';
+          rationale = `All base stats are equal (${hp}) with no moves or EVs yet to signal a direction — defaulting to ${competitive ? 'a Support/Disruptor role (Competitive default)' : 'a Special Sweeper role (Story default, widest TM coverage)'}.`;
+          confidence = 0.4;
+        }
+      } else if(isFast){
+        if(stage2.forcePhysical){
+          role = 'FAST_PHYSICAL_SWEEPER';
+          rationale = `${toTitleCase((member.ability||'').replace(/-/g,' '))} doubles effective Attack regardless of raw base Attack (${atk}), forcing a Physical attacker role.`;
+          confidence = 0.95;
+        } else if(deltaOff >= 15){
+          role = 'FAST_PHYSICAL_SWEEPER';
+          rationale = `Speed (${spe}) is high and Attack (${atk}) outpaces Special Attack (${spa}) by ${deltaOff} points — a clear Physical sweeper profile.`;
+          confidence = deltaOff >= 30 ? 0.95 : 0.8;
+          if(tbAdviceCountByCategory(member,'special') >= 2) roleConflict = 'You have 2+ Special moves equipped on a Pokémon whose stats point to a Physical sweeper role — consider swapping one for a Physical or coverage move.';
+        } else if(deltaOff <= -15){
+          role = 'FAST_SPECIAL_SWEEPER';
+          rationale = `Speed (${spe}) is high and Special Attack (${spa}) outpaces Attack (${atk}) by ${-deltaOff} points — a clear Special sweeper profile.`;
+          confidence = deltaOff <= -30 ? 0.95 : 0.8;
+          if(tbAdviceCountByCategory(member,'physical') >= 2) roleConflict = 'You have 2+ Physical moves equipped on a Pokémon whose stats point to a Special sweeper role — consider swapping one for a Special or coverage move.';
+        } else if(maxOffense >= 85){
+          role = 'FAST_MIXED_ATTACKER';
+          rationale = `Speed (${spe}) is high and Attack/Special Attack are close (${atk}/${spa}) but both strong (best is ${maxOffense}) — a Mixed attacker profile.`;
+          confidence = 0.65;
+        } else if(supportScore >= 2){
+          role = 'FAST_SUPPORT_DISRUPTOR';
+          rationale = `Speed (${spe}) is high with modest offenses (Atk ${atk}/SpA ${spa}) but a strong support kit (SupportScore ${supportScore}) — a Support/Disruptor profile.`;
+          confidence = 0.75;
+        } else {
+          // Catch-all: fast, weak offenses, thin support kit. Not in the Boundary Matrix's
+          // named triggers — falls back to the closer of Mixed Attacker / Support Disruptor.
+          role = supportScore >= 1 ? 'FAST_SUPPORT_DISRUPTOR' : 'FAST_MIXED_ATTACKER';
+          rationale = `Speed (${spe}) is high but offenses are modest (Atk ${atk}/SpA ${spa}) and no strong archetype trigger fired cleanly — best available classification.`;
+          confidence = 0.4;
+        }
+      } else {
+        // Slow candidates: original section-2 Boundary Matrix ONLY (Bulky Brawler vs. Wall on
+        // MaxOffense/MaxBulk). Deliberately does NOT apply the SupportScore-based override from
+        // Gemini's later snippet — see spec's "Implementation note" (would misclassify offensive
+        // pivots like Incineroar as Walls).
+        if(maxOffense > maxBulk){
+          if(stage2.forcePhysical || atk >= spa){
+            role = 'BULKY_PHYSICAL_BRAWLER';
+            rationale = stage2.forcePhysical
+              ? `${toTitleCase((member.ability||'').replace(/-/g,' '))} forces a Physical role; offense (${maxOffense}) outweighs bulk (${maxBulk}).`
+              : `Attack (${atk}) ≥ Special Attack (${spa}) and offense (${maxOffense}) outweighs bulk (${maxBulk}) at this Speed (${spe}) — a Bulky Physical Brawler.`;
+            confidence = 0.85;
+          } else {
+            role = 'BULKY_SPECIAL_BRAWLER';
+            rationale = `Special Attack (${spa}) > Attack (${atk}) and offense (${maxOffense}) outweighs bulk (${maxBulk}) at this Speed (${spe}) — a Bulky Special Brawler.`;
+            confidence = 0.85;
+          }
+        } else {
+          if(def >= spd){
+            role = 'PHYSICAL_WALL';
+            rationale = `Bulk (${maxBulk}) outweighs offense (${maxOffense}) and Defense (${def}) ≥ Special Defense (${spd}) — a Physical Wall.`;
+            confidence = 0.85;
+          } else {
+            role = 'SPECIAL_WALL';
+            rationale = `Bulk (${maxBulk}) outweighs offense (${maxOffense}) and Special Defense (${spd}) > Defense (${def}) — a Special Wall.`;
+            confidence = 0.85;
+          }
+        }
+      }
+      return { role, rationale, confidence, roleConflict, supportScore };
+    }
+
+    // ── Stage 4: universal diagnostics (Rules 101-112) ──
+    function tbAdviceEvWaste(ev){
+      if(!ev || ev <= 0) return {wasted:0, floor:0, ceil:0};
+      if(ev < 4) return {wasted: ev, floor: 0, ceil: 4};
+      const rem = (ev - 4) % 8;
+      if(rem === 0) return {wasted:0, floor:ev, ceil:ev};
+      return {wasted: rem, floor: ev - rem, ceil: ev + (8 - rem)};
+    }
+    const TB_ADVICE_CHOICE_ITEMS = ['choice-band','choice-specs','choice-scarf'];
+    const TB_ADVICE_STAT_LABELS = {hp:'HP',atk:'Attack',def:'Defense',spa:'Special Attack',spd:'Special Defense',spe:'Speed'};
+
+    function tbEvaluateBuild(member, team, baseStats){
+      const stage2 = tbAdviceStage2(member);
+      const cls = tbAdviceClassify(member, baseStats, team, stage2);
+      const archetype = TB_ADVICE_ARCHETYPES[cls.role];
+      const natureEntry = TB_NATURES.find(n=>n.name === member.nature) || null;
+
+      // ── recommended_blueprint ──
+      const source = (stage2.forcePhysical || stage2.lockItem) ? 'signature_rule' : 'dynamic_fallback';
+      const recommended_blueprint = {
+        source,
+        strategy_name: archetype.label,
+        ability: member.ability || null, // Stage 2/3 don't recommend an ability of their own beyond the forcePhysical/orb checks above, which affect item, not the ability field itself — see report's judgment-call notes.
+        item: stage2.lockItem || member.item || null,
+        nature: (natureEntry ? natureEntry.name : (archetype.natures[0])),
+        tera_type: member.teraType || null,
+        stat_focus: archetype.statFocus,
+        ev_spread: archetype.evSpread,
+        moves: (member.moves||[]).filter(Boolean).map(mv=>mv.name)
+      };
+
+      const diagnostics = [];
+      const push = (id, severity, target_field, title, message)=> diagnostics.push({id, severity, target_field, title, message});
+
+      // Role conflict flagged during classification (Boundary Matrix "Boundary Resolvers" column).
+      if(cls.roleConflict) push('ROLE_CONFLICT','WARNING','moves','Move/Role Conflict', cls.roleConflict);
+
+      // Rule 101 — EV modulo waste
+      {
+        let anyWaste = false;
+        TB_STUDIO_STAT_ORDER.forEach(k=>{
+          const ev = member.evs[k]||0;
+          const w = tbAdviceEvWaste(ev);
+          if(w.wasted > 0){
+            anyWaste = true;
+            push('RULE_101','WARNING','evs', `${TB_ADVICE_STAT_LABELS[k]} EV Waste`,
+              `${TB_ADVICE_STAT_LABELS[k]} has ${ev} EVs invested. At Level 50, ${w.wasted} EV point${w.wasted===1?'':'s'} ${w.wasted===1?'is':'are'} wasted without increasing the final stat. Adjust to ${w.floor} or ${w.ceil}.`);
+          }
+        });
+        if(!anyWaste && tbStudioEvTotal(member.evs) > 0){
+          push('RULE_101','PRAISE','evs','Clean EV Allocation', `All ${tbStudioEvTotal(member.evs)} allocated EVs land on optimal stat boundaries at Level 50.`);
+        }
+      }
+
+      // Rule 102 — Nature/EV inversion
+      if(natureEntry && natureEntry.drop && natureEntry.boost){
+        const dropKey = natureEntry.drop, boostKey = natureEntry.boost;
+        if((member.evs[dropKey]||0) >= 68){
+          push('RULE_102','CRITICAL','nature', `${member.nature} Hinders an Invested Stat`,
+            `${member.nature} Nature reduces ${TB_ADVICE_STAT_LABELS[dropKey]} by 10%, but you have allocated ${member.evs[dropKey]} EVs into it. Switch to a Nature that boosts ${TB_ADVICE_STAT_LABELS[dropKey]} or reduces an uninvested stat.`);
+        }
+        if((member.evs[boostKey]||0) === 0){
+          const offKeys = ['atk','spa'].filter(k=>k!==boostKey && k!==dropKey);
+          const investedOther = offKeys.find(k=> (member.evs[k]||0) >= 200);
+          if(investedOther){
+            push('RULE_102','WARNING','nature', `${member.nature} Boost Left Uninvested`,
+              `${member.nature} Nature boosts ${TB_ADVICE_STAT_LABELS[boostKey]} by 10%, but it has 0 EVs while ${TB_ADVICE_STAT_LABELS[investedOther]} (a neutral stat under this Nature) has ${member.evs[investedOther]} EVs. Consider a Nature that boosts ${TB_ADVICE_STAT_LABELS[investedOther]} instead, or move EVs into ${TB_ADVICE_STAT_LABELS[boostKey]}.`);
+          }
+        }
+      }
+
+      // Rule 103 — Assault Vest + Status moves
+      if(member.item === 'assault-vest'){
+        tbAdviceStatusMoves(member).forEach(mv=>{
+          push('RULE_103','CRITICAL','item','Assault Vest Blocks a Status Move',
+            `Assault Vest prevents the user from selecting Status moves in battle. ${toTitleCase(mv.name.replace(/-/g,' '))} will be unusable. Replace it with an attacking move or swap items.`);
+        });
+      }
+
+      // Rule 104 — STAB deficit & category split
+      {
+        const dmg = tbAdviceDamagingMoves(member);
+        if(dmg.length){
+          const types = (member.types||[]).map(t=> (typeof t === 'string') ? t : (t && t.name)).filter(Boolean);
+          const hasStab = dmg.some(mv=> types.includes((mv.type && mv.type.name) || ''));
+          if(!hasStab){
+            push('RULE_104','WARNING','moves','No STAB Move Equipped',
+              `${member.speciesName || 'This Pokémon'} does not have any attacking moves matching its ${types.map(toTitleCase).join('/')} typing. Adding a STAB move provides a 1.5× damage multiplier.`);
+          }
+        }
+        if((cls.role === 'FAST_PHYSICAL_SWEEPER' && tbAdviceCountByCategory(member,'physical')===0 && tbAdviceCountByCategory(member,'special')>=2) ||
+           (cls.role === 'FAST_SPECIAL_SWEEPER' && tbAdviceCountByCategory(member,'special')===0 && tbAdviceCountByCategory(member,'physical')>=2)){
+          const wantCat = cls.role === 'FAST_PHYSICAL_SWEEPER' ? 'Physical' : 'Special';
+          push('RULE_104','WARNING','moves','Move Category Mismatch',
+            `${member.speciesName || 'This Pokémon'} is classified as a ${archetype.label} but has zero ${wantCat} attacking moves. Its damage output will fall well short of what its stats support.`);
+        }
+      }
+
+      // Rule 105 — Unmitigated 4x defensive weakness (reuses tbCalcDefensiveCoverage)
+      if(team){
+        const idx = (team.party||[]).indexOf(member);
+        if(idx >= 0){
+          const rows = tbCalcDefensiveCoverage(team);
+          rows.forEach(row=>{
+            const cell = row.cells[idx];
+            if(!cell || cell.empty) return;
+            if(cell.mult >= 4){
+              let mitigatedByTera = false;
+              if(member.teraType){
+                const teraBase = calculateMatchups([member.teraType]);
+                if(teraBase && teraBase[row.type] !== undefined && teraBase[row.type] < 1) mitigatedByTera = true;
+              }
+              if(!mitigatedByTera){
+                push('RULE_105','ADVISORY','tera_type', `${toTitleCase(row.type)} 4× Weakness`,
+                  `${member.speciesName || 'This Pokémon'} takes 4× damage from ${toTitleCase(row.type)} attacks. Consider a defensive Tera Type or pairing it with a partner that resists ${toTitleCase(row.type)}.`);
+              }
+            }
+          });
+        }
+      }
+
+      // Rule 106 — Offensive coverage redundancy & blind spots (reuses tbCalcOffensiveCoverage)
+      if(team){
+        const dmg = tbAdviceDamagingMoves(member);
+        if(dmg.length >= 2){
+          const typeCounts = {};
+          dmg.forEach(mv=>{ const t=(mv.type&&mv.type.name)||null; if(t) typeCounts[t]=(typeCounts[t]||0)+1; });
+          Object.keys(typeCounts).forEach(t=>{
+            if(typeCounts[t] >= 3){
+              push('RULE_106','ADVISORY','moves', `Redundant ${toTitleCase(t)} Coverage`,
+                `Your moveset contains ${typeCounts[t]} ${toTitleCase(t)} attacks. Swapping one for a different attacking type will expand the number of types you can hit super-effectively.`);
+            }
+          });
+          const idx = (team.party||[]).indexOf(member);
+          if(idx >= 0){
+            const rows = tbCalcOffensiveCoverage(team);
+            const seCount = rows.filter(row=>{ const c=row.cells[idx]; return c && !c.empty && c.mult > 1; }).length;
+            if(seCount <= 3){
+              push('RULE_106','ADVISORY','moves','Narrow Offensive Coverage',
+                `Your current moveset only hits ${seCount} of 18 types super-effectively. Swapping in a coverage move would let this Pokémon threaten more of the field.`);
+            }
+          }
+        }
+      }
+
+      // Rule 107 — Suboptimal/passive item on a Sweeper
+      if(TB_ADVICE_SWEEPER_ROLES.includes(cls.role)){
+        const lowBulk = baseStats.hp < 70 || baseStats.def < 70 || baseStats.spd < 70;
+        if(lowBulk && (member.item === 'leftovers' || member.item === 'shell-bell')){
+          push('RULE_107','ADVISORY','item','Passive Item on a Fragile Sweeper',
+            `${tbItemDisplayName(member.item)} provides slow HP recovery, but ${member.speciesName || 'this Pokémon'} has low bulk and aims to knock out targets quickly. Focus Sash, Life Orb, or a Choice item would provide better offensive utility.`);
+        }
+      }
+
+      // Rule 108 — Choice item conflict with Status/Protect
+      if(member.item && TB_ADVICE_CHOICE_ITEMS.includes(member.item)){
+        const hasProtect = tbAdviceHasMove(member,'protect') || tbAdviceHasMove(member,'detect');
+        const statusCount = tbAdviceStatusMoves(member).length;
+        if(hasProtect || statusCount >= 2){
+          push('RULE_108','CRITICAL','item','Choice Lock Conflict',
+            `${tbItemDisplayName(member.item)} locks the user into one move until switched out. Equipping Protect or multiple Status moves under a Choice lock risks forcing useless turns. Replace Protect/Status moves with attacking coverage, or swap the item to Life Orb/Expert Belt.`);
+        }
+      }
+
+      // Rule 109 — Enabler item & ability incompatibility
+      if(member.item){
+        const abil = member.ability;
+        if(member.item === 'booster-energy' && !['protosynthesis','quark-drive'].includes(abil)){
+          push('RULE_109','CRITICAL','item','Booster Energy Has No Ability to Trigger',
+            `Booster Energy requires a specific mechanic to function. ${member.speciesName || 'This Pokémon'} does not have the corresponding Ability (Protosynthesis or Quark Drive) to activate it. The item will have zero effect in battle.`);
+        }
+        if(['flame-orb','toxic-orb'].includes(member.item) && !TB_ADVICE_ORB_COMPATIBLE_ABILITIES.includes(abil) &&
+           !(tbAdviceHasMove(member,'trick') || tbAdviceHasMove(member,'switcheroo') || tbAdviceHasMove(member,'facade'))){
+          push('RULE_109','CRITICAL','item', `${tbItemDisplayName(member.item)} Has No Ability to Trigger`,
+            `${tbItemDisplayName(member.item)} requires a specific mechanic to function. ${member.speciesName || 'This Pokémon'} does not have the corresponding Ability (e.g. Guts) or a Move (Trick/Switcheroo/Facade) to make use of it. The item will have zero effect in battle.`);
+        }
+        if(member.item === 'light-clay' && !(tbAdviceHasMove(member,'reflect') || tbAdviceHasMove(member,'light-screen') || tbAdviceHasMove(member,'aurora-veil'))){
+          push('RULE_109','CRITICAL','item','Light Clay Has No Screen to Extend',
+            `Light Clay extends the duration of Reflect, Light Screen, or Aurora Veil. ${member.speciesName || 'This Pokémon'} does not have any of those moves equipped, so the item will have zero effect in battle.`);
+        }
+        if(member.item === 'terrain-extender' && !['electric-surge','grassy-surge','misty-surge','psychic-surge'].includes(abil) &&
+           !(tbAdviceHasMove(member,'electric-terrain') || tbAdviceHasMove(member,'grassy-terrain') || tbAdviceHasMove(member,'misty-terrain') || tbAdviceHasMove(member,'psychic-terrain'))){
+          push('RULE_109','CRITICAL','item','Terrain Extender Has No Terrain to Extend',
+            `Terrain Extender requires a specific mechanic to function. ${member.speciesName || 'This Pokémon'} does not have a Terrain-setting Ability or Move to activate it. The item will have zero effect in battle.`);
+        }
+      }
+
+      // Rule 110 — 0-Atk IV on a pure Special Attacker / 0-Spe IV for Trick Room
+      {
+        if(['FAST_SPECIAL_SWEEPER','BULKY_SPECIAL_BRAWLER'].includes(cls.role) && tbAdviceCountByCategory(member,'physical')===0 && (member.ivs.atk||0) > 0){
+          push('RULE_110','ADVISORY','ivs','Unoptimized Attack IV',
+            `${member.speciesName || 'This Pokémon'} uses only Special attacks. Lowering its Attack IV to 0 minimizes damage taken from opposing Foul Play and self-inflicted confusion damage.`);
+        }
+        const trNatures = ['brave','quiet','relaxed','sassy'];
+        if(natureEntry && trNatures.includes(member.nature.toLowerCase()) && (tbAdviceHasMove(member,'trick-room') || (member.evs.spe||0)===0) && (member.ivs.spe||0) > 0){
+          push('RULE_110','ADVISORY','ivs','Speed IV Neglect Under Trick Room',
+            `${member.speciesName || 'This Pokémon'} has a Speed-hindering Nature for Trick Room. Lowering its Speed IV to 0 ensures it moves first under Trick Room conditions.`);
+        }
+      }
+
+      // Rule 111 — Offensive role overloaded with Status moves
+      if(TB_ADVICE_OFFENSIVE_ROLES.includes(cls.role) && tbAdviceStatusMoves(member).length >= 3){
+        push('RULE_111','WARNING','moves','Too Many Status Moves for an Attacker',
+          `${member.speciesName || 'This Pokémon'} is classified as an offensive attacker but has 3 or more Status moves equipped. Carrying only 1 attacking move leaves it vulnerable to Taunt, severely limits offensive coverage, and prevents it from fulfilling its damage role.`);
+      }
+
+      // Rule 112 — Ineffective/redundant defensive Tera Type (Gen 9 only)
+      if(team && TB_STUDIO_GEN9_GAMES.has(team.game) && member.teraType){
+        const types = (member.types||[]).map(t=> (typeof t === 'string') ? t : (t && t.name)).filter(Boolean);
+        if(['PHYSICAL_WALL','SPECIAL_WALL','FAST_SUPPORT_DISRUPTOR'].includes(cls.role) && types.includes(member.teraType)){
+          push('RULE_112','ADVISORY','tera_type','Tera Type Re-Types to Native Type',
+            `Setting Tera Type to ${toTitleCase(member.teraType)} does not flip ${member.speciesName || 'this Pokémon'}'s defensive weaknesses into resistances since it's already one of its natural types. For defensive and support roles, choose a Tera Type that neutralizes incoming super-effective attacks instead.`);
+        } else {
+          const nativeWeak = calculateMatchups(types);
+          const teraWeak = calculateMatchups([member.teraType]);
+          if(nativeWeak && teraWeak){
+            let shared = 0;
+            Object.keys(nativeWeak).forEach(t=>{ if(nativeWeak[t] >= 2 && teraWeak[t] >= 2) shared++; });
+            if(shared >= 2){
+              push('RULE_112','ADVISORY','tera_type','Tera Type Keeps Shared Weaknesses',
+                `Setting Tera Type to ${toTitleCase(member.teraType)} does not flip ${member.speciesName || 'this Pokémon'}'s defensive weaknesses into resistances — it still shares ${shared} weaknesses with its original typing. For defensive and support roles, choose a Tera Type like Steel, Grass, or Ghost to neutralize incoming super-effective attacks.`);
+            }
+          }
+        }
+      }
+
+      return {
+        summary: {
+          inferred_role: cls.role,
+          role_label: archetype.label,
+          confidence: cls.confidence,
+          archetype_rationale: cls.rationale
+        },
+        recommended_blueprint,
+        diagnostics
+      };
+    }
+
+    // ── Plain, deliberately unstyled results list (Step 1 — logic-quality check only, no
+    // visual polish; see .tb-advice-plain in the CSS block, which is intentionally minimal). ──
+    function tbRenderStudioAdvice(member){
+      const block = document.getElementById('tb-studio-advice-block');
+      if(!block || !member || !tbStudioBaseStats) return;
+      const report = tbEvaluateBuild(member, tbStudioTeam, tbStudioBaseStats);
+      const bp = report.recommended_blueprint;
+      const evStr = TB_STUDIO_STAT_ORDER.map(k=>`${bp.ev_spread[k]||0} ${TB_ADVICE_STAT_LABELS[k]}`).join(' / ');
+      const moveStr = bp.moves.length ? bp.moves.map(s=>toTitleCase(s.replace(/-/g,' '))).join(', ') : '(none selected yet)';
+      let html = '';
+      html += `<p><strong>Role:</strong> ${report.summary.role_label} (${report.summary.inferred_role}) — confidence ${(Math.round(report.summary.confidence*100))}%</p>`;
+      html += `<p><strong>Why:</strong> ${report.summary.archetype_rationale}</p>`;
+      html += `<p><strong>Recommended blueprint</strong> (source: ${bp.source})</p>`;
+      html += `<ul>`;
+      html += `<li>Strategy: ${bp.strategy_name}</li>`;
+      html += `<li>Ability: ${bp.ability ? toTitleCase(bp.ability.replace(/-/g,' ')) : '(none set)'}</li>`;
+      html += `<li>Item: ${bp.item ? tbItemDisplayName(bp.item) : '(none set)'}</li>`;
+      html += `<li>Nature: ${bp.nature}</li>`;
+      html += `<li>Tera Type: ${bp.tera_type ? toTitleCase(bp.tera_type) : '(none set)'}</li>`;
+      html += `<li>Stat focus: ${bp.stat_focus}</li>`;
+      html += `<li>EVs: ${evStr}</li>`;
+      html += `<li>Moves: ${moveStr}</li>`;
+      html += `</ul>`;
+      html += `<p><strong>Diagnostics (${report.diagnostics.length})</strong></p>`;
+      if(!report.diagnostics.length){
+        html += `<p>No diagnostic notices right now.</p>`;
+      } else {
+        html += `<dl>`;
+        report.diagnostics.forEach(d=>{
+          html += `<dt>[${d.severity}] ${d.title}</dt><dd>${d.message}</dd>`;
+        });
+        html += `</dl>`;
+      }
+      block.innerHTML = html;
     }
 
     // Studio's own theme function — reads the same read-only POKEMON_PALETTE lookup the main
@@ -6029,6 +6521,7 @@
         tbStudioBaseStats = baseByShortKey;
         tbRenderStudioEvIvBlocks(member);
         tbRenderStudioFinalStats(member);
+        tbRenderStudioAdvice(member);
       }catch(err){
         if(tbStudioTeam === team && tbStudioSlotIndex === slotIndex){
           statsBlock.innerHTML = `<div class="tb-studio-stats-note">Couldn't load stats right now.</div>`;
@@ -6146,6 +6639,7 @@
           m.ability = a.name; // PokéAPI's own lowercase-kebab slug — matches ABILITY_MODIFIERS' keys directly
           touchTeam(tbStudioTeam);
           tbUpdateStudioPillLabels(m);
+          tbRenderStudioAdvice(m);
           tbCloseStudioSheet('tb-studio-ability-sheet','tb-studio-ability-sheet-backdrop','tb-studio-ability-pill');
         });
         body.appendChild(row);
@@ -6172,6 +6666,7 @@
           touchTeam(tbStudioTeam);
           tbUpdateStudioPillLabels(m);
           tbRenderStudioFinalStats(m);
+          tbRenderStudioAdvice(m);
           tbCloseStudioSheet('tb-studio-nature-sheet','tb-studio-nature-sheet-backdrop','tb-studio-nature-pill');
         });
         body.appendChild(row);
@@ -6203,6 +6698,7 @@
           m.teraType = type;
           touchTeam(tbStudioTeam);
           tbUpdateStudioPillLabels(m);
+          tbRenderStudioAdvice(m);
           tbCloseStudioSheet('tb-studio-tera-sheet','tb-studio-tera-sheet-backdrop','tb-studio-tera-pill');
         });
         body.appendChild(row);
@@ -6282,6 +6778,7 @@
             m.item = slug; // PokéAPI's own lowercase-kebab slug
             touchTeam(tbStudioTeam);
             tbUpdateStudioPillLabels(m);
+            tbRenderStudioAdvice(m);
             tbCloseStudioSheet('tb-studio-item-sheet','tb-studio-item-sheet-backdrop','tb-studio-item-pill');
           });
           catBody.appendChild(row);
@@ -6363,6 +6860,7 @@
             m.moves[i] = null;
             touchTeam(tbStudioTeam);
             tbRenderStudioMoveSlots(m);
+            tbRenderStudioAdvice(m);
           });
           slot.appendChild(clearBtn);
           slot.addEventListener('click', ()=> tbOpenMoveSheet(i));
@@ -6568,6 +7066,7 @@
       };
       touchTeam(team);
       tbRenderStudioMoveSlots(member);
+      tbRenderStudioAdvice(member);
       tbCloseMoveSheet();
     }
 
