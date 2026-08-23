@@ -1967,6 +1967,36 @@
     .tb-studio-ability-hidden-tag { flex-shrink: 0; font-size: 11px; font-weight: 900; color: var(--advice-brown); text-transform: uppercase; letter-spacing: 0.4px; }
     .tb-studio-ability-card-desc { font-size: 15px; font-weight: 400; color: #333; line-height: 1.4; }
     .tb-studio-ability-card-desc.loading { color: #999; font-style: italic; }
+
+    /* Nature picker (Step 2 of the 5-step Studio picker visual rebuild) — 5 collapsible
+       accordion categories (one per boostable stat: Atk/Def/SpA/SpD/Spe), each holding the 4
+       natures that boost that stat. Toggle behavior copies the app's existing
+       .tb-coverage-accordion-item pattern (independent open/close per item, no auto-collapse of
+       siblings) for consistency. Reuses .tb-advice-frame/.tb-advice-pill as-is for both the
+       category-level pill and the specific recommended nature row's frame+pill. */
+    .tb-studio-nature-accordion { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+    .tb-studio-nature-cat { border-radius: 14px; overflow: visible; background: white; border: 1px solid rgba(0,0,0,0.08); transition: background 0.15s, border-color 0.15s; }
+    .tb-studio-nature-cat.collapsed { background: #f2effa; border-color: #ddd3f2; }
+    .tb-studio-nature-cat-header { display: flex; align-items: center; gap: 8px; padding: 14px 16px; cursor: pointer; user-select: none; }
+    .tb-studio-nature-cat-name { display: flex; align-items: center; gap: 6px; font-family: 'Archivo Black', sans-serif; font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; color: #3355aa; }
+    .tb-studio-nature-cat-boost-icon { font-size: 11px; color: #3355aa; }
+    .tb-studio-nature-cat-spacer { flex: 1; }
+    .tb-studio-nature-cat-header .tb-advice-pill { position: static; transform: none; }
+    .tb-studio-nature-cat-arrow { font-size: 11px; color: #b8ad9a; transition: transform 0.2s; }
+    .tb-studio-nature-cat.open .tb-studio-nature-cat-arrow { transform: rotate(180deg); color: #43656e; }
+    .tb-studio-nature-cat-body { display: none; flex-direction: column; gap: 12px; padding: 4px 16px 16px; }
+    .tb-studio-nature-cat.open .tb-studio-nature-cat-body { display: flex; }
+    .tb-studio-nature-row { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; text-align: left; background: white; border: 1px solid #ccc; border-radius: 12px; padding: 12px 16px; cursor: pointer; font: inherit; transition: opacity 0.15s; }
+    .tb-studio-nature-row:hover { opacity: 0.85; }
+    .tb-studio-nature-row.selected { border-color: var(--studio-dark, #606070); background: #f7f7fb; }
+    /* Combined selector so this row's default border can never lose a source-order tie against
+       .tb-advice-frame's border (the exact bug that hit the Ability round's card border). */
+    .tb-studio-nature-row.tb-advice-frame { border: 4px solid var(--advice-brown); }
+    .tb-studio-nature-row-name { font-family: 'Archivo Black', sans-serif; font-size: 15px; font-weight: 900; color: #1a1a1a; text-transform: uppercase; letter-spacing: 0.3px; }
+    .tb-studio-nature-row-drop { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: #c0392b; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
+    @media (max-width: 600px) {
+      .tb-studio-nature-row.tb-advice-frame { border-width: 3px; }
+    }
     @media (max-width: 600px) {
       .tb-studio-ability-card { padding: 14px 16px; margin-bottom: 12px; }
       .tb-studio-ability-card-name { font-size: 19px; }
@@ -6995,30 +7025,105 @@
     });
 
     // ── Nature picker ──
+    // Rebuilt (Step 2 of the 5-step Studio picker visual rebuild, from Diego's hand-drawn sketch)
+    // from a flat 25-row list into a 5-category accordion, one category per boostable stat
+    // (Atk/Def/SpA/SpD/Spe, in TB_STUDIO_STAT_ORDER order), each holding the 4 natures that
+    // boost that stat. The 5 neutral natures (boost:null) have no home in this design — Diego's
+    // sketch shows only 5 categories, and this was already flagged/accepted as a judgment call.
+    // Accordion toggle behavior matches the app's existing .tb-coverage-accordion-item pattern:
+    // each category opens/closes independently, no auto-collapsing of siblings.
     setupMobileSheet('tb-studio-nature-pill','tb-studio-nature-sheet','tb-studio-nature-sheet-backdrop','tb-studio-nature-sheet-close');
-    document.getElementById('tb-studio-nature-pill')?.addEventListener('click', ()=>{
+    function tbRenderNatureSheet(member){
       const body = document.getElementById('tb-studio-nature-sheet-body');
       if(!body) return;
       body.innerHTML = '';
-      const member = tbStudioTeam && tbStudioSlotIndex !== null ? tbStudioTeam.party[tbStudioSlotIndex] : null;
-      TB_NATURES.forEach(n=>{
-        const row = document.createElement('button');
-        row.className = 'tb-studio-opt-row' + (member && member.nature === n.name ? ' selected' : '');
-        const sub = n.boost ? `+${TB_NATURE_STAT_LABELS[n.boost]} / −${TB_NATURE_STAT_LABELS[n.drop]}` : 'No effect';
-        row.innerHTML = `<span class="tb-studio-opt-name">${n.name}</span><span class="tb-studio-opt-sub">${sub}</span>`;
-        row.addEventListener('click', ()=>{
-          if(!tbStudioTeam || tbStudioSlotIndex === null) return;
-          const m = tbStudioTeam.party[tbStudioSlotIndex];
-          if(!m) return;
-          m.nature = n.name;
-          touchTeam(tbStudioTeam);
-          tbUpdateStudioPillLabels(m);
-          tbRenderStudioFinalStats(m);
-          tbRenderStudioAdvice(m);
-          tbCloseStudioSheet('tb-studio-nature-sheet','tb-studio-nature-sheet-backdrop','tb-studio-nature-pill');
+      // Guarded exactly like the Ability/Tera rounds: tbEvaluateBuild computes a lot of
+      // unrelated diagnostics beyond the nature pick, and a failure anywhere in that report must
+      // never prevent the accordion itself from rendering.
+      let recommendedNature = null;
+      try{
+        if(member && tbStudioTeam && tbStudioBaseStats){
+          const report = tbEvaluateBuild(member, tbStudioTeam, tbStudioBaseStats);
+          recommendedNature = report.recommended_blueprint.nature;
+        }
+      }catch(e){ recommendedNature = null; }
+      const recommendedEntry = recommendedNature ? TB_NATURES.find(n=>n.name === recommendedNature) : null;
+      const recommendedBoostStat = recommendedEntry ? recommendedEntry.boost : null;
+
+      const accordion = document.createElement('div');
+      accordion.className = 'tb-studio-nature-accordion';
+
+      const boostStats = TB_STUDIO_STAT_ORDER.filter(k=>k!=='hp');
+      boostStats.forEach(statKey=>{
+        const natsForStat = TB_NATURES.filter(n=>n.boost === statKey);
+        const catHasRecommendation = statKey === recommendedBoostStat;
+
+        const cat = document.createElement('div');
+        cat.className = 'tb-studio-nature-cat collapsed';
+
+        const header = document.createElement('div');
+        header.className = 'tb-studio-nature-cat-header';
+        header.innerHTML = `<span class="tb-studio-nature-cat-name"><span class="tb-studio-nature-cat-boost-icon">▲</span>${TB_NATURE_STAT_LABELS[statKey]}</span><span class="tb-studio-nature-cat-spacer"></span>`;
+        if(catHasRecommendation){
+          const pill = document.createElement('span');
+          pill.className = 'tb-advice-pill';
+          pill.textContent = 'Sevii Advice';
+          header.appendChild(pill);
+        }
+        const arrow = document.createElement('span');
+        arrow.className = 'tb-studio-nature-cat-arrow';
+        arrow.textContent = '▼';
+        header.appendChild(arrow);
+        cat.appendChild(header);
+
+        const catBody = document.createElement('div');
+        catBody.className = 'tb-studio-nature-cat-body';
+        natsForStat.forEach(n=>{
+          const isRecommended = !!recommendedNature && recommendedNature === n.name;
+          const row = document.createElement('button');
+          row.className = 'tb-studio-nature-row' + (isRecommended ? ' tb-advice-frame' : '') + (member && member.nature === n.name ? ' selected' : '');
+          if(isRecommended){
+            const pill = document.createElement('span');
+            pill.className = 'tb-advice-pill';
+            pill.textContent = 'Sevii Advice';
+            row.appendChild(pill);
+          }
+          const nameEl = document.createElement('span');
+          nameEl.className = 'tb-studio-nature-row-name';
+          nameEl.textContent = n.name;
+          row.appendChild(nameEl);
+          const dropEl = document.createElement('span');
+          dropEl.className = 'tb-studio-nature-row-drop';
+          dropEl.innerHTML = `<span>▼</span>${TB_NATURE_STAT_LABELS[n.drop]}`;
+          row.appendChild(dropEl);
+          row.addEventListener('click', ()=>{
+            if(!tbStudioTeam || tbStudioSlotIndex === null) return;
+            const m = tbStudioTeam.party[tbStudioSlotIndex];
+            if(!m) return;
+            m.nature = n.name;
+            touchTeam(tbStudioTeam);
+            tbUpdateStudioPillLabels(m);
+            tbRenderStudioFinalStats(m);
+            tbRenderStudioAdvice(m);
+            tbCloseStudioSheet('tb-studio-nature-sheet','tb-studio-nature-sheet-backdrop','tb-studio-nature-pill');
+          });
+          catBody.appendChild(row);
         });
-        body.appendChild(row);
+        cat.appendChild(catBody);
+
+        header.addEventListener('click', ()=>{
+          cat.classList.toggle('open');
+          cat.classList.toggle('collapsed');
+        });
+
+        accordion.appendChild(cat);
       });
+
+      body.appendChild(accordion);
+    }
+    document.getElementById('tb-studio-nature-pill')?.addEventListener('click', ()=>{
+      const member = tbStudioTeam && tbStudioSlotIndex !== null ? tbStudioTeam.party[tbStudioSlotIndex] : null;
+      tbRenderNatureSheet(member);
     });
 
     // ── Tera Type picker ──
