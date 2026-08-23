@@ -4968,7 +4968,10 @@
     (function initTbDexPickGenSheet(){
       const body = document.getElementById('tb-dexpick-gen-sheet-body');
       if(!body) return;
-      const options = ['all',...Object.keys(GEN_RANGES)];
+      // Hardcoded rather than Object.keys(GEN_RANGES) — this IIFE runs immediately at page load,
+      // before GEN_RANGES (declared later in the file) is initialized, which was throwing
+      // "Cannot access 'GEN_RANGES' before initialization" and halting the entire script.
+      const options = ['all','1','2','3','4','5','6','7','8','9'];
       options.forEach(gen=>{
         const pill = document.createElement('button');
         pill.className = 'tb-dexpick-pill' + (gen==='all' ? ' selected' : '');
