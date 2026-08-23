@@ -6143,6 +6143,202 @@
       return { role, rationale, confidence, roleConflict, supportScore };
     }
 
+    // ── Stage 3.5: independent blueprint recommendations (Ability/Item/Tera/Moves) ──
+    // These consume the archetype `role` that tbAdviceClassify already produced — they do NOT
+    // change classification. Each is read-only against already-fetched/cached data
+    // (tbStudioSpeciesCache, tbMoveDetailCache, type-matchups.json via calculateMatchups) —
+    // no new network fetches are triggered from this synchronous path.
+
+    // Ability tier score table — see round spec for the exact tier lists.
+    const TB_ADVICE_ABILITY_TIER3 = ['intimidate','speed-boost','protean','libero','huge-power','pure-power','drought','drizzle','sand-stream','snow-warning','sword-of-ruin','beads-of-ruin','vessel-of-ruin','tablets-of-ruin','prankster','moxie','adaptability','technician','regenerator','magic-guard','multiscale','guts','unaware','levitate','mold-breaker'];
+    const TB_ADVICE_ABILITY_TIER2 = ['sheer-force','tough-claws','download','analytic','sniper','flash-fire','water-absorb','volt-absorb','thick-fat','rough-skin','iron-barbs','stamina','weak-armor','defiant','competitive','unburden','skill-link','contrary','water-bubble','quick-feet','toxic-boost','poison-heal'];
+    const TB_ADVICE_ABILITY_TIER0 = ['illuminate','run-away','klutz','truant','slow-start','defeatist','normalize','honey-gather','pickup','stall','wimp-out','emergency-exit'];
+    function tbAdviceAbilityScore(name){
+      if(!name) return 0;
+      if(TB_ADVICE_ABILITY_TIER3.includes(name)) return 3;
+      if(TB_ADVICE_ABILITY_TIER2.includes(name)) return 2;
+      if(TB_ADVICE_ABILITY_TIER0.includes(name)) return 0;
+      return 1;
+    }
+    // Picks the highest-scoring ability among the species' REAL available abilities (not just
+    // whatever the member currently has set). Ties prefer the hidden ability (unless score 0).
+    function tbAdviceRecommendAbility(member){
+      const species = tbStudioSpeciesCache[member.speciesId];
+      const options = (species && species.abilities) || [];
+      if(!options.length) return null;
+      if(options.length === 1) return options[0].name;
+      let best = null, bestScore = -1;
+      options.forEach(o=>{
+        const score = tbAdviceAbilityScore(o.name);
+        if(score > bestScore){
+          bestScore = score; best = o;
+        } else if(score === bestScore && score > 0 && o.isHidden && best && !best.isHidden){
+          best = o;
+        }
+      });
+      return best ? best.name : options[0].name;
+    }
+
+    // Archetype -> default item. Only applies when Stage 2 hasn't already locked an item
+    // (Orb abilities, Unburden) — callers check stage2.lockItem first.
+    const TB_ADVICE_ARCHETYPE_ITEM = {
+      FAST_PHYSICAL_SWEEPER: 'choice-band',
+      FAST_SPECIAL_SWEEPER: 'choice-specs',
+      FAST_MIXED_ATTACKER: 'life-orb',
+      FAST_SUPPORT_DISRUPTOR: 'focus-sash',
+      BULKY_PHYSICAL_BRAWLER: 'assault-vest',
+      BULKY_SPECIAL_BRAWLER: 'assault-vest',
+      PHYSICAL_WALL: 'leftovers',
+      SPECIAL_WALL: 'leftovers'
+    };
+    function tbAdviceRecommendItem(role, stage2){
+      if(stage2 && stage2.lockItem) return stage2.lockItem;
+      return TB_ADVICE_ARCHETYPE_ITEM[role] || null;
+    }
+
+    // Tera Type: STAB (own primary type) for offensive roles; best defensive-resist pick for
+    // Walls/Support-Disruptor, using this member's CURRENT weakness profile from
+    // tbCalcDefensiveCoverage. Returns null when the team's game doesn't support Tera at all.
+    function tbAdviceRecommendTera(member, team, cls){
+      if(!team || !TB_STUDIO_GEN9_GAMES.has(team.game)) return null;
+      const types = (member.types||[]).map(t=> (typeof t==='string') ? t : (t && t.name)).filter(Boolean);
+      if(!types.length) return null;
+      const offensive = TB_ADVICE_OFFENSIVE_ROLES.includes(cls.role) || cls.role === 'FAST_MIXED_ATTACKER';
+      if(offensive) return types[0];
+
+      // Defensive pick: gather this member's current weak-to types.
+      let weakTypes = [];
+      const idx = team.party ? team.party.indexOf(member) : -1;
+      if(idx >= 0){
+        const rows = tbCalcDefensiveCoverage(team);
+        rows.forEach(row=>{
+          const cell = row.cells[idx];
+          if(cell && !cell.empty && cell.mult > 1) weakTypes.push(row.type);
+        });
+      } else {
+        const base = calculateMatchups(types);
+        if(base) Object.keys(base).forEach(t=>{ if(base[t] > 1) weakTypes.push(t); });
+      }
+      if(!weakTypes.length) return 'steel';
+
+      let bestType = null, bestResist = -1, bestNewWeak = Infinity;
+      TB_COVERAGE_TYPE_ORDER.forEach(candidate=>{
+        const cm = calculateMatchups([candidate]);
+        if(!cm) return;
+        let resistCount = 0;
+        weakTypes.forEach(wt=>{ if(cm[wt] !== undefined && cm[wt] < 1) resistCount++; });
+        let newWeak = 0;
+        Object.keys(cm).forEach(t=>{ if(cm[t] > 1 && !weakTypes.includes(t)) newWeak++; });
+        if(resistCount > bestResist || (resistCount === bestResist && newWeak < bestNewWeak)){
+          bestResist = resistCount; bestNewWeak = newWeak; bestType = candidate;
+        }
+      });
+      if(!bestType || bestResist <= 0) return 'steel';
+      return bestType;
+    }
+
+    // Moves: builds a 4-move recommendation from the member's REAL learnable movepool for the
+    // team's current version group, using whatever's already in tbMoveDetailCache. This stays a
+    // synchronous, no-fetch read by design — tbOpenStudio proactively warms the full movepool
+    // into tbMoveDetailCache (via tbWarmMoveDetailCache) before the first call into this function
+    // for a freshly-opened Studio card, so nothing should be missing here in practice; a move
+    // whose details still aren't cached (e.g. the warm-up fetch failed for that one move) is
+    // simply skipped rather than blocking the rest of the recommendation.
+    const TB_ADVICE_RECOVERY_MOVES = ['recover','roost','slack-off','soft-boiled','synthesis','moonlight','morning-sun','milk-drink','shore-up','rest'];
+    function tbAdviceRecommendMoves(member, cls, baseStats, team){
+      const species = tbStudioSpeciesCache[member.speciesId];
+      if(!species) return [];
+      const vg = (team && GAME_TO_VERSION_GROUP[team.game]) || 'scarlet-violet';
+      const learnable = tbGetMovesForVersionGroup(species.movesRaw, vg);
+      const detailed = [];
+      learnable.forEach(m=>{
+        const det = tbMoveDetailCache[m.name];
+        if(!det) return; // not cached yet — skip rather than fetch synchronously
+        detailed.push({
+          name: m.name,
+          type: det.type && det.type.name,
+          damage_class: det.damage_class && det.damage_class.name,
+          power: (typeof det.power === 'number') ? det.power : 0
+        });
+      });
+      if(!detailed.length) return [];
+
+      const role = cls.role;
+      const prefClasses = (role === 'FAST_MIXED_ATTACKER') ? ['physical','special']
+        : (role === 'FAST_SUPPORT_DISRUPTOR') ? ((baseStats.atk >= baseStats.spa) ? ['physical','special'] : ['special','physical'])
+        : (['FAST_PHYSICAL_SWEEPER','BULKY_PHYSICAL_BRAWLER','PHYSICAL_WALL'].includes(role) ? ['physical'] : ['special']);
+
+      const isDamaging = mv=> mv.damage_class && mv.damage_class !== 'status' && mv.power > 0;
+      const matchesClass = mv=> prefClasses.includes(mv.damage_class);
+      const ownTypes = (member.types||[]).map(t=> (typeof t==='string') ? t : (t && t.name)).filter(Boolean);
+
+      const picked = [];
+      const usedTypes = new Set();
+      const usedNames = new Set();
+
+      // STAB slot(s) — best-power matching-class move per own type.
+      ownTypes.forEach(ty=>{
+        if(picked.length >= 4) return;
+        const candidates = detailed.filter(mv=> isDamaging(mv) && matchesClass(mv) && mv.type===ty && !usedNames.has(mv.name));
+        if(!candidates.length) return;
+        candidates.sort((a,b)=>b.power-a.power);
+        const best = candidates[0];
+        picked.push(best); usedNames.add(best.name); usedTypes.add(best.type);
+      });
+
+      function addCoverageMove(){
+        const candidates = detailed.filter(mv=> isDamaging(mv) && matchesClass(mv) && !usedTypes.has(mv.type) && !usedNames.has(mv.name));
+        if(!candidates.length) return false;
+        candidates.sort((a,b)=>b.power-a.power);
+        const best = candidates[0];
+        picked.push(best); usedNames.add(best.name); usedTypes.add(best.type);
+        return true;
+      }
+      // Coverage slots (different types) up to 3 attacking moves total, before the 4th-slot rule.
+      while(picked.length < 3){
+        if(!addCoverageMove()) break;
+      }
+
+      const offensiveArchetypes = ['FAST_PHYSICAL_SWEEPER','FAST_SPECIAL_SWEEPER','FAST_MIXED_ATTACKER','BULKY_PHYSICAL_BRAWLER','BULKY_SPECIAL_BRAWLER'];
+      if(offensiveArchetypes.includes(role)){
+        if(picked.length < 4) addCoverageMove();
+      } else {
+        const statusMoves = ()=> detailed.filter(mv=> mv.damage_class === 'status' && !usedNames.has(mv.name));
+        if(role === 'PHYSICAL_WALL' || role === 'SPECIAL_WALL'){
+          const recov = TB_ADVICE_RECOVERY_MOVES.map(n=> detailed.find(mv=>mv.name===n && !usedNames.has(mv.name))).find(Boolean);
+          if(recov){ picked.push(recov); usedNames.add(recov.name); }
+          else if(picked.length < 4) addCoverageMove();
+        } else { // FAST_SUPPORT_DISRUPTOR
+          const supportCandidates = statusMoves().filter(mv=> (TB_ADVICE_MOVE_POINTS[mv.name]||0) >= 2)
+            .sort((a,b)=>(TB_ADVICE_MOVE_POINTS[b.name]||0)-(TB_ADVICE_MOVE_POINTS[a.name]||0));
+          if(supportCandidates.length){ picked.push(supportCandidates[0]); usedNames.add(supportCandidates[0].name); }
+          else if(picked.length < 4) addCoverageMove();
+        }
+        // If still short of 4 (limited movepool or few good support moves), keep reserving
+        // support-first for these two archetypes, then fall back to coverage.
+        while(picked.length < 4){
+          if(role === 'FAST_SUPPORT_DISRUPTOR'){
+            const remaining = statusMoves().filter(mv=> (TB_ADVICE_MOVE_POINTS[mv.name]||0) > 0)
+              .sort((a,b)=>(TB_ADVICE_MOVE_POINTS[b.name]||0)-(TB_ADVICE_MOVE_POINTS[a.name]||0));
+            if(remaining.length){ picked.push(remaining[0]); usedNames.add(remaining[0].name); continue; }
+          }
+          if(!addCoverageMove()) break;
+        }
+      }
+
+      // Step 5 fallback: thin movepool — fill remaining slots with best remaining damaging
+      // moves regardless of type diversity, rather than leaving slots empty.
+      if(picked.length < 4){
+        const remaining = detailed.filter(mv=> isDamaging(mv) && !usedNames.has(mv.name)).sort((a,b)=>b.power-a.power);
+        for(const mv of remaining){
+          if(picked.length >= 4) break;
+          picked.push(mv); usedNames.add(mv.name);
+        }
+      }
+
+      return picked.slice(0,4).map(mv=> ({ name: mv.name, type:{name: mv.type||null}, damage_class:{name: mv.damage_class||null} }));
+    }
+
     // ── Stage 4: universal diagnostics (Rules 101-112) ──
     function tbAdviceEvWaste(ev){
       if(!ev || ev <= 0) return {wasted:0, floor:0, ceil:0};
@@ -6161,17 +6357,25 @@
       const natureEntry = TB_NATURES.find(n=>n.name === member.nature) || null;
 
       // ── recommended_blueprint ──
+      // Ability/Item/Tera/Moves are now independent guesses computed from the archetype +
+      // the Pokémon's real available options — NOT echoes of whatever the member already has
+      // selected (that was last round's bug). Nature/EVs are unchanged (already independent).
       const source = (stage2.forcePhysical || stage2.lockItem) ? 'signature_rule' : 'dynamic_fallback';
+      const recommendedAbility = tbAdviceRecommendAbility(member);
+      const recommendedItem = tbAdviceRecommendItem(cls.role, stage2);
+      const recommendedTera = tbAdviceRecommendTera(member, team, cls);
+      const recommendedMoves = tbAdviceRecommendMoves(member, cls, baseStats, team);
       const recommended_blueprint = {
         source,
         strategy_name: archetype.label,
-        ability: member.ability || null, // Stage 2/3 don't recommend an ability of their own beyond the forcePhysical/orb checks above, which affect item, not the ability field itself — see report's judgment-call notes.
-        item: stage2.lockItem || member.item || null,
+        ability: recommendedAbility,
+        item: recommendedItem,
         nature: (natureEntry ? natureEntry.name : (archetype.natures[0])),
-        tera_type: member.teraType || null,
+        tera_type: recommendedTera,
+        tera_applicable: !!(team && TB_STUDIO_GEN9_GAMES.has(team.game)),
         stat_focus: archetype.statFocus,
         ev_spread: archetype.evSpread,
-        moves: (member.moves||[]).filter(Boolean).map(mv=>mv.name)
+        moves: recommendedMoves.map(mv=>mv.name)
       };
 
       const diagnostics = [];
@@ -6389,17 +6593,17 @@
       const report = tbEvaluateBuild(member, tbStudioTeam, tbStudioBaseStats);
       const bp = report.recommended_blueprint;
       const evStr = TB_STUDIO_STAT_ORDER.map(k=>`${bp.ev_spread[k]||0} ${TB_ADVICE_STAT_LABELS[k]}`).join(' / ');
-      const moveStr = bp.moves.length ? bp.moves.map(s=>toTitleCase(s.replace(/-/g,' '))).join(', ') : '(none selected yet)';
+      const moveStr = bp.moves.length ? bp.moves.map(s=>toTitleCase(s.replace(/-/g,' '))).join(', ') : 'No confident recommendation (movepool data still loading or unavailable)';
       let html = '';
       html += `<p><strong>Role:</strong> ${report.summary.role_label} (${report.summary.inferred_role}) — confidence ${(Math.round(report.summary.confidence*100))}%</p>`;
       html += `<p><strong>Why:</strong> ${report.summary.archetype_rationale}</p>`;
       html += `<p><strong>Recommended blueprint</strong> (source: ${bp.source})</p>`;
       html += `<ul>`;
       html += `<li>Strategy: ${bp.strategy_name}</li>`;
-      html += `<li>Ability: ${bp.ability ? toTitleCase(bp.ability.replace(/-/g,' ')) : '(none set)'}</li>`;
-      html += `<li>Item: ${bp.item ? tbItemDisplayName(bp.item) : '(none set)'}</li>`;
+      html += `<li>Ability: ${bp.ability ? toTitleCase(bp.ability.replace(/-/g,' ')) : 'No confident recommendation'}</li>`;
+      html += `<li>Item: ${bp.item ? tbItemDisplayName(bp.item) : 'No confident recommendation'}</li>`;
       html += `<li>Nature: ${bp.nature}</li>`;
-      html += `<li>Tera Type: ${bp.tera_type ? toTitleCase(bp.tera_type) : '(none set)'}</li>`;
+      html += `<li>Tera Type: ${!bp.tera_applicable ? 'Not applicable (Tera Type isn\'t available in this game)' : (bp.tera_type ? toTitleCase(bp.tera_type) : 'No confident recommendation')}</li>`;
       html += `<li>Stat focus: ${bp.stat_focus}</li>`;
       html += `<li>EVs: ${evStr}</li>`;
       html += `<li>Moves: ${moveStr}</li>`;
@@ -6521,6 +6725,18 @@
         tbStudioBaseStats = baseByShortKey;
         tbRenderStudioEvIvBlocks(member);
         tbRenderStudioFinalStats(member);
+
+        // Warm the full move-detail cache for this species BEFORE the first Advice render, so
+        // the Moves recommendation is fully populated on first open rather than thin/empty until
+        // the user separately visits the Moves picker (see tbWarmMoveDetailCache). Advice shows
+        // a simple loading note while that's in flight, mirroring the stats-block placeholder
+        // above.
+        const adviceBlock = document.getElementById('tb-studio-advice-block');
+        if(adviceBlock) adviceBlock.innerHTML = `<p>Loading move recommendations…</p>`;
+        const vg = (team && GAME_TO_VERSION_GROUP[team.game]) || 'scarlet-violet';
+        try{ await tbWarmMoveDetailCache(member.speciesId, data.movesRaw, vg); }catch(e){}
+        // Bail again if the Studio moved on while the move-detail warm-up was in flight.
+        if(tbStudioTeam !== team || tbStudioSlotIndex !== slotIndex) return;
         tbRenderStudioAdvice(member);
       }catch(err){
         if(tbStudioTeam === team && tbStudioSlotIndex === slotIndex){
@@ -7076,6 +7292,29 @@
       const det = await r.json();
       tbMoveDetailCache[name] = det;
       return det;
+    }
+
+    // Warms tbMoveDetailCache with EVERY move in a species' full learnable-in-this-version-group
+    // movepool, so tbAdviceRecommendMoves (which only ever reads from the cache, never fetches)
+    // has real data to work with the very first time a Studio card opens — not just after the
+    // user has separately opened the Moves picker sheet. Keyed per speciesId+version-group so a
+    // second open of the same card, or the various EV/IV/ability edit hooks re-rendering Advice,
+    // never re-triggers the network round-trip — moves already in tbMoveDetailCache are skipped
+    // by tbSharedFetchMoveDetail's own cache check, and an in-flight warm for the same key is
+    // shared rather than duplicated (guards rapid reopen-while-still-loading).
+    const tbMoveCacheWarmInFlight = {}; // "speciesId|vg" -> Promise, cleared once settled
+    const tbMoveCacheWarmDone = {};     // "speciesId|vg" -> true once fully warmed at least once
+    function tbWarmMoveDetailCache(speciesId, movesRaw, vg){
+      const key = speciesId + '|' + vg;
+      if(tbMoveCacheWarmDone[key]) return Promise.resolve();
+      if(tbMoveCacheWarmInFlight[key]) return tbMoveCacheWarmInFlight[key];
+      const learnable = tbGetMovesForVersionGroup(movesRaw, vg);
+      const missing = learnable.filter(m=> !tbMoveDetailCache[m.name]);
+      const p = Promise.all(missing.map(m=> tbSharedFetchMoveDetail(m.name, m.url).catch(()=>null)))
+        .then(()=>{ tbMoveCacheWarmDone[key] = true; })
+        .finally(()=>{ delete tbMoveCacheWarmInFlight[key]; });
+      tbMoveCacheWarmInFlight[key] = p;
+      return p;
     }
 
     // ══════════════════════════════════════════════════════════════════════════════
