@@ -1899,6 +1899,45 @@
     .tb-studio-moves-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .tb-studio-move-slot { background: white; border: 2px dashed #d4ccbc; border-radius: 12px; min-height: 56px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: border-color 0.15s, background 0.15s; font-size: 12px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.3px; }
     .tb-studio-move-slot:hover { border-color: var(--studio-dark, #606070); background: rgba(0,0,0,0.02); }
+    .tb-studio-move-slot.tb-move-slot-filled { border: 1.5px solid var(--studio-dark, #606070); background: var(--studio-bg, #fafafa); flex-direction: row; justify-content: flex-start; padding: 0 10px; gap: 8px; }
+    .tb-studio-move-slot .tb-move-slot-type-icon { width: 22px; height: 22px; object-fit: contain; flex-shrink: 0; }
+    .tb-studio-move-slot .tb-move-slot-name { flex: 1; font-size: 12px; font-weight: 700; color: #1a1a1a; text-transform: none; letter-spacing: 0; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tb-studio-move-slot .tb-move-slot-clear { flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.08); border: none; color: #666; font-size: 11px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .tb-studio-move-slot .tb-move-slot-clear:hover { background: rgba(0,0,0,0.16); }
+
+    /* ── Move browser sheet — recreates the main Moveset modal's section/table format inside a
+       Studio bottom sheet, but selectable (row tap fills the slot in progress) instead of a
+       read-only viewer. Kept fully tb-prefixed/parallel; never touches .moveset-* classes. ── */
+    .tb-studio-sheet.tb-move-sheet { max-height: 82%; }
+    .tb-move-sheet-body { padding: 8px 0 16px; display: flex; flex-direction: column; gap: 10px; }
+    .tb-move-sheet-empty { padding: 16px; font-size: 12px; color: #999; font-style: italic; text-align: center; }
+    .tb-move-section { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); background: white; flex-shrink: 0; margin: 0 16px; }
+    .tb-move-section-header { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; cursor: pointer; user-select: none; font-size: 13px; color: #333; transition: background 0.15s; }
+    .tb-move-section-header:hover { background: rgba(0,0,0,0.02); }
+    .tb-move-section-label strong { font-weight: 700; }
+    .tb-move-section-arrow { font-size: 10px; color: #aaa; transition: transform 0.2s; }
+    .tb-move-section.open .tb-move-section-arrow { transform: rotate(180deg); }
+    .tb-move-section-body { display: none; border-top: 1px solid rgba(0,0,0,0.06); max-height: 360px; overflow-y: auto; }
+    .tb-move-section.open .tb-move-section-body { display: block; }
+    .tb-move-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .tb-move-table thead tr { background: #f0f0f4; }
+    .tb-move-table thead th { padding: 7px 4px; font-size: 10px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.4px; text-align: left; white-space: nowrap; overflow: hidden; }
+    .tb-move-table thead th:first-child { padding-left: 10px; width: 34px; }
+    .tb-move-table thead th.tb-mv-col-move { width: 26%; }
+    .tb-move-table thead th.tb-mv-col-type { width: 40px; }
+    .tb-move-table thead th.tb-mv-col-cat { width: 44px; }
+    .tb-move-table thead th.right { text-align: right; padding-right: 10px; width: 36px; }
+    .tb-move-table tbody tr { border-bottom: 1px solid rgba(0,0,0,0.04); cursor: pointer; transition: background 0.1s; }
+    .tb-move-table tbody tr:last-child { border-bottom: none; }
+    .tb-move-table tbody tr:hover { background: rgba(0,0,0,0.025); }
+    .tb-move-table tbody tr.tb-move-row-taken { cursor: default; opacity: 0.45; }
+    .tb-move-table tbody tr.tb-move-row-taken:hover { background: none; }
+    .tb-move-table tbody td { padding: 6px 4px; font-size: 12px; color: #1a1a1a; vertical-align: middle; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tb-move-table tbody td:first-child { padding-left: 10px; font-size: 11px; color: #888; font-weight: 600; }
+    .tb-move-table tbody td.right { text-align: right; padding-right: 10px; color: #555; font-size: 12px; }
+    .tb-move-name-cell { font-weight: 600; color: #1a1a1a; display: flex; align-items: center; gap: 6px; }
+    .tb-move-type-icon { width: 30px; height: 30px; object-fit: contain; display: block; }
+    .tb-move-taken-tag { font-size: 9px; font-weight: 700; color: #9f009f; text-transform: uppercase; letter-spacing: 0.3px; flex-shrink: 0; }
     .tb-studio-footer { flex-shrink: 0; padding: 12px 16px; background: var(--studio-bg, #fafafa); border-top: 1px solid rgba(0,0,0,0.08); transition: background 0.3s; }
     .tb-studio-done-btn { width: 100%; padding: 12px; border-radius: 24px; background: var(--studio-dark, #606070); border: 1.5px solid rgba(255,255,255,0.5); font-size: 14px; font-weight: 700; color: white; cursor: pointer; transition: opacity 0.15s, transform 0.1s; text-transform: uppercase; letter-spacing: 0.4px; }
     .tb-studio-done-btn:hover { opacity: 0.85; transform: translateY(-1px); }
@@ -3537,6 +3576,15 @@
       <div class="tb-studio-sheet" id="tb-studio-item-sheet">
         <div class="tb-studio-sheet-header"><span class="tb-studio-sheet-title">Item</span><button class="tb-studio-sheet-close" id="tb-studio-item-sheet-close">✕</button></div>
         <div class="tb-studio-sheet-body" id="tb-studio-item-sheet-body"></div>
+      </div>
+
+      <!-- Move browser sheet — one shared sheet for all 4 move slots. Recreates the main Moveset
+           modal's section/table format (see .moveset-* CSS/JS) but tb-prefixed/parallel and
+           selectable: tapping a row fills whichever slot opened the sheet (tbMoveFillSlotIndex). -->
+      <div class="tb-studio-sheet-backdrop" id="tb-studio-move-sheet-backdrop"></div>
+      <div class="tb-studio-sheet tb-move-sheet" id="tb-studio-move-sheet">
+        <div class="tb-studio-sheet-header"><span class="tb-studio-sheet-title">Select a Move</span><button class="tb-studio-sheet-close" id="tb-studio-move-sheet-close">✕</button></div>
+        <div class="tb-move-sheet-body" id="tb-studio-move-sheet-body"></div>
       </div>
 
     </div>
@@ -5729,7 +5777,8 @@
       const data = {
         colorName: species.color?.name || 'white',
         stats: (pokemon.stats||[]).map(s=>({ name: s.stat.name, base: s.base_stat })),
-        abilities: (pokemon.abilities||[]).map(a=>({ name: a.ability.name, isHidden: !!a.is_hidden }))
+        abilities: (pokemon.abilities||[]).map(a=>({ name: a.ability.name, isHidden: !!a.is_hidden })),
+        movesRaw: pokemon.moves || [] // full per-version-group learn data; filtered by version group lazily (see tbGetMovesForVersionGroup) since it depends on team.game, not the species
       };
       tbStudioSpeciesCache[speciesId] = data;
       return data;
@@ -5764,17 +5813,7 @@
       document.getElementById('tb-studio-pill-hint').textContent = '';
       tbStudioAbilitiesForMember = [];
       tbUpdateStudioPillLabels(member);
-      const movesGrid = document.getElementById('tb-studio-moves-grid');
-      movesGrid.innerHTML = '';
-      for(let i=0;i<4;i++){
-        const slot = document.createElement('div');
-        slot.className = 'tb-studio-move-slot';
-        slot.textContent = '+ Move';
-        slot.addEventListener('click', ()=>{
-          document.getElementById('tb-studio-pill-hint').textContent = 'Moves are coming in a later round.';
-        });
-        movesGrid.appendChild(slot);
-      }
+      tbRenderStudioMoveSlots(member);
 
       // Stats block — placeholder while species data loads
       const statsBlock = document.getElementById('tb-studio-stats-block');
@@ -6077,6 +6116,286 @@
         body.innerHTML = '<div class="tb-studio-sheet-empty">No items available for this mode yet.</div>';
       }
     });
+
+    // ── Move picker ──
+    // Recreates the main Moveset modal's look/format (accordion sections by learn method, a
+    // sortable-feeling table with type/category/power/acc/pp columns) as a Studio bottom sheet,
+    // but made selectable: it's shared by all 4 move slots, and tapping a row fills whichever
+    // slot opened it. The team is already locked to one game via game-locked filtering elsewhere
+    // in the Team Builder, so — unlike the main Moveset modal — there's no in-sheet game picker;
+    // it always uses team.game's version group (GAME_TO_VERSION_GROUP, read-only). Never touches
+    // the main Moveset modal's own DOM/functions/CSS classes or its moveDetailCache (own cache
+    // below, though it opportunistically reads a hit from the main cache if one's already warm).
+    let tbMoveFillSlotIndex = null; // which of the 4 party-member move slots the open sheet fills
+    const tbMoveDetailCache = {};   // own name -> full /move/ payload cache, parallel to moveDetailCache
+
+    // Filters one member's full raw `moves` (from the /pokemon/ payload, cached on
+    // tbStudioSpeciesCache[id].movesRaw) down to the moves learnable in one version group —
+    // same shape/logic as loadMovesetContent's filter, kept separate since this reads from the
+    // Studio's own species cache rather than re-fetching.
+    function tbGetMovesForVersionGroup(movesRaw, vg){
+      return (movesRaw||[]).map(m=>{
+        const vd=(m.version_group_details||[]).find(v=>v.version_group.name===vg);
+        if(!vd) return null;
+        return {name:m.move.name, url:m.move.url, method:vd.move_learn_method.name, level:vd.level_learned_at};
+      }).filter(Boolean);
+    }
+
+    // Renders the 4 move-slot tiles for the currently-open Studio member. A filled slot shows
+    // the move's type icon + Title Case name (mirrors the Tera/Item pills' "selected" visual
+    // language) plus a small clear (×) button; an empty slot is the original dashed "+ Move"
+    // placeholder. Tapping the tile body (not the × ) opens the shared move sheet scoped to
+    // that slot index.
+    function tbRenderStudioMoveSlots(member){
+      const movesGrid = document.getElementById('tb-studio-moves-grid');
+      if(!movesGrid) return;
+      movesGrid.innerHTML = '';
+      for(let i=0;i<4;i++){
+        const slot = document.createElement('div');
+        const mv = member.moves && member.moves[i];
+        if(mv && mv.name){
+          slot.className = 'tb-studio-move-slot tb-move-slot-filled';
+          const typeName = mv.type && mv.type.name;
+          if(typeName){
+            const icon = document.createElement('img');
+            icon.className = 'tb-move-slot-type-icon';
+            icon.alt = typeName;
+            icon.src = `${BUTTON_PATH}/${typeName}.png`;
+            icon.onerror = ()=>{ icon.style.display='none'; };
+            slot.appendChild(icon);
+          }
+          const nm = document.createElement('span');
+          nm.className = 'tb-move-slot-name';
+          nm.textContent = toTitleCase(mv.name.replace(/-/g,' '));
+          slot.appendChild(nm);
+          const clearBtn = document.createElement('button');
+          clearBtn.className = 'tb-move-slot-clear';
+          clearBtn.type = 'button';
+          clearBtn.title = 'Clear move';
+          clearBtn.textContent = '✕';
+          clearBtn.addEventListener('click', e=>{
+            e.stopPropagation();
+            if(!tbStudioTeam || tbStudioSlotIndex === null) return;
+            const m = tbStudioTeam.party[tbStudioSlotIndex];
+            if(!m || !Array.isArray(m.moves)) return;
+            m.moves[i] = null;
+            touchTeam(tbStudioTeam);
+            tbRenderStudioMoveSlots(m);
+          });
+          slot.appendChild(clearBtn);
+          slot.addEventListener('click', ()=> tbOpenMoveSheet(i));
+        }else{
+          slot.className = 'tb-studio-move-slot';
+          slot.textContent = '+ Move';
+          slot.addEventListener('click', ()=> tbOpenMoveSheet(i));
+        }
+        movesGrid.appendChild(slot);
+      }
+    }
+
+    function tbCloseMoveSheet(){
+      tbCloseStudioSheet('tb-studio-move-sheet','tb-studio-move-sheet-backdrop', null);
+    }
+    document.getElementById('tb-studio-move-sheet-close')?.addEventListener('click', tbCloseMoveSheet);
+    document.getElementById('tb-studio-move-sheet-backdrop')?.addEventListener('click', tbCloseMoveSheet);
+
+    function tbOpenMoveSheet(slotIndex){
+      tbMoveFillSlotIndex = slotIndex;
+      const body = document.getElementById('tb-studio-move-sheet-body');
+      if(body) body.innerHTML = '<div class="tb-move-sheet-empty">Loading moves…</div>';
+      document.getElementById('tb-studio-move-sheet')?.classList.add('open');
+      document.getElementById('tb-studio-move-sheet-backdrop')?.classList.add('open');
+      tbLoadMoveSheetContent();
+    }
+
+    async function tbLoadMoveSheetContent(){
+      const team = tbStudioTeam, slotIndex = tbStudioSlotIndex;
+      const body = document.getElementById('tb-studio-move-sheet-body');
+      if(!team || slotIndex === null || !body) return;
+      const member = team.party[slotIndex];
+      if(!member) return;
+      const vg = GAME_TO_VERSION_GROUP[team.game] || 'scarlet-violet';
+      let speciesData;
+      try{ speciesData = await tbFetchStudioSpeciesData(member.speciesId); }
+      catch(err){ body.innerHTML = '<div class="tb-move-sheet-empty">Couldn\'t load move data.</div>'; return; }
+      // Bail if Studio moved on / the sheet was closed while fetching.
+      if(tbStudioTeam !== team || tbStudioSlotIndex !== slotIndex) return;
+      const moves = tbGetMovesForVersionGroup(speciesData.movesRaw, vg);
+      if(!moves.length){
+        body.innerHTML = '<div class="tb-move-sheet-empty">No move data available for this game.</div>';
+        return;
+      }
+      tbRenderMoveSections(body, moves, member);
+    }
+
+    function tbRenderMoveSections(body, moves, member){
+      body.innerHTML = '';
+      const groups = {
+        'level-up': {label:'Moves learned by <strong>Level Up</strong>', col:'Lvl', moves:[]},
+        'machine':  {label:'Moves learned by <strong>TM</strong>', col:'TM', moves:[]},
+        'egg':      {label:'<strong>Egg Moves</strong>', col:'TM', moves:[]},
+        'tutor':    {label:'Moves learned by <strong>Tutor</strong>', col:'TM', moves:[]},
+      };
+      moves.forEach(m=>{ const g=groups[m.method]; if(g) g.moves.push(m); });
+      groups['level-up'].moves.sort((a,b)=>a.level-b.level||a.name.localeCompare(b.name));
+      groups['machine'].moves.sort((a,b)=>a.name.localeCompare(b.name));
+      groups['egg'].moves.sort((a,b)=>a.name.localeCompare(b.name));
+      groups['tutor'].moves.sort((a,b)=>a.name.localeCompare(b.name));
+
+      const order = ['level-up','machine','egg','tutor'];
+      const sections = [];
+      let firstWithMoves = true;
+      order.forEach(key=>{
+        const g = groups[key];
+        if(!g.moves.length) return;
+        const section = document.createElement('div');
+        section.className = 'tb-move-section' + (firstWithMoves ? ' open' : '');
+        firstWithMoves = false;
+        const header = document.createElement('div');
+        header.className = 'tb-move-section-header';
+        header.innerHTML = `<span class="tb-move-section-label">${g.label}</span><span class="tb-move-section-arrow">▼</span>`;
+        const sBody = document.createElement('div');
+        sBody.className = 'tb-move-section-body';
+        sBody.appendChild(tbBuildMoveTable(g.moves, key, g.col, member));
+        section.appendChild(header); section.appendChild(sBody);
+        header.addEventListener('click', ()=>{
+          const isOpen = section.classList.contains('open');
+          sections.forEach(s=>s.classList.remove('open'));
+          if(!isOpen) section.classList.add('open');
+        });
+        sections.push(section);
+        body.appendChild(section);
+      });
+    }
+
+    function tbBuildMoveTable(moves, method, col, member){
+      const wrap = document.createElement('div');
+      const isLevelUp = method === 'level-up';
+      const showNum = col.length > 0;
+      const takenNames = new Set((member.moves||[]).filter((m,i)=> m && m.name && i!==tbMoveFillSlotIndex).map(m=>m.name));
+      const table = document.createElement('table');
+      table.className = 'tb-move-table';
+      table.innerHTML = `<thead><tr>
+        ${showNum?`<th style="${isLevelUp?'width:30px':'width:38px'}">${col}</th>`:''}
+        <th class="tb-mv-col-move">Move</th>
+        <th class="tb-mv-col-type">Type</th>
+        <th class="tb-mv-col-cat">Cat.</th>
+        <th class="right">Pwr</th>
+        <th class="right">Acc</th>
+        <th class="right">PP</th>
+      </tr></thead>`;
+      const tbody = document.createElement('tbody');
+      moves.forEach(m=>{
+        const tr = document.createElement('tr');
+        const isTaken = takenNames.has(m.name);
+        if(isTaken) tr.classList.add('tb-move-row-taken');
+        tr.dataset.moveName = m.name;
+        let numCell = '';
+        if(isLevelUp) numCell = `<td>${m.level||'—'}</td>`;
+        else if(showNum) numCell = `<td class="tb-move-tm-cell" data-move="${m.name}">—</td>`;
+        tr.innerHTML = `${numCell}
+          <td><span class="tb-move-name-cell">${toTitleCase(m.name.replace(/-/g,' '))}${isTaken?'<span class="tb-move-taken-tag">In use</span>':''}</span></td>
+          <td><div style="width:30px;height:30px;background:#eee;border-radius:50%;"></div></td>
+          <td>…</td>
+          <td class="right">…</td>
+          <td class="right">…</td>
+          <td class="right">…</td>`;
+        if(!isTaken){
+          tr.addEventListener('click', ()=> tbSelectMove(m));
+        }
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      wrap.appendChild(table);
+      tbFetchMoveSheetDetails(moves, tbody, method, col);
+      return wrap;
+    }
+
+    async function tbFetchMoveSheetDetails(moves, tbody, method, col){
+      const showNum = col.length > 0;
+      const isLevelUp = method === 'level-up';
+      for(const m of moves){
+        let det = tbMoveDetailCache[m.name] || (typeof moveDetailCache!=='undefined' ? moveDetailCache[m.name] : null);
+        if(!det){
+          try{ const r = await fetch(m.url); det = await r.json(); }catch(e){ det = null; }
+        }
+        if(det) tbMoveDetailCache[m.name] = det;
+        const tr = tbody.querySelector(`tr[data-move-name="${m.name}"]`);
+        if(!tr) continue;
+        const typeName = det?.type?.name || null;
+        const catName = det?.damage_class?.name || null;
+        const power = det?.power ?? null;
+        const acc = det?.accuracy ?? null;
+        const pp = det?.pp ?? null;
+        const typeImg = typeName
+          ? `<img class="tb-move-type-icon" src="${BUTTON_PATH}/${typeName}.png" alt="${typeName}" onerror="this.style.display='none'">`
+          : `<div style="width:30px;height:30px;background:#eee;border-radius:50%;"></div>`;
+        const catHtml = catName
+          ? `<img src="icons/moves/${catName.toLowerCase()}.png" alt="${catName}" title="${catName}" style="width:18px;height:18px;object-fit:contain;vertical-align:middle;" onerror="this.outerHTML='<span style=\'font-size:9px;color:#aaa\'>${catName.charAt(0).toUpperCase()+catName.slice(1)}</span>'">`
+          : '<span style="color:#aaa">—</span>';
+        const cells = tr.querySelectorAll('td');
+        const offset = showNum ? 1 : 0;
+        cells[offset+1].innerHTML = typeImg;
+        cells[offset+2].innerHTML = catHtml;
+        cells[offset+3].textContent = power!==null ? power : '—'; cells[offset+3].className='right';
+        cells[offset+4].textContent = acc!==null ? acc+'%' : '—'; cells[offset+4].className='right';
+        cells[offset+5].textContent = pp!==null ? pp : '—'; cells[offset+5].className='right';
+
+        if(showNum && !isLevelUp && det?.machines?.length){
+          const vg = GAME_TO_VERSION_GROUP[(tbStudioTeam&&tbStudioTeam.game)] || 'scarlet-violet';
+          const machineEntry = det.machines.find(mc=>mc.version_group.name===vg);
+          if(machineEntry){
+            try{
+              let machDet = tbMoveDetailCache['__machine__'+machineEntry.machine.url];
+              if(!machDet){
+                const mr = await fetch(machineEntry.machine.url);
+                machDet = await mr.json();
+                tbMoveDetailCache['__machine__'+machineEntry.machine.url] = machDet;
+              }
+              const itemName = machDet?.item?.name || '';
+              const numMatch = itemName.match(/\d+/);
+              const tmNum = numMatch ? parseInt(numMatch[0],10).toString() : '—';
+              const tmCell = tr.querySelector('.tb-move-tm-cell');
+              if(tmCell) tmCell.textContent = tmNum;
+            }catch(e){}
+          }
+        }
+      }
+    }
+
+    // Fills the slot the sheet was opened for. Stores the move's real PokéAPI slug as `name`
+    // (matching how ability/item store real slugs, not display names) plus its resolved
+    // type/damage_class — the exact shape tbGetDamagingMoves/tbCalcOffensiveCoverage already
+    // read off `member.moves[i].type.name` / `.damage_class.name`, so Offensive Coverage picks
+    // this up with zero changes to the Coverage engine itself.
+    async function tbSelectMove(m){
+      const team = tbStudioTeam, slotIndex = tbStudioSlotIndex, fillIdx = tbMoveFillSlotIndex;
+      if(!team || slotIndex === null || fillIdx === null) return;
+      const member = team.party[slotIndex];
+      if(!member) return;
+      let det = tbMoveDetailCache[m.name];
+      if(!det){
+        try{ det = await tbSharedFetchMoveDetail(m.name, m.url); }catch(e){ det = null; }
+      }
+      if(tbStudioTeam !== team || tbStudioSlotIndex !== slotIndex) return; // Studio moved on mid-fetch
+      if(!Array.isArray(member.moves)) member.moves = [];
+      member.moves[fillIdx] = {
+        name: m.name,
+        type: { name: det?.type?.name || null },
+        damage_class: { name: det?.damage_class?.name || null }
+      };
+      touchTeam(team);
+      tbRenderStudioMoveSlots(member);
+      tbCloseMoveSheet();
+    }
+
+    async function tbSharedFetchMoveDetail(name, url){
+      if(tbMoveDetailCache[name]) return tbMoveDetailCache[name];
+      const r = await fetch(url);
+      const det = await r.json();
+      tbMoveDetailCache[name] = det;
+      return det;
+    }
 
     // ══════════════════════════════════════════════════════════════════════════════
     // DEX PICKER — fully parallel/self-contained Pokémon-selection overlay for the Team
