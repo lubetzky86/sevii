@@ -1740,25 +1740,33 @@
        the screen's one and only title bar. Toggled via the body.tb-canvas-active class — see
        tbShowCanvas/tbShowHub and switchSection's generic reset. */
     body.tb-canvas-active #app-header { display: none; }
-    /* Canvas topbar — dark teal-gray header bar: title, (muted) Save button, circular close.
-       Compacted (round: shrink header stack) — tighter padding/margin, smaller title text,
-       smaller buttons, while keeping the close/save buttons at a comfortable tap size. */
-    .tb-canvas-topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #43656e; border-radius: 12px; padding: 8px 12px; margin: -4px -4px 0; }
-    .tb-canvas-topbar-title { font-family: 'Archivo Black', sans-serif; font-size: 12px; font-weight: 900; color: white; text-transform: uppercase; letter-spacing: 0.6px; }
-    .tb-canvas-topbar-right { display: flex; align-items: center; gap: 6px; }
-    .tb-canvas-save-btn { padding: 6px 12px; border-radius: 16px; border: 1.5px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.12); color: white; font-size: 11px; font-weight: 700; cursor: pointer; transition: background 0.15s; min-height: 30px; }
+    /* Canvas header — merged single full-bleed dark band (matches the app's own
+       .ab-detail-header visual grammar: solid #43656e, no border-radius, no corner margin,
+       min-height 60px, flex space-between). Now holds the editable team name (replacing the
+       old static "Team Builder" label) plus Save + Close, with no separate row/card below it —
+       the old two-piece topbar + name-row-in-a-card layout is gone; only the Battle Mode row
+       remains in .tb-context-header beneath this band. Negative margin cancels .tb-canvas's own
+       padding so this band runs edge-to-edge; kept in sync with that padding value and with the
+       mobile override below. */
+    .tb-canvas-topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #43656e; padding: 12px 16px; margin: -18px -22px 0; min-height: 60px; flex-shrink: 0; box-sizing: border-box; }
+    .tb-canvas-topbar-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .tb-canvas-save-btn { padding: 6px 12px; border-radius: 16px; border: 1.5px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.12); color: white; font-size: 11px; font-weight: 700; cursor: pointer; transition: background 0.15s; min-height: 30px; flex-shrink: 0; }
     .tb-canvas-save-btn:hover { background: rgba(255,255,255,0.25); }
-    .tb-back-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: rgba(255,255,255,0.18); color: white; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+    .tb-back-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: rgba(255,255,255,0.18); color: white; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; flex-shrink: 0; }
     .tb-back-btn:hover { background: rgba(255,255,255,0.32); }
-    /* Context header — name row + battle-mode row now share a single tighter card, with the
-       "Battle Mode" row placed inline beside the name row on wider layouts and stacked closely
-       (small gap) on narrow ones, instead of the old generous vertical stack. */
-    .tb-context-header { background: #eae3d7; border: 1px solid #d4ccbc; border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
-    .tb-name-row { display: flex; align-items: center; gap: 6px; }
-    .tb-name-input { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; color: #1a1a1a; border: 1.5px solid #c8bfaf; background: white; outline: none; flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: 0.3px; padding: 8px 10px; border-radius: 10px; transition: border-color 0.15s, background 0.15s; min-height: 36px; box-sizing: border-box; }
-    .tb-name-input:focus { border-color: #43656e; background: white; }
-    .tb-name-edit-btn { width: 26px; height: 26px; border-radius: 50%; border: none; background: rgba(67,101,110,0.12); color: #43656e; font-size: 12px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-    .tb-name-edit-btn:hover { background: rgba(67,101,110,0.22); }
+    /* Team-name input, now living inside the dark topbar band in place of the old static
+       title text. Semi-transparent white fill for contrast against #43656e (mirrors the
+       "input in dark header" treatment used nowhere else in-app yet, so this establishes the
+       convention for Team Builder); flex:1 + min-width:0 + ellipsis so it never pushes
+       Save/Close off-screen at narrow widths. */
+    .tb-canvas-name-input { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; color: white; border: 1.5px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.16); outline: none; flex: 1 1 auto; min-width: 0; width: 0; text-overflow: ellipsis; letter-spacing: 0.3px; padding: 8px 10px; border-radius: 10px; transition: border-color 0.15s, background 0.15s; min-height: 36px; box-sizing: border-box; }
+    .tb-canvas-name-input::placeholder { color: rgba(255,255,255,0.6); }
+    .tb-canvas-name-input:focus { border-color: white; background: rgba(255,255,255,0.28); }
+    .tb-name-edit-btn { width: 26px; height: 26px; border-radius: 50%; border: none; background: rgba(255,255,255,0.16); color: white; font-size: 12px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .tb-name-edit-btn:hover { background: rgba(255,255,255,0.28); }
+    /* Context header — now holds only the Battle Mode row (name row moved into the topbar
+       band above), so its own padding/margin is trimmed to reclaim the freed vertical space. */
+    .tb-context-header { background: #eae3d7; border: 1px solid #d4ccbc; border-radius: 12px; padding: 6px 10px; display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
 
     /* Battle Mode row: label sits inline to the left of the pills instead of stacked above them,
        collapsing what used to be two lines of vertical space into one. */
@@ -1778,6 +1786,11 @@
        this never collapses to fewer columns the way the main Pokédex grid does). Empty-slot
        sizing/proportions mirror .card's own breakpoints (185px desktop / 155px / 122px) even
        though the slot's content is different (a "+ Add" label vs sprite+name+badges). */
+    /* Sticky party-roster region — see the HTML comment at #tb-party-grid-sticky-wrap. Pinned
+       to the top of .grid-wrapper's own scrollport (party grid + coverage accordion are its only
+       two children), sitting above the coverage accordion in stacking order and opaque so
+       scrolled content never bleeds through the slot gaps. */
+    .tb-party-grid-sticky-wrap { position: sticky; top: 0; z-index: 3; background: #eae3d7; padding: 4px 0 10px; margin: -4px 0 0; }
     .tb-party-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 640px; margin: 0 auto; width: 100%; }
     /* Empty slots: solid muted tan/greige fill (no dashed border) per the sketch, instead of the
        old white-with-dashed-border look. Filled slots keep their existing white-card treatment
@@ -1788,22 +1801,28 @@
     .tb-party-slot-label { font-size: 12px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.4px; text-align: center; }
     .tb-party-slot.filled { background: white; border-style: solid; border-color: #e8e4dd; cursor: default; align-items: stretch; justify-content: flex-start; padding: 10px; }
     .tb-party-slot-filled-row { display: flex; align-items: center; gap: 10px; }
-    .tb-party-slot-sprite { width: 56px; height: 56px; object-fit: contain; image-rendering: pixelated; flex-shrink: 0; }
-    .tb-party-slot-name { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; color: #1a1a1a; text-transform: uppercase; }
+    .tb-party-slot-sprite-zone { position: relative; flex-shrink: 0; }
+    .tb-party-slot-sprite { width: 56px; height: 56px; object-fit: contain; image-rendering: pixelated; display: block; }
+    .tb-party-slot-name { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; color: #1a1a1a; text-transform: capitalize; }
     .tb-party-slot-shiny { font-size: 11px; color: #b8860b; font-weight: 700; }
-    /* Filled-slot corner controls: shiny toggle + remove button. Positioned absolutely inside
-       .tb-party-slot.filled (which is already `position` default static, so give it relative
-       here) — kept purely local to the Team Builder, no reuse of the main grid's card chrome. */
+    /* Filled-slot corner controls: shiny toggle (top-left) + remove button (top-right).
+       Positioned absolutely inside .tb-party-slot.filled (which is already `position` default
+       static, so give it relative here) — kept purely local to the Team Builder, no reuse of
+       the main grid's card chrome. Remove button uses a small red minus (not an "X", which
+       reads as "close window" rather than "delete"), and the shiny control is a plain tappable
+       glyph (dim gray off / gold on) instead of a toggle-switch, so it takes less visual weight. */
     .tb-party-slot.filled { position: relative; }
-    .tb-slot-remove-btn { position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.08); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 11px; color: #777; transition: background 0.15s, color 0.15s; z-index: 2; }
-    .tb-slot-remove-btn:hover { background: #d9534f; color: white; }
-    .tb-slot-shiny-toggle { position: absolute; bottom: 6px; right: 6px; display: flex; align-items: center; gap: 3px; cursor: pointer; user-select: none; z-index: 2; }
-    .tb-slot-shiny-emoji { font-size: 11px; opacity: 0.5; transition: opacity 0.2s; pointer-events: none; }
-    .tb-slot-shiny-toggle.on .tb-slot-shiny-emoji { opacity: 1; }
-    .tb-slot-shiny-track { width: 22px; height: 13px; border-radius: 7px; background: rgba(0,0,0,0.15); position: relative; transition: background 0.2s; }
-    .tb-slot-shiny-track.on { background: #f8d030; }
-    .tb-slot-shiny-thumb { width: 9px; height: 9px; border-radius: 50%; background: white; position: absolute; top: 2px; left: 2px; transition: left 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-    .tb-slot-shiny-track.on .tb-slot-shiny-thumb { left: 11px; }
+    .tb-slot-remove-btn { position: absolute; top: 6px; right: 6px; width: 16px; height: 16px; border-radius: 50%; background: #d9534f; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 11px; line-height: 1; color: white; font-weight: 900; transition: background 0.15s, transform 0.15s; z-index: 2; padding: 0; }
+    .tb-slot-remove-btn:hover { background: #c0392b; transform: scale(1.1); }
+    .tb-slot-shiny-toggle { position: absolute; top: 6px; left: 6px; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; z-index: 2; background: none; border: none; padding: 0; font-size: 14px; line-height: 1; color: #999; opacity: 0.45; transition: opacity 0.2s, color 0.2s, transform 0.15s; }
+    .tb-slot-shiny-toggle:hover { transform: scale(1.12); }
+    .tb-slot-shiny-toggle.on { color: #f8b400; opacity: 1; }
+    /* Party-slot type badges — sized to match .tb-coverage-type-badge (24px / 20px on mobile,
+       see the Coverage matrix rules below) so the same type icon reads at a consistent size
+       everywhere on the Canvas screen. Scoped to this class only, doesn't touch the coverage
+       badges' own sizing. */
+    .tb-party-slot-badges.type-badges { display: flex; gap: 3px; flex-wrap: wrap; }
+    .tb-party-slot-badges.type-badges img, .tb-party-slot-badges.type-badges .badge-fallback { width: 24px; height: 24px; border-radius: 50%; object-fit: contain; }
 
     /* ══════════ POKÉMON STUDIO — fully self-contained overlay, parallel to the main grid's
        info detail panel. Own DOM ids, own CSS vars (--studio-*), own theme function
@@ -2257,6 +2276,7 @@
            tighter gap so it doesn't overflow, and let the header controls wrap onto their
            own lines so nothing gets clipped. ── */
       .tb-hub, .tb-canvas { padding: 12px 12px 20px; gap: 10px; }
+      .tb-canvas-topbar { margin: -12px -12px 0; padding: 10px 12px; min-height: 52px; }
       .tb-party-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; max-width: none; }
       .tb-party-slot { min-height: 122px; border-radius: 10px; gap: 3px; }
       .tb-party-slot-plus { font-size: 20px; }
@@ -2265,6 +2285,7 @@
       .tb-party-slot-filled-row { flex-direction: column; text-align: center; gap: 4px; }
       .tb-party-slot-sprite { width: 44px; height: 44px; }
       .tb-party-slot-name { font-size: 10px; }
+      .tb-party-slot-badges.type-badges img, .tb-party-slot-badges.type-badges .badge-fallback { width: 20px; height: 20px; }
       .tb-party-slot-shiny { font-size: 9px; }
       .tb-header-controls { gap: 8px; }
       .tb-toggle-btn { padding: 6px 10px; font-size: 11px; }
@@ -3231,19 +3252,15 @@
       <!-- Screen 2: Team Canvas — context header + 2×3 party grid -->
       <div class="tb-canvas" id="tb-canvas" style="display:none;">
         <div class="tb-canvas-topbar">
-          <span class="tb-canvas-topbar-title">Team Builder</span>
+          <input type="text" class="tb-canvas-name-input" id="tb-team-name-input" maxlength="40" placeholder="Enter team name">
           <div class="tb-canvas-topbar-right">
+            <button class="tb-name-edit-btn" id="tb-team-name-edit-btn" title="Rename">✎</button>
             <button class="tb-canvas-save-btn" id="tb-canvas-save-btn">Save</button>
             <button class="tb-back-btn" id="tb-back-to-hub-btn" title="Close">✕</button>
           </div>
         </div>
 
         <div class="tb-context-header">
-          <div class="tb-name-row">
-            <input type="text" class="tb-name-input" id="tb-team-name-input" maxlength="40" placeholder="Enter team name">
-            <button class="tb-name-edit-btn" id="tb-team-name-edit-btn" title="Rename">✎</button>
-          </div>
-
           <div class="tb-header-controls">
             <div class="tb-battle-mode-label">Battle Mode</div>
               <!-- Unified Format pill — merges the old separate Mode (Story/Competitive) and
@@ -3262,7 +3279,14 @@
         </div>
 
         <div class="grid-wrapper">
-          <div class="tb-party-grid" id="tb-party-grid"></div>
+          <!-- Sticky wrapper: pins the party roster in view while the Coverage accordions below
+               scroll past it inside .grid-wrapper (the actual scroll container here), so the
+               positional mirroring between a coverage row's cells and party slot N stays visible
+               at all times. Solid background matches .app-body so scrolling content never shows
+               through the gaps between party slots. -->
+          <div class="tb-party-grid-sticky-wrap" id="tb-party-grid-sticky-wrap">
+            <div class="tb-party-grid" id="tb-party-grid"></div>
+          </div>
 
           <!-- Coverage accordions — reuses the exact open/close pattern as the Obtain modal's
                egg-group accordion. Bodies are populated by tbRenderCoverage(), re-run at the
@@ -5114,18 +5138,17 @@
         slot.className = 'tb-party-slot' + (member ? ' filled' : '');
         if(member && member.speciesId){
           slot.innerHTML = `
-            <button class="tb-slot-remove-btn" title="Remove from team">✕</button>
+            <button class="tb-slot-remove-btn" title="Remove from team">&minus;</button>
+            <button class="tb-slot-shiny-toggle${member.shiny ? ' on' : ''}" title="Toggle shiny">✨</button>
             <div class="tb-party-slot-filled-row">
-              <img class="tb-party-slot-sprite" src="${getEvoSpriteUrl(member.speciesId, member.shiny)}" alt="${escapeHtml(member.speciesName||'')}">
+              <div class="tb-party-slot-sprite-zone">
+                <img class="tb-party-slot-sprite" src="${getEvoSpriteUrl(member.speciesId, member.shiny)}" alt="${escapeHtml(member.speciesName||'')}">
+              </div>
               <div>
-                <div class="tb-party-slot-name">${escapeHtml(member.nickname || member.speciesName||'')}</div>
+                <div class="tb-party-slot-name">${escapeHtml(member.nickname || cardLabelText({name: member.speciesName||''}) || member.speciesName||'')}</div>
                 ${member.shiny ? '<div class="tb-party-slot-shiny">✨ Shiny</div>' : ''}
                 ${Array.isArray(member.types) && member.types.length ? '<div class="tb-party-slot-badges type-badges"></div>' : ''}
               </div>
-            </div>
-            <div class="tb-slot-shiny-toggle${member.shiny ? ' on' : ''}" title="Toggle shiny">
-              <span class="tb-slot-shiny-emoji">✨</span>
-              <div class="tb-slot-shiny-track${member.shiny ? ' on' : ''}"><div class="tb-slot-shiny-thumb"></div></div>
             </div>
           `;
           // Type badges — only rendered when the member has captured type data (members added
@@ -5142,12 +5165,21 @@
             renderTeamPartyGrid(team);
           });
           // Shiny toggle — flips member.shiny and re-renders so the sprite (via getEvoSpriteUrl)
-          // updates to the shiny/non-shiny artwork immediately.
+          // updates to the shiny/non-shiny artwork immediately. Reuses the app-wide shiny
+          // reveal (sparkle gif + sound) via showSparkle()/playShiny() — same functions the
+          // main Pokémon/Abilities/Moves panels call — but only celebrates turning shiny ON,
+          // matching the main info panel's isInfoShiny asymmetry (see info-shiny-control).
           slot.querySelector('.tb-slot-shiny-toggle').addEventListener('click', (e)=>{
             e.stopPropagation();
+            const turningShinyOn = !member.shiny;
             member.shiny = !member.shiny;
             touchTeam(team);
             renderTeamPartyGrid(team);
+            if(turningShinyOn){
+              playShiny();
+              const zone = grid.children[i]?.querySelector('.tb-party-slot-sprite-zone');
+              if(zone) showSparkle(zone);
+            }
           });
           // Tapping the slot body itself (not the controls above) opens the Pokémon Studio
           // for this party member.
