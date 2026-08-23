@@ -1877,6 +1877,47 @@
     .tb-coverage-accordion-item.open .tb-coverage-accordion-arrow { transform: rotate(180deg); color: #43656e; }
     .tb-coverage-accordion-body { display: none; padding: 4px 18px 16px; border-top: 1px solid rgba(0,0,0,0.06); font-size: 12px; color: #999; font-style: italic; line-height: 1.5; }
     .tb-coverage-accordion-item.open .tb-coverage-accordion-body { display: block; }
+    /* Grid-mode body — cancels the placeholder's italic/gray "coming soon" styling once real
+       matrix content replaces it, without touching the base rule other accordions may still use. */
+    .tb-coverage-accordion-body.tb-coverage-body-grid { font-style: normal; color: inherit; padding: 10px 12px 14px; }
+
+    /* ── 18-type coverage matrix (Defensive/Offensive Coverage bodies) ──
+       3 columns x 6 rows of [type badge | 3x2 mini-grid mirroring the party grid's own 3x2
+       layout], so cell position N in a row always corresponds to party slot N. Built compact
+       and data-dense per spec: everything must fit on a phone screen without scrolling once the
+       accordion is open. */
+    .tb-coverage-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px 10px; }
+    .tb-coverage-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .tb-coverage-type-badge { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: box-shadow 0.15s, transform 0.15s; }
+    .tb-coverage-type-badge img, .tb-coverage-type-badge .badge-fallback { width: 30px; height: 30px; border-radius: 50%; object-fit: contain; }
+    /* Threat highlight — >=3 weaknesses among the party. A crisp perimeter ring, not a soft
+       drop-shadow, per spec ("high-contrast crimson perimeter border ... not a blurry
+       drop-shadow"), plus a small scale bump so the flagged row reads instantly while scanning. */
+    .tb-coverage-type-badge.threat { box-shadow: 0 0 0 2.5px #c0392b; transform: scale(1.08); }
+    .tb-coverage-cells { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 3px; flex: 1; min-width: 0; }
+    .tb-cov-cell { aspect-ratio: 1 / 1; width: 100%; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 900; line-height: 1; }
+    /* Unfilled party slot — not yet meaningful, no calculation happened. Pale, blends toward the
+       card background so it visually recedes behind any calculated (colored or neutral-gray)
+       cell in the same row. */
+    .tb-cov-cell.tb-cov-empty { background: #ece8de; }
+    /* Calculated-neutral (1x) — deliberately a slightly deeper, more saturated gray than the
+       "empty" placeholder above so the two read as different states at a glance, per spec. */
+    .tb-cov-cell.tb-cov-neutral { background: #b7b0a0; }
+    .tb-cov-cell.tb-cov-weak { background: #f2994a; }           /* 2x weakness — orange */
+    .tb-cov-cell.tb-cov-weak-strong { background: #a01818; }    /* 4x+ weakness — dark red/crimson */
+    .tb-cov-cell.tb-cov-resist { background: #5cb85c; }         /* 0.5x resistance — green */
+    .tb-cov-cell.tb-cov-resist-strong { background: #276b1f; }  /* <=0.25x resistance — dark green */
+    .tb-cov-cell.tb-cov-weak-off { background: #f2994a; }       /* offense: best move only 0.5x — orange */
+    .tb-cov-cell.tb-cov-great { background: #5cb85c; }          /* offense: best move 2x — green */
+    .tb-cov-cell.tb-cov-great-strong { background: #276b1f; }   /* offense: best move 4x+ — dark green */
+    .tb-cov-cell.tb-cov-immune { background: #ffffff; border: 1.5px solid #999; color: #444; }
+    .tb-coverage-note { margin-top: 12px; font-size: 11px; color: #999; font-style: italic; line-height: 1.5; text-align: center; }
+    @media (max-width: 480px) {
+      .tb-coverage-matrix { gap: 5px 6px; }
+      .tb-coverage-type-badge, .tb-coverage-type-badge img, .tb-coverage-type-badge .badge-fallback { width: 24px; height: 24px; }
+      .tb-coverage-cells { gap: 2px; }
+      .tb-cov-cell { border-radius: 3px; font-size: 7px; }
+    }
 
     /* Game picker sheet — same slide-up-from-bottom mechanics as the app's other
        setupMobileSheet-driven pickers (Obtain's game list, Types/Generations filters),
@@ -3218,20 +3259,21 @@
         <div class="grid-wrapper">
           <div class="tb-party-grid" id="tb-party-grid"></div>
 
-          <!-- Placeholder accordions — content comes in a later round; reuses the exact
-               open/close pattern as the Obtain modal's egg-group accordion. -->
+          <!-- Coverage accordions — reuses the exact open/close pattern as the Obtain modal's
+               egg-group accordion. Bodies are populated by tbRenderCoverage(), re-run at the
+               same trigger points that already re-render #tb-party-grid. -->
           <div class="tb-coverage-accordion">
             <div class="tb-coverage-accordion-item" id="tb-defensive-coverage-item">
               <div class="tb-coverage-accordion-header">
                 <span>Defensive Coverage</span><span class="tb-coverage-accordion-arrow">▼</span>
               </div>
-              <div class="tb-coverage-accordion-body">Coming in a later round.</div>
+              <div class="tb-coverage-accordion-body tb-coverage-body-grid" id="tb-defensive-coverage-body"></div>
             </div>
             <div class="tb-coverage-accordion-item" id="tb-offensive-coverage-item">
               <div class="tb-coverage-accordion-header">
                 <span>Offensive Coverage</span><span class="tb-coverage-accordion-arrow">▼</span>
               </div>
-              <div class="tb-coverage-accordion-body">Coming in a later round.</div>
+              <div class="tb-coverage-accordion-body tb-coverage-body-grid" id="tb-offensive-coverage-body"></div>
             </div>
           </div>
         </div>
@@ -5115,6 +5157,246 @@
         }
         grid.appendChild(slot);
       }
+      // Coverage matrices mirror the party grid 1:1 (cell N = slot N), so re-render them any
+      // time the grid itself re-renders — additions, removals, shiny toggles, etc. all funnel
+      // through this one function already.
+      tbRenderCoverage(team);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════════
+    // TEAM BUILDER COVERAGE ENGINE — Defensive Coverage & Offensive Coverage accordions.
+    // Reuses the app's existing type-effectiveness data/functions read-only
+    // (typeMatchups/loadTypeMatchups, calculateMatchups, calculateOffensiveMatchups,
+    // ABILITY_MODIFIERS, applyDefensiveAbilityMods, applyOffensiveAbilityMods) rather than
+    // re-deriving a second type chart. All new identifiers here are tb*/TB_*-prefixed and
+    // touch only the two #tb-*-coverage-body elements — no other Team Builder DOM.
+    // ══════════════════════════════════════════════════════════════════════════════
+
+    // Row order for the 3x6 type grid — exact left-to-right, top-to-bottom order from the
+    // reference screenshots.
+    const TB_COVERAGE_TYPE_ORDER = [
+      'normal','grass','fire',
+      'water','electric','bug',
+      'rock','ground','poison',
+      'fighting','flying','psychic',
+      'ghost','dark','ice',
+      'steel','dragon','fairy'
+    ];
+
+    // Fixed-damage moves deal flat HP regardless of type weakness/resistance — only an outright
+    // immunity changes their result. Keyed by kebab-case move name (PokéAPI's `move.name` shape).
+    const TB_FIXED_DAMAGE_MOVES = new Set(['seismic-toss','night-shade','dragon-rage','sonic-boom']);
+
+    // Small isolated ability hook for a single attacking type, per spec — a safe no-op (returns
+    // 1) whenever the ability is empty/unrecognized, so Defensive Coverage already works today
+    // (party members have no `ability` set yet per current Studio scope) and starts reflecting
+    // ability effects automatically once a later round wires up an ability picker. Only covers
+    // flat per-type overrides (Levitate, Thick Fat, Dry Skin, Flash Fire, ...); modal abilities
+    // (Wonder Guard, Filter/Solid Rock, Delta Stream) are NOT expressible as a single-type
+    // modifier, so the actual per-member calculation below runs the full existing
+    // applyDefensiveAbilityMods() pipeline (a superset of this hook) rather than this shortcut.
+    function tbAbilityDefenseModifier(abilityName, attackingType){
+      if(!abilityName) return 1;
+      const key = String(abilityName).toLowerCase().trim().replace(/\s+/g,'-');
+      const mod = ABILITY_MODIFIERS[key];
+      if(!mod || !mod.defensive || mod.defensive.mode) return 1;
+      const val = mod.defensive[attackingType];
+      return val !== undefined ? val : 1;
+    }
+
+    // Normalizes a party member's `ability` field (may be unset/empty today) into the
+    // activeMods array the shared apply*AbilityMods() helpers expect.
+    function tbGetActiveAbilityMods(member){
+      if(!member || !member.ability) return [];
+      const key = String(member.ability).toLowerCase().trim().replace(/\s+/g,'-');
+      const mod = ABILITY_MODIFIERS[key];
+      return mod ? [mod] : [];
+    }
+
+    // ── Defensive Coverage ──
+    // For each of the 18 attacking types, and each of the 6 party slots, computes the total
+    // incoming multiplier (base dual-type effectiveness x ability modifier). Returns one row
+    // per attacking type: { type, cells: [{empty:true} | {empty:false, mult}], weakCount }.
+    function tbCalcDefensiveCoverage(team){
+      return TB_COVERAGE_TYPE_ORDER.map(atkType=>{
+        const cells = (team.party||[]).map(member=>{
+          if(!member || !Array.isArray(member.types) || !member.types.length) return {empty:true};
+          const base = calculateMatchups(member.types); // reused read-only from the Matchups modal
+          if(!base) return {empty:true}; // type-matchups.json not loaded yet
+          const mods = tbGetActiveAbilityMods(member);
+          const applied = mods.length ? applyDefensiveAbilityMods(base, mods, member.types) : base;
+          return {empty:false, mult: applied[atkType]};
+        });
+        const weakCount = cells.filter(c=>!c.empty && c.mult>=2).length;
+        return {type: atkType, cells, weakCount};
+      });
+    }
+
+    // ── Offensive Coverage ──
+    // Filters a member's moveset to damaging moves only (category != status). Current schema
+    // has `moves: []` for every member until Studio's move picker exists, so this reliably
+    // returns [] today — handled explicitly by the caller as "no data yet", not a 0x immunity.
+    function tbGetDamagingMoves(member){
+      if(!member || !Array.isArray(member.moves)) return [];
+      return member.moves.filter(m=>{
+        if(!m) return false;
+        const dc = (m.damage_class && m.damage_class.name) || m.damageClass || m.category;
+        return !!dc && String(dc).toLowerCase() !== 'status';
+      });
+    }
+
+    // Effectiveness of one attacking move-type against a defending type *profile* (an array of
+    // 1-2 types), with ability modifiers applied — kept generic per the spec's forward-compat
+    // note so a future round can pass dual-type defenders, even though this round only ever
+    // passes single-type profiles (the 18 monotypes rendered in the grid).
+    function tbMoveTypeVsProfile(moveTypeName, defTypes, activeOffMods){
+      const full = calculateOffensiveMatchups(moveTypeName); // reused read-only, {defType: mult}
+      if(!full) return null;
+      const applied = (activeOffMods && activeOffMods.length)
+        ? applyOffensiveAbilityMods(full, moveTypeName, activeOffMods)
+        : full;
+      let product = 1;
+      defTypes.forEach(d=>{ product *= (applied[d] !== undefined ? applied[d] : 1); });
+      return product;
+    }
+
+    // M_slot(P, T_def) = max over P's damaging moves of M_move. Accepts a `defenderProfiles`
+    // array of {label, types:[...]} so the same engine can score dual-type or custom defenders
+    // later; defaults to the 18 rendered monotypes.
+    function tbCalcOffensiveCoverage(team, defenderProfiles){
+      const profiles = defenderProfiles || TB_COVERAGE_TYPE_ORDER.map(t=>({label:t, types:[t]}));
+      return profiles.map(profile=>{
+        const cells = (team.party||[]).map(member=>{
+          if(!member) return {empty:true};
+          const moves = tbGetDamagingMoves(member);
+          if(!moves.length) return {empty:true}; // no moveset data yet — not a calculated immunity
+          const mods = tbGetActiveAbilityMods(member);
+          let best = null;
+          moves.forEach(mv=>{
+            const moveType = String((mv.type && mv.type.name) || mv.type || '').toLowerCase();
+            if(!moveType) return; // can't score a move with no resolvable type
+            const moveId = String(mv.name || '').toLowerCase().trim().replace(/\s+/g,'-');
+            let m;
+            if(TB_FIXED_DAMAGE_MOVES.has(moveId)){
+              // Fixed-damage: ignores weak/resist, only an outright immunity matters.
+              const raw = tbMoveTypeVsProfile(moveType, profile.types, []);
+              m = (raw === 0) ? 0 : 1;
+            } else {
+              m = tbMoveTypeVsProfile(moveType, profile.types, mods);
+            }
+            if(m === null) return;
+            if(best === null || m > best) best = m;
+          });
+          if(best === null) return {empty:true};
+          return {empty:false, mult: best};
+        });
+        return {type: profile.label, cells};
+      });
+    }
+
+    // ── Cell coloring ──
+    // Bucketed rather than exact-match so ability-stacked multipliers that don't land on a
+    // "clean" value (e.g. Filter's x0.75, or a hypothetical 1.5x) still fall into the nearest
+    // sensible color tier instead of silently rendering as unstyled/neutral.
+    function tbCoverageCellClass(cell, mode){
+      if(cell.empty) return 'tb-cov-empty';
+      const m = cell.mult;
+      if(mode === 'defense'){
+        if(m <= 0) return 'tb-cov-immune';
+        if(m < 0.5) return 'tb-cov-resist-strong';
+        if(m < 1)   return 'tb-cov-resist';
+        if(m === 1) return 'tb-cov-neutral';
+        if(m <= 2)  return 'tb-cov-weak';
+        return 'tb-cov-weak-strong';
+      }
+      // offense
+      if(m <= 0) return 'tb-cov-immune';
+      if(m < 1)   return 'tb-cov-weak-off';
+      if(m === 1) return 'tb-cov-neutral';
+      if(m <= 2)  return 'tb-cov-great';
+      return 'tb-cov-great-strong';
+    }
+    function tbFormatMultiplier(m){ return (Math.round(m*100)/100) + '×'; }
+
+    // Shared renderer for both accordion bodies — builds the 3x6 [type badge | 3x2 mini-grid]
+    // matrix DOM from a rows array ({type, cells, weakCount?}[]).
+    function tbRenderCoverageMatrix(rows, mode){
+      const wrap = document.createElement('div');
+      wrap.className = 'tb-coverage-matrix';
+      rows.forEach(row=>{
+        const rowEl = document.createElement('div');
+        rowEl.className = 'tb-coverage-row';
+        const badge = document.createElement('div');
+        badge.className = 'tb-coverage-type-badge' + (mode==='defense' && row.weakCount>=3 ? ' threat' : '');
+        badge.title = row.type.charAt(0).toUpperCase()+row.type.slice(1) + (mode==='defense' && row.weakCount>=3 ? ' — threatened (3+ weaknesses)' : '');
+        badge.appendChild(makeBadgeImg(row.type, false));
+        rowEl.appendChild(badge);
+        const cellsWrap = document.createElement('div');
+        cellsWrap.className = 'tb-coverage-cells';
+        row.cells.forEach(c=>{
+          const cellEl = document.createElement('div');
+          cellEl.className = 'tb-cov-cell ' + tbCoverageCellClass(c, mode);
+          if(!c.empty && c.mult === 0) cellEl.textContent = '✕';
+          cellEl.title = c.empty ? 'No data yet' : tbFormatMultiplier(c.mult);
+          cellsWrap.appendChild(cellEl);
+        });
+        rowEl.appendChild(cellsWrap);
+        wrap.appendChild(rowEl);
+      });
+      return wrap;
+    }
+
+    // Guards against an infinite fetch->render->fetch loop: if type-matchups.json genuinely
+    // never loads (offline, 404, unsupported fetch scheme, etc.), each render call kicking off
+    // its own retry-on-success re-render would otherwise re-trigger the fetch forever. This caps
+    // the whole Coverage feature to exactly one load attempt; a later render pass reuses its
+    // outcome instead of re-fetching.
+    let tbTypeMatchupsLoadAttempted = false;
+    function tbEnsureCoverageDataThenRerender(){
+      if(tbTypeMatchupsLoadAttempted) return;
+      tbTypeMatchupsLoadAttempted = true;
+      loadTypeMatchups().then(()=>{
+        const team = getTeam(tbActiveTeamId);
+        if(team) tbRenderCoverage(team);
+      });
+    }
+
+    function tbRenderDefensiveCoverage(team){
+      const body = document.getElementById('tb-defensive-coverage-body');
+      if(!body) return;
+      if(!typeMatchups){
+        body.innerHTML = tbTypeMatchupsLoadAttempted
+          ? '<div class="tb-coverage-loading">Type data unavailable right now — reopen this team to retry.</div>'
+          : '<div class="tb-coverage-loading">Loading type data…</div>';
+        tbEnsureCoverageDataThenRerender();
+        return;
+      }
+      body.innerHTML = '';
+      body.appendChild(tbRenderCoverageMatrix(tbCalcDefensiveCoverage(team), 'defense'));
+    }
+
+    function tbRenderOffensiveCoverage(team){
+      const body = document.getElementById('tb-offensive-coverage-body');
+      if(!body) return;
+      if(!typeMatchups){
+        body.innerHTML = tbTypeMatchupsLoadAttempted
+          ? '<div class="tb-coverage-loading">Type data unavailable right now — reopen this team to retry.</div>'
+          : '<div class="tb-coverage-loading">Loading type data…</div>';
+        tbEnsureCoverageDataThenRerender();
+        return;
+      }
+      body.innerHTML = '';
+      body.appendChild(tbRenderCoverageMatrix(tbCalcOffensiveCoverage(team), 'offense'));
+      const note = document.createElement('div');
+      note.className = 'tb-coverage-note';
+      note.textContent = 'Move-based offensive coverage will appear here once you assign moves to your Pokémon in the Studio.';
+      body.appendChild(note);
+    }
+
+    function tbRenderCoverage(team){
+      if(!team) return;
+      tbRenderDefensiveCoverage(team);
+      tbRenderOffensiveCoverage(team);
     }
 
     // ══════════════════════════════════════════════════════════════════════════════
