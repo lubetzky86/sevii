@@ -3195,10 +3195,26 @@
             <input type="text" class="tb-dexpick-search" id="tb-dexpick-search" placeholder="Search Pokémon...">
             <button class="tb-dexpick-filter-btn" id="tb-dexpick-type-trigger">Types</button>
             <button class="tb-dexpick-filter-btn" id="tb-dexpick-gen-trigger">Gen</button>
-            <select id="tb-dexpick-sort-select">
-              <option value="number">Pokédex #</option>
-              <option value="alpha">Alphabetical</option>
-            </select>
+            <div class="sort-row">
+              <select id="tb-dexpick-sort-select">
+                <option value="number">Pokédex number</option>
+                <option value="alpha">Alphabetical</option>
+                <optgroup label="Base Stats">
+                  <option value="bst">Total (BST)</option>
+                  <option value="hp">HP</option>
+                  <option value="attack">Attack</option>
+                  <option value="defense">Defense</option>
+                  <option value="spatk">Sp. Atk</option>
+                  <option value="spdef">Sp. Def</option>
+                  <option value="speed">Speed</option>
+                </optgroup>
+                <optgroup label="Physical">
+                  <option value="weight">Weight</option>
+                  <option value="height">Height</option>
+                </optgroup>
+              </select>
+              <div class="grid-sort-dir" id="tb-dexpick-sort-dir-btn">↑</div>
+            </div>
           </div>
           <div class="tb-dexpick-body">
             <div class="tb-dexpick-grid grid" id="tb-dexpick-grid"></div>
@@ -4489,9 +4505,10 @@
     function makeEmptyPartySlot(){
       return null; // an empty slot is simply null; see makeTeamMember() for a filled one
     }
-    function makeTeamMember(speciesId, speciesName, shiny){
+    function makeTeamMember(speciesId, speciesName, shiny, types){
       return {
         speciesId, speciesName, nickname: '', shiny: !!shiny,
+        types: Array.isArray(types) ? types : [],
         ability: null, item: null, nature: null, teraType: null,
         evs: { hp:0, atk:0, def:0, spa:0, spd:0, spe:0 },
         ivs: { hp:31, atk:31, def:31, spa:31, spd:31, spe:31 },
@@ -4754,6 +4771,7 @@
               <div>
                 <div class="tb-party-slot-name">${escapeHtml(member.speciesName||'')}</div>
                 ${member.shiny ? '<div class="tb-party-slot-shiny">✨ Shiny</div>' : ''}
+                ${Array.isArray(member.types) && member.types.length ? '<div class="tb-party-slot-badges type-badges"></div>' : ''}
               </div>
             </div>
             <div class="tb-slot-shiny-toggle${member.shiny ? ' on' : ''}" title="Toggle shiny">
@@ -4761,6 +4779,12 @@
               <div class="tb-slot-shiny-track${member.shiny ? ' on' : ''}"><div class="tb-slot-shiny-thumb"></div></div>
             </div>
           `;
+          // Type badges — only rendered when the member has captured type data (members added
+          // before this fix have no `types` field and simply show no badge row, per spec).
+          if(Array.isArray(member.types) && member.types.length){
+            const badgeRow = slot.querySelector('.tb-party-slot-badges');
+            if(badgeRow) member.types.forEach(t => badgeRow.appendChild(makeBadgeImg(t, false)));
+          }
           // Remove button — instant remove, no confirmation dialog per this round's scope.
           slot.querySelector('.tb-slot-remove-btn').addEventListener('click', (e)=>{
             e.stopPropagation();
@@ -4803,8 +4827,10 @@
     let tbDexPickSearch = '';
     let tbDexPickActiveTypes = new Set();
     let tbDexPickActiveGen = 'all';     // 'all' | '1'..'9'
-    let tbDexPickSort = 'number';       // 'number' | 'alpha'
+    let tbDexPickSort = 'number';       // 'number' | 'alpha' | STAT_SORT_KEYS member
+    let tbDexPickSortAscending = true;
     let tbDexPickResolvedRoster = undefined; // undefined = not yet resolved for this open; null = no restriction (no game, or fallback); Set or {type:'idrange',...} = curated roster
+    let tbDexPickAvailableGens = null;  // Set of generation numbers (as strings) present for the current game/roster; null = no restriction (show Gen 1-9)
 
     async function tbOpenDexPicker(slotIndex){
       tbDexPickSlotIndex = slotIndex;
@@ -4813,12 +4839,18 @@
       tbDexPickActiveTypes = new Set();
       tbDexPickActiveGen = 'all';
       tbDexPickSort = 'number';
+      tbDexPickSortAscending = true;
       tbDexPickResolvedRoster = undefined;
+      tbDexPickAvailableGens = null;
       const team = getTeam(tbActiveTeamId);
       document.getElementById('tb-dexpick-search').value = '';
       document.getElementById('tb-dexpick-sort-select').value = 'number';
-      document.getElementById('tb-dexpick-type-trigger').classList.remove('has-selection');
+      document.getElementById('tb-dexpick-sort-dir-btn').textContent = '↑';
+      const typeTrigger = document.getElementById('tb-dexpick-type-trigger');
+      typeTrigger.classList.remove('has-selection');
+      typeTrigger.textContent = 'Types';
       document.getElementById('tb-dexpick-gen-trigger').classList.remove('has-selection');
+      document.querySelectorAll('#tb-dexpick-type-sheet-body .tb-dexpick-pill').forEach(p=>p.classList.remove('selected'));
       document.getElementById('tb-dexpick-backdrop').classList.add('visible');
       if(team && team.game){
         const grid = document.getElementById('tb-dexpick-grid');
@@ -4829,7 +4861,45 @@
       } else {
         tbDexPickResolvedRoster = null;
       }
+      tbDexPickRecomputeAvailableGens();
+      renderTbDexPickGenSheet();
       renderTbDexPickGrid();
+    }
+
+    // Computes which generations actually have at least one Pokémon in the current
+    // game-filtered pool (roster applied, before search/gen/type filters). null means
+    // "no game selected" — show the full Gen 1-9 range unrestricted, same as before.
+    function tbDexPickRecomputeAvailableGens(){
+      const team = getTeam(tbActiveTeamId);
+      if(!team || !team.game){ tbDexPickAvailableGens = null; return; }
+      let list = [...allPokemon, ...regionalForms];
+      const roster = tbDexPickResolvedRoster;
+      if(roster instanceof Set){
+        list = list.filter(p => roster.has(baseSpeciesNameForPokemon(cardData(p).name)));
+      } else if(roster && roster.type === 'idrange'){
+        list = list.filter(p => { const id = cardDexId(p); return id>=roster.min && id<=roster.max; });
+      } else {
+        const versions = tbDexPickGameVersions();
+        if(versions){
+          list = list.filter(p=>{
+            const data = cardData(p);
+            return Array.isArray(data.game_indices) && data.game_indices.some(gi => versions.includes(gi.version.name));
+          });
+        }
+      }
+      const gens = new Set();
+      list.forEach(p=>{
+        const id = cardDexId(p);
+        for(const g in GEN_RANGES){
+          const [min,max] = GEN_RANGES[g];
+          if(id>=min && id<=max){ gens.add(g); break; }
+        }
+      });
+      tbDexPickAvailableGens = gens;
+      // If the previously-active generation is no longer valid for this game, reset to 'all'.
+      if(tbDexPickActiveGen !== 'all' && !gens.has(tbDexPickActiveGen)){
+        tbDexPickActiveGen = 'all';
+      }
     }
     function tbCloseDexPicker(){
       document.getElementById('tb-dexpick-backdrop').classList.remove('visible');
@@ -4854,8 +4924,14 @@
       if(team && team.game){
         const roster = tbDexPickResolvedRoster;
         if(roster instanceof Set){
-          list = list.filter(p => roster.has(cardData(p).name));
+          // PokéAPI dex/game_indices membership is keyed to the base species, not to a
+          // specific regional-form variety — normalize before checking so regional forms
+          // (e.g. meowth-galar) don't silently vanish just because their form-suffixed name
+          // isn't itself a roster entry.
+          list = list.filter(p => roster.has(baseSpeciesNameForPokemon(cardData(p).name)));
         } else if(roster && roster.type === 'idrange'){
+          // id-based — dex numbers already resolve correctly for regional forms, no
+          // base-species normalization needed here.
           list = list.filter(p => { const id = cardDexId(p); return id>=roster.min && id<=roster.max; });
         } else {
           // roster is null: either a pre-Gen-8 game (use the existing game_indices approach)
@@ -4882,9 +4958,18 @@
       } else if(tbDexPickActiveTypes.size>1){
         list = list.filter(p => [...tbDexPickActiveTypes].every(t => cardTypes(p).some(x => x.type.name===t)));
       }
+      const dir = tbDexPickSortAscending ? 1 : -1;
       list = [...list].sort((a,b)=>{
-        if(tbDexPickSort === 'alpha') return cardLabelText(a).localeCompare(cardLabelText(b));
-        return cardDexId(a) - cardDexId(b);
+        if(tbDexPickSort === 'alpha') return dir*cardLabelText(a).localeCompare(cardLabelText(b));
+        if(tbDexPickSort === 'number') return dir*(cardDexId(a) - cardDexId(b));
+        // Stat sorts — same shared statCache the main grid populates via ensureStats(),
+        // keyed the same way (cardDexId), falling back to dex-number order if not cached.
+        const sa = statCache[cardDexId(a)], sb = statCache[cardDexId(b)];
+        if(sa && sb){
+          const va = sa[tbDexPickSort] ?? 0, vb = sb[tbDexPickSort] ?? 0;
+          return dir*(va - vb);
+        }
+        return dir*(cardDexId(a) - cardDexId(b));
       });
       return list;
     }
@@ -4929,7 +5014,8 @@
       if(!team) return;
       const entryData = cardData(pokemon);
       const dexId = cardDexId(pokemon);
-      team.party[tbDexPickSlotIndex] = makeTeamMember(dexId, entryData.name, false);
+      const types = cardTypes(pokemon).map(t => t.type.name);
+      team.party[tbDexPickSlotIndex] = makeTeamMember(dexId, entryData.name, false, types);
       touchTeam(team);
       tbCloseDexPicker();
       renderTeamPartyGrid(team);
@@ -4939,8 +5025,16 @@
       tbDexPickSearch = e.target.value;
       renderTbDexPickGrid();
     });
-    document.getElementById('tb-dexpick-sort-select')?.addEventListener('change', e=>{
+    document.getElementById('tb-dexpick-sort-select')?.addEventListener('change', async e=>{
       tbDexPickSort = e.target.value;
+      if(STAT_SORT_KEYS.has(tbDexPickSort)){
+        await ensureStats();
+      }
+      renderTbDexPickGrid();
+    });
+    document.getElementById('tb-dexpick-sort-dir-btn')?.addEventListener('click', ()=>{
+      tbDexPickSortAscending = !tbDexPickSortAscending;
+      document.getElementById('tb-dexpick-sort-dir-btn').textContent = tbDexPickSortAscending ? '↑' : '↓';
       renderTbDexPickGrid();
     });
     // Type filter sheet — multi-select OR logic (a card matches if it has ANY selected type).
@@ -4951,29 +5045,44 @@
       TYPE_ORDER.forEach(type=>{
         const pill = document.createElement('button');
         pill.className = 'tb-dexpick-pill';
+        pill.dataset.type = type;
         pill.textContent = type.charAt(0).toUpperCase()+type.slice(1);
         pill.addEventListener('click', ()=>{
-          if(tbDexPickActiveTypes.has(type)) tbDexPickActiveTypes.delete(type); else tbDexPickActiveTypes.add(type);
-          pill.classList.toggle('selected', tbDexPickActiveTypes.has(type));
-          document.getElementById('tb-dexpick-type-trigger').classList.toggle('has-selection', tbDexPickActiveTypes.size>0);
+          // Exact cap-2-with-FIFO-eviction pattern as the main grid's toggleType(): a 3rd
+          // selected type silently evicts the first-selected one rather than allowing 3+.
+          if(tbDexPickActiveTypes.has(type)){ tbDexPickActiveTypes.delete(type); }
+          else{ if(tbDexPickActiveTypes.size>=2){ const [o] = tbDexPickActiveTypes; tbDexPickActiveTypes.delete(o); } tbDexPickActiveTypes.add(type); }
+          body.querySelectorAll('.tb-dexpick-pill').forEach(p=>{
+            p.classList.toggle('selected', tbDexPickActiveTypes.has(p.dataset.type));
+          });
+          const trigger = document.getElementById('tb-dexpick-type-trigger');
+          trigger.classList.toggle('has-selection', tbDexPickActiveTypes.size>0);
+          trigger.textContent = tbDexPickActiveTypes.size>0 ? `Types (${tbDexPickActiveTypes.size})` : 'Types';
           renderTbDexPickGrid();
         });
         body.appendChild(pill);
       });
     })();
 
-    // Generation filter sheet — single-select pill row, Gen 1-9 plus an "All" option.
+    // Generation filter sheet — single-select pill row. Options are rebuilt dynamically (via
+    // renderTbDexPickGenSheet, called from tbOpenDexPicker) from whichever generations are
+    // actually present in the currently-selected game's roster, plus an "All" option; with no
+    // game selected the full Gen 1-9 range is shown, same as before.
     setupMobileSheet('tb-dexpick-gen-trigger','tb-dexpick-gen-sheet','tb-dexpick-gen-sheet-backdrop','tb-dexpick-gen-sheet-close');
-    (function initTbDexPickGenSheet(){
+    function renderTbDexPickGenSheet(){
       const body = document.getElementById('tb-dexpick-gen-sheet-body');
       if(!body) return;
-      // Hardcoded rather than Object.keys(GEN_RANGES) — this IIFE runs immediately at page load,
-      // before GEN_RANGES (declared later in the file) is initialized, which was throwing
-      // "Cannot access 'GEN_RANGES' before initialization" and halting the entire script.
-      const options = ['all','1','2','3','4','5','6','7','8','9'];
+      body.innerHTML = '';
+      // tbDexPickAvailableGens is a Set built by tbDexPickRecomputeAvailableGens() (called at
+      // picker-open time, after the game roster has resolved); null means no game is selected,
+      // so show the unrestricted full range like before this fix.
+      const allGenNums = ['1','2','3','4','5','6','7','8','9'];
+      const options = tbDexPickAvailableGens === null
+        ? ['all', ...allGenNums]
+        : ['all', ...allGenNums.filter(g => tbDexPickAvailableGens.has(g))];
       options.forEach(gen=>{
         const pill = document.createElement('button');
-        pill.className = 'tb-dexpick-pill' + (gen==='all' ? ' selected' : '');
+        pill.className = 'tb-dexpick-pill' + (gen===tbDexPickActiveGen ? ' selected' : '');
         pill.textContent = gen==='all' ? 'All' : `Gen ${gen}`;
         pill.addEventListener('click', ()=>{
           tbDexPickActiveGen = gen;
@@ -4984,7 +5093,10 @@
         });
         body.appendChild(pill);
       });
-    })();
+    }
+    // Populate an initial (unrestricted) set of options at page load so the sheet isn't
+    // empty before the picker has ever been opened.
+    renderTbDexPickGenSheet();
 
     // ── Coverage accordions (placeholders) — same open/close toggle as the Obtain modal's
     // egg-group accordion (.obtain-egg-accordion-item), just tb-prefixed classes. ──
