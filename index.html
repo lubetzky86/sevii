@@ -1887,6 +1887,14 @@
     .tb-studio-opt-hidden-tag { font-size: 10px; color: #9f009f; font-style: italic; font-weight: 700; margin-left: 8px; }
     .tb-studio-opt-left { display: flex; align-items: center; gap: 10px; }
     .tb-studio-opt-row img.type-badge-img { width: 20px; height: 20px; }
+    .tb-studio-item-icon { width: 24px; height: 24px; object-fit: contain; image-rendering: pixelated; flex-shrink: 0; }
+    .tb-studio-item-cat { margin-bottom: 6px; }
+    .tb-studio-item-cat-header { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 12px 4px; background: none; border: none; border-bottom: 1px solid #eee; cursor: pointer; font: inherit; text-align: left; }
+    .tb-studio-item-cat-title { font-size: 13px; font-weight: 700; color: #1a1a1a; letter-spacing: 0.2px; }
+    .tb-studio-item-cat-chevron { font-size: 11px; color: #999; transition: transform 0.2s; }
+    .tb-studio-item-cat.open .tb-studio-item-cat-chevron { transform: rotate(90deg); }
+    .tb-studio-item-cat-body { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
+    .tb-studio-item-cat.open .tb-studio-item-cat-body { max-height: 1600px; }
     .tb-studio-moves-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .tb-studio-move-slot { background: white; border: 2px dashed #d4ccbc; border-radius: 12px; min-height: 56px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: border-color 0.15s, background 0.15s; font-size: 12px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.3px; }
     .tb-studio-move-slot:hover { border-color: var(--studio-dark, #606070); background: rgba(0,0,0,0.02); }
@@ -3520,6 +3528,14 @@
       <div class="tb-studio-sheet" id="tb-studio-tera-sheet">
         <div class="tb-studio-sheet-header"><span class="tb-studio-sheet-title">Tera Type</span><button class="tb-studio-sheet-close" id="tb-studio-tera-sheet-close">✕</button></div>
         <div class="tb-studio-sheet-body" id="tb-studio-tera-sheet-body"></div>
+      </div>
+
+      <!-- Item picker sheet — same setupMobileSheet pattern as Ability/Nature/Tera above, but its
+           body is organized into per-category collapsible sections rather than a flat list. -->
+      <div class="tb-studio-sheet-backdrop" id="tb-studio-item-sheet-backdrop"></div>
+      <div class="tb-studio-sheet" id="tb-studio-item-sheet">
+        <div class="tb-studio-sheet-header"><span class="tb-studio-sheet-title">Item</span><button class="tb-studio-sheet-close" id="tb-studio-item-sheet-close">✕</button></div>
+        <div class="tb-studio-sheet-body" id="tb-studio-item-sheet-body"></div>
       </div>
 
     </div>
@@ -5506,6 +5522,102 @@
     let tbStudioSlotIndex = null;   // party slot index the open Studio is editing
     const tbStudioSpeciesCache = {}; // speciesId -> { colorName, stats: [{name,base}], types }
 
+    // ── Item Catalog data (data/items.json) ──────────────────────────────────────────
+    // Lazily fetched once and cached, same pattern as the other Team Builder data files
+    // (data/type-matchups.json etc.). See data/items.json's own _comment fields for the
+    // full rationale behind the taxonomy, the Legends Z-A DLC additions, and the
+    // species/mechanic compatibility maps below.
+    let tbItemCatalog = null;         // resolved data/items.json contents
+    let tbItemCatalogPromise = null;  // in-flight fetch, so concurrent openers share one request
+    function tbFetchItemCatalog(){
+      if(tbItemCatalog) return Promise.resolve(tbItemCatalog);
+      if(!tbItemCatalogPromise){
+        tbItemCatalogPromise = fetch('data/items.json').then(r=>r.json()).then(d=>{ tbItemCatalog = d; return d; });
+      }
+      return tbItemCatalogPromise;
+    }
+
+    const TB_ITEM_TIER_ORDER = {staple:0, common:1, niche:2, banned:3, 'story-only':4};
+    const TB_ITEM_CATEGORY_ORDER = [
+      {key:'offensive-boosters', label:'Offensive Boosters'},
+      {key:'defense-protection', label:'Defense & Protection'},
+      {key:'recovery-sustain', label:'Recovery & Sustain'},
+      {key:'consumable-triggers', label:'Consumables & Triggers'},
+      {key:'field-mechanics', label:'Field & Mechanics'},
+      {key:'special-artifacts', label:'Special Artifacts'}
+    ];
+
+    // PokéAPI item sprites, fetched + cached per slug. Falls back to null (caller renders a
+    // placeholder swatch) if the slug 404s — keeps unverified Z-A slugs from breaking the sheet.
+    const tbItemSpriteCache = {};
+    async function tbFetchItemSprite(slug){
+      if(slug in tbItemSpriteCache) return tbItemSpriteCache[slug];
+      try{
+        const res = await fetch(`https://pokeapi.co/api/v2/item/${slug}/`);
+        if(!res.ok) throw new Error('404');
+        const data = await res.json();
+        const url = data.sprites && data.sprites.default ? data.sprites.default : null;
+        tbItemSpriteCache[slug] = url;
+        return url;
+      }catch(err){
+        tbItemSpriteCache[slug] = null;
+        return null;
+      }
+    }
+    function tbItemDisplayName(slug){
+      return slug.replace(/-/g,' ').replace(/\b\w/g, c=>c.toUpperCase());
+    }
+
+    // Whether `item` (a taxonomy entry) is visible at all for the given team, per the mode gate
+    // that applies to every one of the 6 categories, no exceptions.
+    function tbItemPassesMode(itemEntry, team){
+      return !!(itemEntry && Array.isArray(itemEntry.modes) && team && itemEntry.modes.includes(team.mode));
+    }
+
+    // Special-artifacts-only: species compatibility gate. Returns true if `slug` is thematically
+    // tied to `speciesName` (or has no species restriction at all, e.g. type-variant Z-Crystals,
+    // which are gated on move-type compatibility elsewhere, not species).
+    function tbItemSpeciesGate(slug, speciesName, catalog){
+      if(!catalog || !speciesName) return false;
+      const sp = speciesName.toLowerCase();
+      if(catalog.mega_stone_species[slug]) return catalog.mega_stone_species[slug] === sp;
+      if(catalog.z_crystal_species[slug]) return catalog.z_crystal_species[slug] === sp;
+      if(catalog.orb_species[slug]){
+        const v = catalog.orb_species[slug];
+        return Array.isArray(v) ? v.includes(sp) : v === sp;
+      }
+      if(catalog.mask_species[slug]) return catalog.mask_species[slug] === sp;
+      if(catalog.sword_shield_species[slug]) return catalog.sword_shield_species[slug] === sp;
+      if(catalog.plate_items.includes(slug)) return sp === 'arceus';
+      if(catalog.memory_items.includes(slug)) return sp === 'silvally';
+      if(catalog.drive_items.includes(slug)) return sp === 'genesect';
+      if(catalog.type_variant_z_crystals[slug]) return true; // no species restriction — any holder qualifies
+      // Any other special-artifacts item with no known compatibility rule: treat as unrestricted
+      // rather than silently hiding it (keeps the data model future-proof for entries we haven't
+      // mapped a rule for yet).
+      return true;
+    }
+
+    // Special-artifacts-only: game-mechanic gate. Returns true if `slug`'s mechanic (mega/zmove/
+    // dynamax) is actually usable in `team.game`. Plates/Memories/Drives/Orbs/Masks/Rusted Sword&
+    // Shield are cosmetic/lore holds with no separate battle mechanic requirement, so they pass
+    // this gate unconditionally (species gate above is what actually restricts them).
+    function tbItemMechanicGate(slug, team, catalog){
+      if(!catalog || !team || !team.game) return false;
+      const mechs = catalog.game_mechanics[team.game] || [];
+      if(catalog.mega_stone_species[slug]) return mechs.includes('mega');
+      if(catalog.z_crystal_species[slug] || catalog.type_variant_z_crystals[slug]) return mechs.includes('zmove');
+      // Orbs, Masks, Rusted Sword/Shield, Plates, Memories, Drives — no game-specific mechanic
+      // gate beyond "does this game's dex include the species", which the species gate + the
+      // Studio only being reachable for a party member already covers.
+      return true;
+    }
+
+    // Full visibility check for one special-artifacts item against the currently-open member.
+    function tbItemArtifactVisible(slug, member, team, catalog){
+      return tbItemSpeciesGate(slug, member.speciesName, catalog) && tbItemMechanicGate(slug, team, catalog);
+    }
+
     // Gen-9 game ids — used to gate the Tera Type slot's visibility.
     const TB_STUDIO_GEN9_GAMES = new Set(['scarlet','violet','legends-za']);
 
@@ -5685,9 +5797,8 @@
     document.getElementById('tb-studio-backdrop')?.addEventListener('click', e=>{
       if(e.target === document.getElementById('tb-studio-backdrop')) tbCloseStudio();
     });
-    document.getElementById('tb-studio-item-pill')?.addEventListener('click', ()=>{
-      document.getElementById('tb-studio-pill-hint').textContent = 'Item is coming in a later round.';
-    });
+    // (Item pill's click handler lives with the rest of the Item picker below, alongside its
+    // setupMobileSheet() call — see "── Item picker ──".)
 
     // Closes one of the Ability/Nature/Tera sheets directly (used after a selection is made,
     // instead of re-dispatching a click on the trigger — which would also re-run that trigger's
@@ -5724,6 +5835,25 @@
         }else{
           teraPill.textContent = '+ Tera Type';
           teraPill.classList.remove('tb-studio-pill-set');
+        }
+      }
+      const itemPill = document.getElementById('tb-studio-item-pill');
+      if(itemPill){
+        if(member.item){
+          const slug = member.item;
+          itemPill.innerHTML = '';
+          const icon = document.createElement('img');
+          icon.className = 'tb-studio-item-icon';
+          icon.alt = '';
+          itemPill.appendChild(icon);
+          const lbl = document.createElement('span');
+          lbl.textContent = tbItemDisplayName(slug);
+          itemPill.appendChild(lbl);
+          itemPill.classList.add('tb-studio-pill-set');
+          tbFetchItemSprite(slug).then(url=>{ if(url) icon.src = url; });
+        }else{
+          itemPill.textContent = 'Item';
+          itemPill.classList.remove('tb-studio-pill-set');
         }
       }
     }
@@ -5810,6 +5940,96 @@
         });
         body.appendChild(row);
       });
+    });
+
+    // ── Item picker ──
+    // Builds one collapsible section per category (Special Artifacts only if at least one of its
+    // items passes both the species AND game-mechanic gates for the currently-open member — see
+    // tbItemArtifactVisible). Every item in every category is also filtered by team.mode against
+    // its own `modes` array first, full stop; tier only affects the sort order within a section
+    // (staple → common → niche → banned), it is never shown as a badge or usable as a filter.
+    setupMobileSheet('tb-studio-item-pill','tb-studio-item-sheet','tb-studio-item-sheet-backdrop','tb-studio-item-sheet-close');
+    document.getElementById('tb-studio-item-pill')?.addEventListener('click', async ()=>{
+      const body = document.getElementById('tb-studio-item-sheet-body');
+      if(!body) return;
+      body.innerHTML = '<div class="tb-studio-sheet-empty">Loading items…</div>';
+      const team = tbStudioTeam, slotIndex = tbStudioSlotIndex;
+      if(!team || slotIndex === null) return;
+      const member = team.party[slotIndex];
+      if(!member) return;
+      let catalog;
+      try{ catalog = await tbFetchItemCatalog(); }
+      catch(err){ body.innerHTML = '<div class="tb-studio-sheet-empty">Couldn\'t load the item catalog.</div>'; return; }
+      // Bail if Studio moved on while the catalog was loading.
+      if(tbStudioTeam !== team || tbStudioSlotIndex !== slotIndex) return;
+
+      body.innerHTML = '';
+      const taxonomy = catalog.taxonomy;
+      TB_ITEM_CATEGORY_ORDER.forEach(({key, label})=>{
+        const isArtifacts = key === 'special-artifacts';
+        let slugs = Object.keys(taxonomy).filter(slug=>{
+          if(slug.startsWith('_')) return false;
+          const entry = taxonomy[slug];
+          if(!entry || entry.category !== key) return false;
+          if(!tbItemPassesMode(entry, team)) return false;
+          if(isArtifacts && !tbItemArtifactVisible(slug, member, team, catalog)) return false;
+          return true;
+        });
+        if(slugs.length === 0) return; // omit the whole section rather than showing it empty
+        slugs.sort((a,b)=>{
+          const ta = TB_ITEM_TIER_ORDER[taxonomy[a].tier] ?? 5;
+          const tb = TB_ITEM_TIER_ORDER[taxonomy[b].tier] ?? 5;
+          if(ta !== tb) return ta - tb;
+          return a.localeCompare(b);
+        });
+
+        const section = document.createElement('div');
+        section.className = 'tb-studio-item-cat';
+        const header = document.createElement('button');
+        header.className = 'tb-studio-item-cat-header';
+        header.innerHTML = `<span class="tb-studio-item-cat-title">${label}</span><span class="tb-studio-item-cat-chevron">▶</span>`;
+        header.addEventListener('click', ()=> section.classList.toggle('open'));
+        section.appendChild(header);
+        const catBody = document.createElement('div');
+        catBody.className = 'tb-studio-item-cat-body';
+        section.appendChild(catBody);
+
+        slugs.forEach(slug=>{
+          const row = document.createElement('button');
+          row.className = 'tb-studio-opt-row' + (member.item === slug ? ' selected' : '');
+          const left = document.createElement('span');
+          left.className = 'tb-studio-opt-left';
+          const icon = document.createElement('img');
+          icon.className = 'tb-studio-item-icon';
+          icon.alt = '';
+          left.appendChild(icon);
+          const nm = document.createElement('span');
+          nm.className = 'tb-studio-opt-name';
+          nm.textContent = tbItemDisplayName(slug);
+          left.appendChild(nm);
+          row.appendChild(left);
+          row.addEventListener('click', ()=>{
+            if(!tbStudioTeam || tbStudioSlotIndex === null) return;
+            const m = tbStudioTeam.party[tbStudioSlotIndex];
+            if(!m) return;
+            m.item = slug; // PokéAPI's own lowercase-kebab slug
+            touchTeam(tbStudioTeam);
+            tbUpdateStudioPillLabels(m);
+            tbCloseStudioSheet('tb-studio-item-sheet','tb-studio-item-sheet-backdrop','tb-studio-item-pill');
+          });
+          catBody.appendChild(row);
+          tbFetchItemSprite(slug).then(url=>{ if(url) icon.src = url; });
+        });
+
+        body.appendChild(section);
+      });
+
+      // Open the first section by default so the sheet doesn't look empty on first tap.
+      const firstSection = body.querySelector('.tb-studio-item-cat');
+      if(firstSection) firstSection.classList.add('open');
+      if(!body.children.length){
+        body.innerHTML = '<div class="tb-studio-sheet-empty">No items available for this mode yet.</div>';
+      }
     });
 
     // ══════════════════════════════════════════════════════════════════════════════
