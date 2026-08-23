@@ -1685,7 +1685,7 @@
        shape used by .lists-action-btn / the modal footer buttons.
        ══════════════════════════════════════════ */
     #section-teambuilder { position: relative; }
-    .tb-hub, .tb-canvas { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 18px 22px 28px; gap: 14px; }
+    .tb-hub, .tb-canvas { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 18px 22px 28px; gap: 10px; }
     .tb-hub-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     .tb-hub-title { font-family: 'Archivo Black', sans-serif; font-size: 18px; font-weight: 900; color: #43656e; text-transform: uppercase; letter-spacing: 0.4px; }
     .tb-create-btn { padding: 9px 18px; border-radius: 24px; border: none; background: #43656e; color: white; font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
@@ -1766,7 +1766,7 @@
     .tb-name-edit-btn:hover { background: rgba(255,255,255,0.28); }
     /* Context header — now holds only the Battle Mode row (name row moved into the topbar
        band above), so its own padding/margin is trimmed to reclaim the freed vertical space. */
-    .tb-context-header { background: #eae3d7; border: 1px solid #d4ccbc; border-radius: 12px; padding: 6px 10px; display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+    .tb-context-header { background: #eae3d7; border: 1px solid #d4ccbc; border-radius: 12px; padding: 6px 10px; display: flex; flex-direction: column; gap: 6px; }
 
     /* Battle Mode row: label sits inline to the left of the pills instead of stacked above them,
        collapsing what used to be two lines of vertical space into one. */
@@ -1781,6 +1781,12 @@
     .tb-game-select-btn:hover { background: rgba(255,255,255,0.85); }
     .tb-game-select-btn .tb-game-logo-img { height: 18px; max-width: 90px; }
     .tb-game-select-chevron { font-size: 10px; color: #999; }
+    /* Once a game is actually selected, the branded logo image IS the whole button — no pill
+       chrome drawn behind/around it. Border/background/padding collapse to a hairline tap-safe
+       margin; the "Select a game" text-fallback state above keeps its pill for legibility. */
+    .tb-game-select-btn.has-logo { padding: 1px; border: none; background: none; border-radius: 8px; }
+    .tb-game-select-btn.has-logo:hover { background: rgba(0,0,0,0.05); }
+    .tb-game-select-btn.has-logo .tb-game-logo-img { height: 26px; max-width: 110px; }
 
     /* Party grid: fixed 3 columns × 2 rows at every breakpoint (matches the reference layout —
        this never collapses to fewer columns the way the main Pokédex grid does). Empty-slot
@@ -1802,9 +1808,8 @@
     .tb-party-slot.filled { background: white; border-style: solid; border-color: #e8e4dd; cursor: default; align-items: stretch; justify-content: flex-start; padding: 10px; }
     .tb-party-slot-filled-row { display: flex; align-items: center; gap: 10px; }
     .tb-party-slot-sprite-zone { position: relative; flex-shrink: 0; }
-    .tb-party-slot-sprite { width: 56px; height: 56px; object-fit: contain; image-rendering: pixelated; display: block; }
+    .tb-party-slot-sprite { width: 88px; height: 88px; object-fit: contain; image-rendering: pixelated; display: block; }
     .tb-party-slot-name { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; color: #1a1a1a; text-transform: capitalize; }
-    .tb-party-slot-shiny { font-size: 11px; color: #b8860b; font-weight: 700; }
     /* Filled-slot corner controls: shiny toggle (top-left) + remove button (top-right).
        Positioned absolutely inside .tb-party-slot.filled (which is already `position` default
        static, so give it relative here) — kept purely local to the Team Builder, no reuse of
@@ -1964,6 +1969,13 @@
     .tb-game-pill.selected { background: #43656e; border-color: #43656e; color: white; }
     .tb-game-pill { min-height: 34px; }
     .tb-game-pill img.tb-game-logo-img { height: 24px; max-width: 90%; }
+    /* Icon-only game pills (game-picker sheet + hub game filter): the branded logo image IS
+       the whole button, edge to edge — no separate pill background/border chrome drawn around
+       it. Padding trimmed to a hairline tap-safe margin only; the image itself fills the rest. */
+    .tb-game-pill.tb-game-pill-icon { background: none; border: none; padding: 2px; border-radius: 8px; }
+    .tb-game-pill.tb-game-pill-icon:hover { border-color: transparent; background: rgba(0,0,0,0.05); }
+    .tb-game-pill.tb-game-pill-icon.selected { background: none; box-shadow: 0 0 0 2px #43656e inset; }
+    .tb-game-pill.tb-game-pill-icon img.tb-game-logo-img { height: 30px; max-width: 100%; width: 100%; object-fit: contain; }
 
     @media (max-width: 900px) {
       .app-header { padding: 0 8px; gap: 6px; }
@@ -2275,7 +2287,7 @@
            3-across treatment as the main Pokédex grid's own mobile override), just with a
            tighter gap so it doesn't overflow, and let the header controls wrap onto their
            own lines so nothing gets clipped. ── */
-      .tb-hub, .tb-canvas { padding: 12px 12px 20px; gap: 10px; }
+      .tb-hub, .tb-canvas { padding: 12px 12px 20px; gap: 8px; }
       .tb-canvas-topbar { margin: -12px -12px 0; padding: 10px 12px; min-height: 52px; }
       .tb-party-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; max-width: none; }
       .tb-party-slot { min-height: 122px; border-radius: 10px; gap: 3px; }
@@ -2283,10 +2295,9 @@
       .tb-party-slot-label { font-size: 9px; }
       .tb-party-slot.filled { padding: 6px; }
       .tb-party-slot-filled-row { flex-direction: column; text-align: center; gap: 4px; }
-      .tb-party-slot-sprite { width: 44px; height: 44px; }
+      .tb-party-slot-sprite { width: 52px; height: 52px; }
       .tb-party-slot-name { font-size: 10px; }
       .tb-party-slot-badges.type-badges img, .tb-party-slot-badges.type-badges .badge-fallback { width: 20px; height: 20px; }
-      .tb-party-slot-shiny { font-size: 9px; }
       .tb-header-controls { gap: 8px; }
       .tb-toggle-btn { padding: 6px 10px; font-size: 11px; }
       .tb-game-select-btn { font-size: 11px; padding: 6px 10px; }
@@ -5018,7 +5029,7 @@
         row.className = 'tb-game-pill-row';
         genGroup.games.forEach(game=>{
           const pill = document.createElement('button');
-          pill.className = 'tb-game-pill' + (tbHubActiveGames.has(game.id) ? ' selected' : '');
+          pill.className = 'tb-game-pill tb-game-pill-icon' + (tbHubActiveGames.has(game.id) ? ' selected' : '');
           pill.innerHTML = tbGameIconImgHtml(game.id, game.name);
           pill.addEventListener('click', ()=>{
             if(tbHubActiveGames.has(game.id)) tbHubActiveGames.delete(game.id); else tbHubActiveGames.add(game.id);
@@ -5088,7 +5099,10 @@
 
       // Game selector label (+ logo, when available)
       const gameLabelEl = document.getElementById('tb-game-select-label');
-      if(gameLabelEl) gameLabelEl.innerHTML = tbGameIconImgHtml(team.game, tbGameLabelFor(team.game) || 'Select a game');
+      if(gameLabelEl){
+        gameLabelEl.innerHTML = tbGameIconImgHtml(team.game, tbGameLabelFor(team.game) || 'Select a game');
+        document.getElementById('tb-game-select-btn')?.classList.toggle('has-logo', !!team.game);
+      }
 
       renderTeamPartyGrid(team);
     }
@@ -5146,7 +5160,6 @@
               </div>
               <div>
                 <div class="tb-party-slot-name">${escapeHtml(member.nickname || cardLabelText({name: member.speciesName||''}) || member.speciesName||'')}</div>
-                ${member.shiny ? '<div class="tb-party-slot-shiny">✨ Shiny</div>' : ''}
                 ${Array.isArray(member.types) && member.types.length ? '<div class="tb-party-slot-badges type-badges"></div>' : ''}
               </div>
             </div>
@@ -5463,14 +5476,18 @@
       return p;
     }
 
+    // speciesId here is the Pokémon ENTITY's own numeric id (see makeTeamMember/tbDexPickSelect —
+    // regional forms get a distinct high id from PokéAPI, separate from their shared Pokédex
+    // number). /pokemon/{id}/ resolves directly on that id for correct per-variant stats, but
+    // /pokemon-species/{id}/ does NOT — species ids only go up to the national dex count, so a
+    // regional form's high entity id 404s there. Fetch the pokemon entity first and follow its
+    // own species.url (which PokéAPI always points at the correct shared species entry) for color.
     async function tbFetchStudioSpeciesData(speciesId){
       if(tbStudioSpeciesCache[speciesId]) return tbStudioSpeciesCache[speciesId];
-      const [speciesRes, pokemonRes] = await Promise.all([
-        fetch(`https://pokeapi.co/api/v2/pokemon-species/${speciesId}/`),
-        fetch(`https://pokeapi.co/api/v2/pokemon/${speciesId}/`)
-      ]);
-      const species = await speciesRes.json();
+      const pokemonRes = await fetch(`https://pokeapi.co/api/v2/pokemon/${speciesId}/`);
       const pokemon = await pokemonRes.json();
+      const speciesRes = await fetch(pokemon.species.url);
+      const species = await speciesRes.json();
       const data = {
         colorName: species.color?.name || 'white',
         stats: (pokemon.stats||[]).map(s=>({ name: s.stat.name, base: s.base_stat }))
@@ -5789,9 +5806,13 @@
       const team = getTeam(tbActiveTeamId);
       if(!team) return;
       const entryData = cardData(pokemon);
-      const dexId = cardDexId(pokemon);
+      // speciesId must be the Pokémon ENTITY's own unique PokéAPI numeric id (entryData.id) —
+      // NOT cardDexId(pokemon), which is the shared Pokédex display number that regional forms
+      // intentionally share with their base species. getEvoSpriteUrl() builds a raw sprite URL
+      // straight from this id, so passing the shared dex number here mis-resolved regional
+      // variants (e.g. Alolan Muk) to their base species' sprite instead of their own artwork.
       const types = cardTypes(pokemon).map(t => t.type.name);
-      team.party[tbDexPickSlotIndex] = makeTeamMember(dexId, entryData.name, false, types);
+      team.party[tbDexPickSlotIndex] = makeTeamMember(entryData.id, entryData.name, false, types);
       touchTeam(team);
       tbCloseDexPicker();
       renderTeamPartyGrid(team);
@@ -5903,7 +5924,7 @@
         row.className = 'tb-game-pill-row';
         genGroup.games.forEach(game=>{
           const pill = document.createElement('button');
-          pill.className = 'tb-game-pill' + (team && team.game===game.id ? ' selected' : '');
+          pill.className = 'tb-game-pill tb-game-pill-icon' + (team && team.game===game.id ? ' selected' : '');
           pill.innerHTML = tbGameIconImgHtml(game.id, game.name);
           pill.addEventListener('click', ()=>{
             const t = getTeam(tbActiveTeamId);
@@ -5919,6 +5940,7 @@
             touchTeam(t);
             const gameLabelEl = document.getElementById('tb-game-select-label');
             if(gameLabelEl) gameLabelEl.innerHTML = tbGameIconImgHtml(game.id, game.name);
+            document.getElementById('tb-game-select-btn')?.classList.add('has-logo');
             document.getElementById('tb-game-sheet').classList.remove('open');
             document.getElementById('tb-game-sheet-backdrop').classList.remove('open');
             renderTeamGameSheet();
