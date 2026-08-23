@@ -1975,11 +1975,14 @@
        siblings) for consistency. Reuses .tb-advice-frame/.tb-advice-pill as-is for both the
        category-level pill and the specific recommended nature row's frame+pill. */
     .tb-studio-nature-accordion { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+    /* Matches the app's one standard accordion look (see .tb-coverage-accordion-header): teal
+       #43656e text, no color shift between collapsed/expanded — only structural changes
+       (background/border tint) differentiate open vs closed, consistent app-wide. */
     .tb-studio-nature-cat { border-radius: 14px; overflow: visible; background: white; border: 1px solid rgba(0,0,0,0.08); transition: background 0.15s, border-color 0.15s; }
-    .tb-studio-nature-cat.collapsed { background: #f2effa; border-color: #ddd3f2; }
+    .tb-studio-nature-cat.collapsed { background: #f7f7f5; border-color: #e8e4dd; }
     .tb-studio-nature-cat-header { display: flex; align-items: center; gap: 8px; padding: 14px 16px; cursor: pointer; user-select: none; }
-    .tb-studio-nature-cat-name { display: flex; align-items: center; gap: 6px; font-family: 'Archivo Black', sans-serif; font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; color: #3355aa; }
-    .tb-studio-nature-cat-boost-icon { font-size: 11px; color: #3355aa; }
+    .tb-studio-nature-cat-name { display: flex; align-items: center; gap: 6px; font-family: 'Archivo Black', sans-serif; font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; color: #43656e; }
+    .tb-studio-nature-cat-boost-icon { font-size: 11px; color: #43656e; }
     .tb-studio-nature-cat-spacer { flex: 1; }
     .tb-studio-nature-cat-header .tb-advice-pill { position: static; transform: none; }
     .tb-studio-nature-cat-arrow { font-size: 11px; color: #b8ad9a; transition: transform 0.2s; }
@@ -5898,7 +5901,9 @@
       {name:'Careful', boost:'spd',   drop:'spa'},
       {name:'Quirky',  boost:null,    drop:null},
     ];
-    const TB_NATURE_STAT_LABELS = {atk:'Atk',def:'Def',spa:'SpA',spd:'SpD',spe:'Spe'};
+    // Full stat names — used ONLY by the Nature sheet. Abbreviations (elsewhere in the app, e.g.
+    // the Final Stats bar graph) are a separate concern and must not be affected by this map.
+    const TB_NATURE_STAT_LABELS = {atk:'Attack',def:'Defense',spa:'Special Attack',spd:'Special Defense',spe:'Speed'};
     let tbStudioAbilitiesForMember = []; // [{name, isHidden}] for whichever member's Studio is currently open
     // Team Builder's own isolated ability-effect cache (Step 2 picker rebuild). Mirrors the main
     // app's abDetailCache fetch/parse logic against the same PokéAPI endpoint but is a SEPARATE
@@ -7055,7 +7060,12 @@
 
       const boostStats = TB_STUDIO_STAT_ORDER.filter(k=>k!=='hp');
       boostStats.forEach(statKey=>{
-        const natsForStat = TB_NATURES.filter(n=>n.boost === statKey);
+        // Diego: within a category, order the 4 natures by their DROPPED stat, following the
+        // same canonical Attack/Defense/Sp.Atk/Sp.Def/Speed order used for the categories
+        // themselves — not TB_NATURES' own incidental declaration order.
+        const natsForStat = TB_NATURES.filter(n=>n.boost === statKey)
+          .slice()
+          .sort((a,b)=> TB_STUDIO_STAT_ORDER.indexOf(a.drop) - TB_STUDIO_STAT_ORDER.indexOf(b.drop));
         const catHasRecommendation = statKey === recommendedBoostStat;
 
         const cat = document.createElement('div');
