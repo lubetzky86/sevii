@@ -5571,7 +5571,13 @@
     // Whether `item` (a taxonomy entry) is visible at all for the given team, per the mode gate
     // that applies to every one of the 6 categories, no exceptions.
     function tbItemPassesMode(itemEntry, team){
-      return !!(itemEntry && Array.isArray(itemEntry.modes) && team && itemEntry.modes.includes(team.mode));
+      // team.mode is stored as 'story'/'competitive' (see createTeam()), but items.json's
+      // taxonomy uses 'casual'/'competitive' modes (Gemini's original terminology) — map
+      // 'story' -> 'casual' here rather than renaming either schema, so this stays the one
+      // spot that bridges the two vocabularies.
+      if(!itemEntry || !Array.isArray(itemEntry.modes) || !team) return false;
+      const teamModeKey = team.mode === 'story' ? 'casual' : team.mode;
+      return itemEntry.modes.includes(teamModeKey);
     }
 
     // Special-artifacts-only: species compatibility gate. Returns true if `slug` is thematically
