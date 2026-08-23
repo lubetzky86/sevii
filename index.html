@@ -2005,13 +2005,40 @@
       .tb-studio-ability-card-name { font-size: 19px; }
       .tb-studio-ability-card-desc { font-size: 14px; }
     }
-    .tb-studio-item-cat { margin-bottom: 6px; }
-    .tb-studio-item-cat-header { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 12px 4px; background: none; border: none; border-bottom: 1px solid #eee; cursor: pointer; font: inherit; text-align: left; }
-    .tb-studio-item-cat-title { font-size: 13px; font-weight: 700; color: #1a1a1a; letter-spacing: 0.2px; }
-    .tb-studio-item-cat-chevron { font-size: 11px; color: #999; transition: transform 0.2s; }
-    .tb-studio-item-cat.open .tb-studio-item-cat-chevron { transform: rotate(90deg); }
-    .tb-studio-item-cat-body { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
-    .tb-studio-item-cat.open .tb-studio-item-cat-body { max-height: 1600px; }
+    /* Item picker (Step 2 of the 5-step Studio picker visual rebuild) — accordion categories
+       restyled to match the app's one standard accordion look exactly (same recipe as
+       .tb-studio-nature-cat*: teal #43656e header text, #f7f7f5/#e8e4dd collapsed tint,
+       #b8ad9a chevron turning teal+180deg when open), each holding Ability-card-style rows
+       (name + live-fetched description) with an added icon slot on the right that Ability's
+       card didn't need. Reuses .tb-advice-frame/.tb-advice-pill as-is; no new colors introduced. */
+    .tb-studio-item-cat { border-radius: 14px; overflow: visible; background: white; border: 1px solid rgba(0,0,0,0.08); transition: background 0.15s, border-color 0.15s; margin-bottom: 10px; }
+    .tb-studio-item-cat.collapsed { background: #f7f7f5; border-color: #e8e4dd; }
+    .tb-studio-item-cat-header { display: flex; align-items: center; gap: 8px; width: 100%; padding: 14px 16px; background: none; border: none; cursor: pointer; font: inherit; text-align: left; user-select: none; }
+    .tb-studio-item-cat-title { flex: 1; font-family: 'Archivo Black', sans-serif; font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; color: #43656e; }
+    .tb-studio-item-cat-chevron { font-size: 11px; color: #b8ad9a; transition: transform 0.2s; }
+    .tb-studio-item-cat.open .tb-studio-item-cat-chevron { transform: rotate(180deg); color: #43656e; }
+    .tb-studio-item-cat-body { display: none; flex-direction: column; gap: 12px; padding: 4px 16px 16px; }
+    .tb-studio-item-cat.open .tb-studio-item-cat-body { display: flex; }
+    .tb-studio-item-card { position: relative; display: flex; align-items: center; gap: 14px; text-align: left; width: 100%; background: white; border: 1px solid #ccc; border-radius: 14px; padding: 16px 18px; cursor: pointer; font: inherit; transition: opacity 0.15s; }
+    .tb-studio-item-card:hover { opacity: 0.85; }
+    .tb-studio-item-card.selected { border-color: var(--studio-dark, #606070); background: #f7f7fb; }
+    /* Combined selector so this card's default border can never lose a source-order tie against
+       .tb-advice-frame's border — the exact bug that hit the Ability round's card border. */
+    .tb-studio-item-card.tb-advice-frame { border: 4px solid var(--advice-brown); }
+    @media (max-width: 600px) {
+      .tb-studio-item-card.tb-advice-frame { border-width: 3px; }
+    }
+    .tb-studio-item-card-text { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .tb-studio-item-card-name { font-family: 'Archivo Black', sans-serif; font-size: 17px; font-weight: 900; color: #1a1a1a; text-transform: capitalize; line-height: 1.15; }
+    .tb-studio-item-card-desc { font-size: 15px; font-weight: 400; color: #333; line-height: 1.4; }
+    .tb-studio-item-card-desc.loading { color: #999; font-style: italic; }
+    .tb-studio-item-card-icon { flex-shrink: 0; width: 52px; height: 52px; align-self: center; }
+    @media (max-width: 600px) {
+      .tb-studio-item-card { padding: 14px 16px; gap: 12px; }
+      .tb-studio-item-card-name { font-size: 16px; }
+      .tb-studio-item-card-desc { font-size: 14px; }
+      .tb-studio-item-card-icon { width: 44px; height: 44px; }
+    }
     .tb-studio-moves-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .tb-studio-move-slot { background: white; border: 2px dashed #d4ccbc; border-radius: 12px; min-height: 56px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: border-color 0.15s, background 0.15s; font-size: 12px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.3px; }
     .tb-studio-move-slot:hover { border-color: var(--studio-dark, #606070); background: rgba(0,0,0,0.02); }
@@ -5910,6 +5937,9 @@
     // object per the standing rule that Team Builder state stays parallel to the main app's.
     // name -> short_effect string, or null if PokéAPI had none for that ability.
     let tbAbilityEffectCache = {};
+    // Isolated cache for item descriptions (Item picker round) — mirrors tbAbilityEffectCache's
+    // shape/pattern exactly but kept as its own object per the Team Builder cache-isolation rule.
+    let tbItemEffectCache = {};
 
     // PokéAPI's /pokemon/ stat names ('hp','attack','defense','special-attack','special-defense',
     // 'speed') vs the short keys used by member.evs/member.ivs and TB_NATURES ('hp','atk','def',
@@ -6955,6 +6985,22 @@
         return null;
       }
     }
+    // Same effect_entries → English short_effect/effect shape as /ability/, just a different
+    // endpoint and its own isolated cache (tbItemEffectCache, not tbAbilityEffectCache).
+    async function tbFetchItemEffect(slug){
+      if(tbItemEffectCache[slug] !== undefined) return tbItemEffectCache[slug];
+      try{
+        const res = await fetch(`https://pokeapi.co/api/v2/item/${slug}/`);
+        const data = await res.json();
+        const ee = data.effect_entries?.find(e => e.language.name === 'en');
+        const text = ee?.short_effect || ee?.effect || null;
+        tbItemEffectCache[slug] = text;
+        return text;
+      }catch(e){
+        tbItemEffectCache[slug] = null;
+        return null;
+      }
+    }
     setupMobileSheet('tb-studio-ability-pill','tb-studio-ability-sheet','tb-studio-ability-sheet-backdrop','tb-studio-ability-sheet-close');
     document.getElementById('tb-studio-ability-pill')?.addEventListener('click', ()=>{
       const body = document.getElementById('tb-studio-ability-sheet-body');
@@ -7221,6 +7267,15 @@
 
       body.innerHTML = '';
       const taxonomy = catalog.taxonomy;
+      // Guarded the same way the Ability/Nature/Tera rounds read the recommendation: a failure
+      // anywhere in tbEvaluateBuild's broader diagnostics must never block the card list itself.
+      let recommendedItem = null;
+      try{
+        if(member && team && tbStudioBaseStats){
+          const report = tbEvaluateBuild(member, team, tbStudioBaseStats);
+          recommendedItem = report.recommended_blueprint.item;
+        }
+      }catch(e){ recommendedItem = null; }
       TB_ITEM_CATEGORY_ORDER.forEach(({key, label})=>{
         const isArtifacts = key === 'special-artifacts';
         let slugs = Object.keys(taxonomy).filter(slug=>{
@@ -7240,31 +7295,55 @@
         });
 
         const section = document.createElement('div');
-        section.className = 'tb-studio-item-cat';
+        section.className = 'tb-studio-item-cat collapsed';
         const header = document.createElement('button');
         header.className = 'tb-studio-item-cat-header';
-        header.innerHTML = `<span class="tb-studio-item-cat-title">${label}</span><span class="tb-studio-item-cat-chevron">▶</span>`;
-        header.addEventListener('click', ()=> section.classList.toggle('open'));
+        header.innerHTML = `<span class="tb-studio-item-cat-title">${label}</span><span class="tb-studio-item-cat-chevron">▼</span>`;
+        header.addEventListener('click', ()=>{
+          section.classList.toggle('open');
+          section.classList.toggle('collapsed');
+        });
         section.appendChild(header);
         const catBody = document.createElement('div');
         catBody.className = 'tb-studio-item-cat-body';
         section.appendChild(catBody);
 
         slugs.forEach(slug=>{
-          const row = document.createElement('button');
-          row.className = 'tb-studio-opt-row' + (member.item === slug ? ' selected' : '');
-          const left = document.createElement('span');
-          left.className = 'tb-studio-opt-left';
-          const icon = document.createElement('img');
-          icon.className = 'tb-studio-item-icon';
-          icon.alt = '';
-          left.appendChild(icon);
+          const isRecommended = !!recommendedItem && recommendedItem === slug;
+          const card = document.createElement('button');
+          card.className = 'tb-studio-item-card' + (isRecommended ? ' tb-advice-frame' : '') + (member.item === slug ? ' selected' : '');
+          if(isRecommended){
+            const pill = document.createElement('span');
+            pill.className = 'tb-advice-pill';
+            pill.textContent = 'Sevii Advice';
+            card.appendChild(pill);
+          }
+          const textCol = document.createElement('div');
+          textCol.className = 'tb-studio-item-card-text';
           const nm = document.createElement('span');
-          nm.className = 'tb-studio-opt-name';
+          nm.className = 'tb-studio-item-card-name';
           nm.textContent = tbItemDisplayName(slug);
-          left.appendChild(nm);
-          row.appendChild(left);
-          row.addEventListener('click', ()=>{
+          textCol.appendChild(nm);
+          const descEl = document.createElement('div');
+          descEl.className = 'tb-studio-item-card-desc loading';
+          descEl.textContent = 'Loading description…';
+          textCol.appendChild(descEl);
+          const cachedDesc = tbItemEffectCache[slug];
+          if(cachedDesc !== undefined){
+            descEl.textContent = cachedDesc || 'No description available.';
+            descEl.classList.remove('loading');
+          } else {
+            tbFetchItemEffect(slug).then(text=>{
+              descEl.textContent = text || 'No description available.';
+              descEl.classList.remove('loading');
+            });
+          }
+          card.appendChild(textCol);
+          const icon = document.createElement('img');
+          icon.className = 'tb-studio-item-card-icon';
+          icon.alt = '';
+          card.appendChild(icon);
+          card.addEventListener('click', ()=>{
             if(!tbStudioTeam || tbStudioSlotIndex === null) return;
             const m = tbStudioTeam.party[tbStudioSlotIndex];
             if(!m) return;
@@ -7274,7 +7353,7 @@
             tbRenderStudioAdvice(m);
             tbCloseStudioSheet('tb-studio-item-sheet','tb-studio-item-sheet-backdrop','tb-studio-item-pill');
           });
-          catBody.appendChild(row);
+          catBody.appendChild(card);
           tbApplyItemIcon(icon, slug);
         });
 
@@ -7283,7 +7362,7 @@
 
       // Open the first section by default so the sheet doesn't look empty on first tap.
       const firstSection = body.querySelector('.tb-studio-item-cat');
-      if(firstSection) firstSection.classList.add('open');
+      if(firstSection){ firstSection.classList.add('open'); firstSection.classList.remove('collapsed'); }
       if(!body.children.length){
         body.innerHTML = '<div class="tb-studio-sheet-empty">No items available for this mode yet.</div>';
       }
