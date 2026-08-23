@@ -2132,15 +2132,18 @@
     .tb-move-taken-tag { font-size: 9px; font-weight: 700; color: #9f009f; text-transform: uppercase; letter-spacing: 0.3px; flex-shrink: 0; }
     /* Recommended-move row framing. A <tr> can't take the shared .tb-advice-frame's border-radius/
        padding the way a card or grid cell can (table rendering ignores border-radius on rows), so
-       this is a deliberate table-appropriate variant of the same idea: a solid brown inset border
-       around the row plus a tinted background, with the "Sevii Advice" pill sitting inline before
-       the move name (rather than the absolute-positioned overlap used on the card/grid screens) —
-       both read as "recommended" without fighting the table's own layout. */
-    .tb-move-table tbody tr.tb-advice-frame { box-shadow: inset 0 0 0 2px var(--advice-brown); background: rgba(92,74,46,0.05); }
+       this is a table-appropriate variant: a solid brown inset border around the row plus a tinted
+       background. The "Sevii Advice" pill itself DOES reuse the shared .tb-advice-pill exactly as-
+       is (absolute, overlapping the row's top edge, horizontally centered) — position:relative on
+       the framed row makes it the pill's positioning context, same overlap look as every other
+       screen, and it's appended as a plain positioned child of the <tr> (see tbBuildMoveTable) so
+       it never sits inside a <td> and can't push the Move column's text or widen any column. */
+    .tb-move-table tbody tr.tb-advice-frame { position: relative; box-shadow: inset 0 0 0 2px var(--advice-brown); background: rgba(92,74,46,0.05); }
     .tb-move-table tbody tr.tb-advice-frame:hover { background: rgba(92,74,46,0.09); }
-    .tb-move-name-cell .tb-advice-pill { position: static; transform: none; flex-shrink: 0; font-size: 9px; padding: 2px 7px; }
+    .tb-move-table tbody tr.tb-advice-frame .tb-advice-pill { top: -9px; }
     @media (max-width: 600px) {
       .tb-move-table tbody tr.tb-advice-frame { box-shadow: inset 0 0 0 1.5px var(--advice-brown); }
+      .tb-move-table tbody tr.tb-advice-frame .tb-advice-pill { top: -8px; font-size: 9px; padding: 2px 8px; }
     }
     .tb-studio-footer { flex-shrink: 0; padding: 12px 16px; background: var(--studio-bg, #fafafa); border-top: 1px solid rgba(0,0,0,0.08); transition: background 0.3s; }
     .tb-studio-done-btn { width: 100%; padding: 12px; border-radius: 24px; background: var(--studio-dark, #606070); border: 1.5px solid rgba(255,255,255,0.5); font-size: 14px; font-weight: 700; color: white; cursor: pointer; transition: opacity 0.15s, transform 0.1s; text-transform: uppercase; letter-spacing: 0.4px; }
@@ -7784,12 +7787,24 @@
         if(isLevelUp) numCell = `<td>${m.level||'—'}</td>`;
         else if(showNum) numCell = `<td class="tb-move-tm-cell" data-move="${m.name}">—</td>`;
         tr.innerHTML = `${numCell}
-          <td><span class="tb-move-name-cell">${isRecommended?'<span class="tb-advice-pill">Sevii Advice</span>':''}${toTitleCase(m.name.replace(/-/g,' '))}${isTaken?'<span class="tb-move-taken-tag">In use</span>':''}</span></td>
+          <td><span class="tb-move-name-cell">${toTitleCase(m.name.replace(/-/g,' '))}${isTaken?'<span class="tb-move-taken-tag">In use</span>':''}</span></td>
           <td><div style="width:30px;height:30px;background:#eee;border-radius:50%;"></div></td>
           <td>…</td>
           <td class="right">…</td>
           <td class="right">…</td>
           <td class="right">…</td>`;
+        // The pill is appended as a positioned DOM child of the <tr> itself (not inside any <td>)
+        // via appendChild rather than innerHTML — an HTML-parsed stray non-cell child of a <tr>
+        // gets foster-parented out of the table entirely, but a programmatically appended one
+        // renders fine and, taken out of flow with position:absolute, overlaps the row's top edge
+        // the same way .tb-advice-pill overlaps a card/grid cell's frame on every other screen,
+        // without shifting the Move column's text or touching the table's column count/widths.
+        if(isRecommended){
+          const pill = document.createElement('span');
+          pill.className = 'tb-advice-pill';
+          pill.textContent = 'Sevii Advice';
+          tr.appendChild(pill);
+        }
         if(!isTaken){
           tr.addEventListener('click', ()=> tbSelectMove(m));
         }
