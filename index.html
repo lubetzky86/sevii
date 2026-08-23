@@ -1857,6 +1857,29 @@
     .tb-studio-bst-label { font-size: 12px; font-weight: 900; color: var(--studio-dark, #606070); width: 32px; text-align: right; transition: color 0.3s; }
     .tb-studio-bst-num { font-size: 13px; font-weight: 900; color: #1a1a1a; flex: 1; text-align: right; }
     .tb-studio-stats-note { font-size: 11px; color: #999; font-style: italic; line-height: 1.4; }
+    .tb-studio-evs-header-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+    .tb-studio-ev-total { font-size: 12px; font-weight: 700; color: var(--studio-dark, #606070); transition: color 0.3s; }
+    .tb-studio-ev-total.tb-studio-ev-total-maxed { color: #c0392b; }
+    .tb-studio-ev-hint { font-size: 11px; color: #999; font-style: italic; margin-bottom: 8px; line-height: 1.4; }
+    .tb-studio-iv-maxall-btn { font-size: 11px; font-weight: 700; color: var(--studio-dark, #606070); background: none; border: 1.5px solid var(--studio-dark, #606070); border-radius: 12px; padding: 4px 10px; cursor: pointer; transition: opacity 0.15s; }
+    .tb-studio-iv-maxall-btn:hover { opacity: 0.7; }
+    .tb-studio-ev-block, .tb-studio-iv-block { display: flex; flex-direction: column; gap: 6px; }
+    .tb-studio-ev-row, .tb-studio-iv-row { display: flex; align-items: center; gap: 8px; }
+    .tb-studio-ev-name, .tb-studio-iv-name { font-size: 12px; font-weight: 900; width: 32px; flex-shrink: 0; text-align: right; color: var(--studio-dark, #606070); transition: color 0.3s; }
+    .tb-studio-ev-input, .tb-studio-iv-input { width: 56px; flex-shrink: 0; font-size: 13px; font-weight: 700; text-align: center; padding: 5px 4px; border: 1.5px solid #ddd; border-radius: 8px; color: #333; font-family: inherit; }
+    .tb-studio-ev-input:focus, .tb-studio-iv-input:focus { outline: none; border-color: var(--studio-dark, #606070); }
+    .tb-studio-ev-bar-bg, .tb-studio-iv-bar-bg { flex: 1; height: 10px; background: rgba(0,0,0,0.08); border-radius: 5px; overflow: hidden; }
+    .tb-studio-ev-bar-fill { height: 100%; border-radius: 5px; background: var(--studio-dark, #606070); transition: width 0.2s ease; }
+    .tb-studio-iv-bar-fill { height: 100%; border-radius: 5px; background: #8aa; transition: width 0.2s ease; }
+    .tb-studio-final-block { display: flex; flex-direction: column; gap: 8px; }
+    .tb-studio-final-row { display: flex; align-items: center; gap: 8px; }
+    .tb-studio-final-name { font-size: 12px; font-weight: 900; width: 32px; flex-shrink: 0; text-align: right; color: var(--studio-dark, #606070); transition: color 0.3s; }
+    .tb-studio-final-bar-bg { flex: 1; height: 14px; background: rgba(0,0,0,0.08); border-radius: 7px; overflow: hidden; }
+    .tb-studio-final-bar-fill { height: 100%; border-radius: 7px; transition: width 0.3s ease, background 0.3s; }
+    .tb-studio-final-num { font-size: 12px; font-weight: 700; color: #444; width: 34px; flex-shrink: 0; text-align: right; }
+    .tb-studio-final-num.tb-studio-final-boost { color: #c0392b; }
+    .tb-studio-final-num.tb-studio-final-drop { color: #2c6fbb; }
+    .tb-studio-final-lv { font-size: 10px; font-weight: 700; color: #999; text-transform: none; letter-spacing: 0; }
     .tb-studio-pill-row { display: flex; gap: 8px; }
     .tb-studio-pill-btn { flex: 1; padding: 10px 8px; border-radius: 24px; background: var(--studio-dark, #606070); border: 1.5px solid rgba(255,255,255,0.5); font-size: 13px; font-weight: 600; color: white; cursor: pointer; transition: background 0.15s, opacity 0.15s, transform 0.1s; text-align: center; }
     .tb-studio-pill-btn:hover { opacity: 0.85; transform: translateY(-1px); }
@@ -3528,7 +3551,27 @@
             <div>
               <div class="tb-studio-section-title">Base Stats</div>
               <div class="tb-studio-stats-block" id="tb-studio-stats-block"></div>
-              <div class="tb-studio-stats-note">Showing base stats. Final stats will appear once Nature/EVs are added in a later round.</div>
+            </div>
+            <div>
+              <div class="tb-studio-evs-header-row">
+                <div class="tb-studio-section-title">EVs</div>
+                <div class="tb-studio-ev-total" id="tb-studio-ev-total">0 / 510 EVs used</div>
+              </div>
+              <div class="tb-studio-ev-hint">EVs in multiples of 4 are the meaningful increments — the rest is wasted.</div>
+              <div class="tb-studio-ev-block" id="tb-studio-ev-block"></div>
+            </div>
+            <div>
+              <div class="tb-studio-evs-header-row">
+                <div class="tb-studio-section-title">IVs</div>
+                <button class="tb-studio-iv-maxall-btn" id="tb-studio-iv-maxall-btn">Set All to 31</button>
+              </div>
+              <div class="tb-studio-iv-block" id="tb-studio-iv-block"></div>
+            </div>
+            <div>
+              <div class="tb-studio-evs-header-row">
+                <div class="tb-studio-section-title">Final Stats <span class="tb-studio-final-lv">(Lv. 50)</span></div>
+              </div>
+              <div class="tb-studio-final-block" id="tb-studio-final-block"></div>
             </div>
             <div>
               <div class="tb-studio-section-title">Ability · Nature · Item</div>
@@ -5749,6 +5792,139 @@
     const TB_NATURE_STAT_LABELS = {atk:'Atk',def:'Def',spa:'SpA',spd:'SpD',spe:'Spe'};
     let tbStudioAbilitiesForMember = []; // [{name, isHidden}] for whichever member's Studio is currently open
 
+    // PokéAPI's /pokemon/ stat names ('hp','attack','defense','special-attack','special-defense',
+    // 'speed') vs the short keys used by member.evs/member.ivs and TB_NATURES ('hp','atk','def',
+    // 'spa','spd','spe'). No such mapping existed elsewhere in the Team Builder code, so it's
+    // added here, scoped to Studio EV/IV/Final-Stats rendering.
+    const TB_POKEAPI_STAT_TO_SHORT = {hp:'hp', attack:'atk', defense:'def', 'special-attack':'spa', 'special-defense':'spd', speed:'spe'};
+    const TB_STUDIO_STAT_ORDER = ['hp','atk','def','spa','spd','spe'];
+    const TB_STUDIO_STAT_SHORT_LABELS = {hp:'HP',atk:'ATK',def:'DEF',spa:'SpA',spd:'SpD',spe:'SPD'};
+    // Level assumption for Final Stats: 50, matching the VGC/doubles competitive-calculator
+    // convention (the other common convention, Level 100, is used by singles-format calculators —
+    // either is defensible; 50 is chosen as the more conservative default and is labeled in the UI
+    // so the assumption is never silently ambiguous). The Team Builder has no per-member level
+    // field yet, so this is a fixed constant until one exists.
+    const TB_STUDIO_LEVEL = 50;
+    let tbStudioBaseStats = null; // {hp,atk,def,spa,spd,spe} base stats for whichever member's Studio is open — set once species data loads, read live by the EV/IV/Final Stats renderers
+
+    // Standard final-stat formula. HP has its own formula and is never affected by Nature.
+    function tbCalcFinalStat(statKey, base, iv, ev, natureMod){
+      const core = Math.floor(((2*base + iv + Math.floor(ev/4)) * TB_STUDIO_LEVEL) / 100);
+      if(statKey === 'hp') return core + TB_STUDIO_LEVEL + 10;
+      return Math.floor((core + 5) * natureMod);
+    }
+
+    function tbStudioEvTotal(evs){
+      return TB_STUDIO_STAT_ORDER.reduce((sum,k)=>sum + (evs[k]||0), 0);
+    }
+
+    // Renders the EV editor (0-252 per stat, 510 shared total, live-clamped) and the IV editor
+    // (0-31 per stat, independent). Both write straight into member.evs/member.ivs and call
+    // touchTeam + tbRenderStudioFinalStats on every change — no Apply/Done gate, matching every
+    // other Studio field's autosave-as-you-go convention.
+    function tbRenderStudioEvIvBlocks(member){
+      const evBlock = document.getElementById('tb-studio-ev-block');
+      const ivBlock = document.getElementById('tb-studio-iv-block');
+      const totalEl = document.getElementById('tb-studio-ev-total');
+      evBlock.innerHTML = '';
+      ivBlock.innerHTML = '';
+
+      function refreshEvTotal(){
+        const total = tbStudioEvTotal(member.evs);
+        totalEl.textContent = `${total} / 510 EVs used`;
+        totalEl.classList.toggle('tb-studio-ev-total-maxed', total >= 510);
+      }
+
+      TB_STUDIO_STAT_ORDER.forEach(statKey=>{
+        const label = TB_STUDIO_STAT_SHORT_LABELS[statKey];
+
+        // EV row
+        const evRow = document.createElement('div');
+        evRow.className = 'tb-studio-ev-row';
+        const evPct = Math.round(((member.evs[statKey]||0)/252)*100);
+        evRow.innerHTML = `<div class="tb-studio-ev-name">${label}</div><div class="tb-studio-ev-bar-bg"><div class="tb-studio-ev-bar-fill" style="width:${evPct}%"></div></div><input type="number" class="tb-studio-ev-input" min="0" max="252" step="4" value="${member.evs[statKey]||0}">`;
+        const evInput = evRow.querySelector('.tb-studio-ev-input');
+        const evFill = evRow.querySelector('.tb-studio-ev-bar-fill');
+        evInput.addEventListener('input', ()=>{
+          let v = parseInt(evInput.value, 10);
+          if(isNaN(v) || v < 0) v = 0;
+          if(v > 252) v = 252;
+          // Live-clamp against the shared 510 budget: don't let this stat's new value push the
+          // total over the cap — clamp to whatever room remains instead of blocking outright.
+          const otherTotal = tbStudioEvTotal(member.evs) - (member.evs[statKey]||0);
+          const room = 510 - otherTotal;
+          if(v > room) v = Math.max(0, room);
+          member.evs[statKey] = v;
+          evInput.value = v;
+          evFill.style.width = Math.round((v/252)*100) + '%';
+          refreshEvTotal();
+          touchTeam(tbStudioTeam);
+          tbRenderStudioFinalStats(member);
+        });
+        evBlock.appendChild(evRow);
+
+        // IV row
+        const ivRow = document.createElement('div');
+        ivRow.className = 'tb-studio-iv-row';
+        const ivVal = (member.ivs[statKey]!=null) ? member.ivs[statKey] : 31;
+        const ivPct = Math.round((ivVal/31)*100);
+        ivRow.innerHTML = `<div class="tb-studio-iv-name">${label}</div><div class="tb-studio-iv-bar-bg"><div class="tb-studio-iv-bar-fill" style="width:${ivPct}%"></div></div><input type="number" class="tb-studio-iv-input" min="0" max="31" step="1" value="${ivVal}">`;
+        const ivInput = ivRow.querySelector('.tb-studio-iv-input');
+        const ivFill = ivRow.querySelector('.tb-studio-iv-bar-fill');
+        ivInput.addEventListener('input', ()=>{
+          let v = parseInt(ivInput.value, 10);
+          if(isNaN(v) || v < 0) v = 0;
+          if(v > 31) v = 31;
+          member.ivs[statKey] = v;
+          ivInput.value = v;
+          ivFill.style.width = Math.round((v/31)*100) + '%';
+          touchTeam(tbStudioTeam);
+          tbRenderStudioFinalStats(member);
+        });
+        ivBlock.appendChild(ivRow);
+      });
+
+      refreshEvTotal();
+
+      const maxAllBtn = document.getElementById('tb-studio-iv-maxall-btn');
+      maxAllBtn.onclick = ()=>{
+        TB_STUDIO_STAT_ORDER.forEach(k=>{ member.ivs[k] = 31; });
+        touchTeam(tbStudioTeam);
+        tbRenderStudioEvIvBlocks(member);
+        tbRenderStudioFinalStats(member);
+      };
+    }
+
+    // Renders the live Final Stats block from tbStudioBaseStats + member.evs/ivs/nature. Reuses
+    // statColor for the bar/number color — its rgb ramp (0-255+ hue sweep, capped visually around
+    // 130+) still reads sensibly at Lv.50 final-stat magnitudes (roughly 20-200ish for non-HP
+    // stats, up to ~200+ for HP), so no separate final-stats-tuned variant was needed.
+    function tbRenderStudioFinalStats(member){
+      const finalBlock = document.getElementById('tb-studio-final-block');
+      if(!finalBlock || !tbStudioBaseStats) return;
+      const natureEntry = TB_NATURES.find(n=>n.name === member.nature) || null;
+      finalBlock.innerHTML = '';
+      TB_STUDIO_STAT_ORDER.forEach(statKey=>{
+        const base = tbStudioBaseStats[statKey];
+        if(base == null) return;
+        const iv = (member.ivs[statKey]!=null) ? member.ivs[statKey] : 31;
+        const ev = member.evs[statKey] || 0;
+        let natureMod = 1.0;
+        let natureClass = '';
+        if(natureEntry && statKey !== 'hp'){
+          if(natureEntry.boost === statKey && natureEntry.drop !== statKey){ natureMod = 1.1; natureClass = 'tb-studio-final-boost'; }
+          else if(natureEntry.drop === statKey && natureEntry.boost !== statKey){ natureMod = 0.9; natureClass = 'tb-studio-final-drop'; }
+        }
+        const val = tbCalcFinalStat(statKey, base, iv, ev, natureMod);
+        const label = TB_STUDIO_STAT_SHORT_LABELS[statKey];
+        const pct = Math.min(Math.round((val/300)*100), 100);
+        const row = document.createElement('div');
+        row.className = 'tb-studio-final-row';
+        row.innerHTML = `<div class="tb-studio-final-name">${label}</div><div class="tb-studio-final-bar-bg"><div class="tb-studio-final-bar-fill" style="width:${pct}%;background:${statColor(base)}"></div></div><div class="tb-studio-final-num ${natureClass}">${val}</div>`;
+        finalBlock.appendChild(row);
+      });
+    }
+
     // Studio's own theme function — reads the same read-only POKEMON_PALETTE lookup the main
     // info panel uses, but only ever writes to NEW Studio-scoped elements/CSS vars. Never
     // touches currentPalette or any #info-*/#right-panel element.
@@ -5831,10 +6007,13 @@
         const STAT_LABELS = {hp:'HP',attack:'ATK',defense:'DEF','special-attack':'SpA','special-defense':'SpD',speed:'SPD'};
         statsBlock.innerHTML = '';
         let total = 0;
+        const baseByShortKey = {};
         data.stats.forEach(s=>{
           total += s.base;
           const pct = Math.round((s.base/255)*100);
           const label = STAT_LABELS[s.name] || s.name;
+          const shortKey = TB_POKEAPI_STAT_TO_SHORT[s.name];
+          if(shortKey) baseByShortKey[shortKey] = s.base;
           const row = document.createElement('div');
           row.className = 'tb-studio-stat-row';
           row.innerHTML = `<div class="tb-studio-stat-name">${label}</div><div class="tb-studio-stat-bar-bg"><div class="tb-studio-stat-bar-fill" style="width:${pct}%;background:${statColor(s.base)}"></div></div><div class="tb-studio-stat-num">${s.base}</div>`;
@@ -5844,10 +6023,12 @@
         bst.className = 'tb-studio-bst-row';
         bst.innerHTML = `<div class="tb-studio-bst-label">BST</div><div class="tb-studio-bst-num">${total}</div>`;
         statsBlock.appendChild(bst);
-        const note = document.createElement('div');
-        note.className = 'tb-studio-stats-note';
-        note.textContent = 'Showing base stats. Final stats will appear once Nature/EVs are added in a later round.';
-        statsBlock.appendChild(note);
+
+        // Base stats captured for this member's session — EV/IV editors and the Final Stats
+        // block below read from this on every keystroke without re-fetching.
+        tbStudioBaseStats = baseByShortKey;
+        tbRenderStudioEvIvBlocks(member);
+        tbRenderStudioFinalStats(member);
       }catch(err){
         if(tbStudioTeam === team && tbStudioSlotIndex === slotIndex){
           statsBlock.innerHTML = `<div class="tb-studio-stats-note">Couldn't load stats right now.</div>`;
@@ -5990,6 +6171,7 @@
           m.nature = n.name;
           touchTeam(tbStudioTeam);
           tbUpdateStudioPillLabels(m);
+          tbRenderStudioFinalStats(m);
           tbCloseStudioSheet('tb-studio-nature-sheet','tb-studio-nature-sheet-backdrop','tb-studio-nature-pill');
         });
         body.appendChild(row);
