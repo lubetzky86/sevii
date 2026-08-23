@@ -1949,10 +1949,19 @@
        full-width cards (name + optional "Hidden Ability" tag on one row, description below),
        replacing the old plain .tb-studio-opt-row list. Reuses .tb-advice-frame/.tb-advice-pill
        as-is for the recommended card; no new advice colors introduced. */
-    .tb-studio-ability-card { position: relative; display: flex; flex-direction: column; gap: 8px; text-align: left; width: 100%; background: white; border: 1.5px solid #1a1a1a; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; cursor: pointer; font: inherit; transition: opacity 0.15s; }
+    .tb-studio-ability-card { position: relative; display: flex; flex-direction: column; gap: 8px; text-align: left; width: 100%; background: white; border: 1px solid #ccc; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; cursor: pointer; font: inherit; transition: opacity 0.15s; }
     .tb-studio-ability-card:last-child { margin-bottom: 0; }
     .tb-studio-ability-card:hover { opacity: 0.85; }
     .tb-studio-ability-card.selected { border-color: var(--studio-dark, #606070); background: #f7f7fb; }
+    /* .tb-advice-frame (defined above) sets border/border-radius/padding too, and both it and
+       .tb-studio-ability-card are single-class selectors — without this combined, more-specific
+       override, source order alone let the plain card border win, which is why the recommended
+       card's frame wasn't actually appearing thicker/brown despite the class being applied.
+       Matches the exact thickness/color used on the Tera Type grid's recommended cell. */
+    .tb-studio-ability-card.tb-advice-frame { border: 4px solid var(--advice-brown); }
+    @media (max-width: 600px) {
+      .tb-studio-ability-card.tb-advice-frame { border-width: 3px; }
+    }
     .tb-studio-ability-card-toprow { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
     .tb-studio-ability-card-name { font-family: 'Archivo Black', sans-serif; font-size: 22px; font-weight: 900; color: #1a1a1a; text-transform: capitalize; line-height: 1.15; }
     .tb-studio-ability-hidden-tag { flex-shrink: 0; font-size: 11px; font-weight: 900; color: var(--advice-brown); text-transform: uppercase; letter-spacing: 0.4px; }
@@ -6930,7 +6939,11 @@
           recommendedAbility = report.recommended_blueprint.ability;
         }
       }catch(e){ recommendedAbility = null; }
-      tbStudioAbilitiesForMember.forEach(a=>{
+      // Regular abilities always listed before the Hidden Ability, regardless of the order
+      // PokéAPI happens to return them in — a stable sort so any tie (there won't be more than
+      // one hidden ability) keeps the original relative order among regular abilities.
+      const tbStudioAbilitiesSorted = tbStudioAbilitiesForMember.slice().sort((a,b)=> (a.isHidden?1:0) - (b.isHidden?1:0));
+      tbStudioAbilitiesSorted.forEach(a=>{
         const isRecommended = !!recommendedAbility && recommendedAbility === a.name;
         const card = document.createElement('button');
         card.className = 'tb-studio-ability-card' + (isRecommended ? ' tb-advice-frame' : '') + (member && member.ability === a.name ? ' selected' : '');
