@@ -1691,16 +1691,30 @@
     .tb-create-btn { padding: 9px 18px; border-radius: 24px; border: none; background: #43656e; color: white; font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
     .tb-create-btn:hover { opacity: 0.85; }
 
-    .tb-teams-grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
-    .tb-team-card { background: white; border-radius: 12px; padding: 16px 14px; display: flex; flex-direction: column; gap: 8px; border: 2px solid #e8e4dd; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
+    /* Hub filter/sort row — same pill visual language as .tb-game-pill, plus the app's
+       standard .grid-sort-dir arrow button reused as-is (see Lists' #lists-sort-dir-btn). */
+    .tb-hub-filters { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; }
+    .tb-hub-filter-group { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tb-hub-filter-pill { padding: 7px 13px; border-radius: 16px; border: 1.5px solid #e2ddd0; background: #f7f5f0; font-size: 12px; font-weight: 700; color: #43656e; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; }
+    .tb-hub-filter-pill:hover { border-color: #43656e; }
+    .tb-hub-filter-pill.active { background: #43656e; border-color: #43656e; color: white; }
+    .tb-hub-sort { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+    .tb-hub-sort select { height: 30px; font-size: 12px; padding: 0 8px; border-radius: 8px; border: 1.5px solid #ddd; background: white; color: #444; cursor: pointer; }
+
+    /* One team per row — a vertical list of full-width cards rather than the auto-fill grid
+       every other section uses, so a team's full context reads at a glance without opening it. */
+    .tb-teams-grid { display: flex; flex-direction: column; gap: 10px; }
+    .tb-team-card { background: white; border-radius: 12px; padding: 14px 18px; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; border: 2px solid #e8e4dd; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
     .tb-team-card:hover { border-color: #c8bfaf; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .tb-team-card-name { font-family: 'Archivo Black', sans-serif; font-size: 14px; font-weight: 900; color: #1a1a1a; text-transform: uppercase; letter-spacing: 0.3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tb-team-card-info { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1 1 200px; }
+    .tb-team-card-name { font-family: 'Archivo Black', sans-serif; font-size: 15px; font-weight: 900; color: #1a1a1a; text-transform: uppercase; letter-spacing: 0.3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .tb-team-card-badges { display: flex; gap: 6px; flex-wrap: wrap; }
     .tb-badge { font-size: 10px; font-weight: 800; color: #43656e; text-transform: uppercase; letter-spacing: 0.4px; background: rgba(67,101,110,0.1); padding: 3px 8px; border-radius: 10px; }
-    .tb-team-card-sprites { display: flex; gap: 4px; margin-top: 2px; }
+    .tb-team-card-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+    .tb-team-card-sprites { display: flex; gap: 4px; }
     .tb-team-card-sprite-slot { width: 34px; height: 34px; border-radius: 8px; background: #f0efe9; display: flex; align-items: center; justify-content: center; overflow: hidden; }
     .tb-team-card-sprite-slot img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
-    .tb-team-card-meta { font-size: 11px; color: #999; margin-top: auto; }
+    .tb-team-card-meta { font-size: 11px; color: #999; white-space: nowrap; }
 
     /* Canvas topbar + context header */
     .tb-canvas-topbar { display: flex; }
@@ -1723,17 +1737,81 @@
     .tb-game-select-btn:hover { background: rgba(255,255,255,0.85); }
     .tb-game-select-chevron { font-size: 10px; color: #999; }
 
-    /* Party grid: 2 columns × 3 rows on desktop */
-    .tb-party-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 640px; margin: 0 auto; width: 100%; }
-    .tb-party-slot { background: white; border: 2px dashed #d4ccbc; border-radius: 14px; min-height: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+    /* Party grid: fixed 3 columns × 2 rows at every breakpoint (matches the reference layout —
+       this never collapses to fewer columns the way the main Pokédex grid does). Empty-slot
+       sizing/proportions mirror .card's own breakpoints (185px desktop / 155px / 122px) even
+       though the slot's content is different (a "+ Add" label vs sprite+name+badges). */
+    .tb-party-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 640px; margin: 0 auto; width: 100%; }
+    .tb-party-slot { background: white; border: 2px dashed #d4ccbc; border-radius: 14px; min-height: 185px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
     .tb-party-slot:hover { border-color: #43656e; background: rgba(67,101,110,0.04); }
     .tb-party-slot-plus { font-size: 26px; color: #b8ad9a; line-height: 1; }
-    .tb-party-slot-label { font-size: 12px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.4px; }
+    .tb-party-slot-label { font-size: 12px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.4px; text-align: center; }
     .tb-party-slot.filled { border-style: solid; border-color: #e8e4dd; cursor: default; align-items: stretch; justify-content: flex-start; padding: 10px; }
     .tb-party-slot-filled-row { display: flex; align-items: center; gap: 10px; }
     .tb-party-slot-sprite { width: 56px; height: 56px; object-fit: contain; image-rendering: pixelated; flex-shrink: 0; }
     .tb-party-slot-name { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; color: #1a1a1a; text-transform: uppercase; }
     .tb-party-slot-shiny { font-size: 11px; color: #b8860b; font-weight: 700; }
+    /* Filled-slot corner controls: shiny toggle + remove button. Positioned absolutely inside
+       .tb-party-slot.filled (which is already `position` default static, so give it relative
+       here) — kept purely local to the Team Builder, no reuse of the main grid's card chrome. */
+    .tb-party-slot.filled { position: relative; }
+    .tb-slot-remove-btn { position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.08); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 11px; color: #777; transition: background 0.15s, color 0.15s; z-index: 2; }
+    .tb-slot-remove-btn:hover { background: #d9534f; color: white; }
+    .tb-slot-shiny-toggle { position: absolute; bottom: 6px; right: 6px; display: flex; align-items: center; gap: 3px; cursor: pointer; user-select: none; z-index: 2; }
+    .tb-slot-shiny-emoji { font-size: 11px; opacity: 0.5; transition: opacity 0.2s; pointer-events: none; }
+    .tb-slot-shiny-toggle.on .tb-slot-shiny-emoji { opacity: 1; }
+    .tb-slot-shiny-track { width: 22px; height: 13px; border-radius: 7px; background: rgba(0,0,0,0.15); position: relative; transition: background 0.2s; }
+    .tb-slot-shiny-track.on { background: #f8d030; }
+    .tb-slot-shiny-thumb { width: 9px; height: 9px; border-radius: 50%; background: white; position: absolute; top: 2px; left: 2px; transition: left 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+    .tb-slot-shiny-track.on .tb-slot-shiny-thumb { left: 11px; }
+
+    /* ══════════ DEX PICKER — fully self-contained overlay, parallel to the main grid ══════════ */
+    .tb-dexpick-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 200; display: none; align-items: center; justify-content: center; padding: 10px 20px; }
+    .tb-dexpick-backdrop.visible { display: flex; }
+    .tb-dexpick-panel { width: 100%; max-width: 900px; height: 92%; background: #fafafa; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.25); }
+    .tb-dexpick-header { padding: 12px 16px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; background: #43656e; }
+    .tb-dexpick-title { font-family: 'Archivo Black', sans-serif; font-size: 15px; font-weight: 900; color: white; text-transform: uppercase; }
+    .tb-dexpick-close { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.25); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; color: white; transition: background 0.15s; flex-shrink: 0; }
+    .tb-dexpick-close:hover { background: rgba(255,255,255,0.4); }
+    .tb-dexpick-toolbar { flex-shrink: 0; padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; border-bottom: 1px solid #e8e4dd; background: white; }
+    .tb-dexpick-search { flex: 1; min-width: 140px; padding: 8px 12px; border-radius: 20px; border: 1px solid #d4ccbc; font-size: 13px; }
+    .tb-dexpick-toolbar select { padding: 7px 10px; border-radius: 8px; border: 1px solid #d4ccbc; font-size: 12px; background: white; }
+    .tb-dexpick-scope { display: flex; border-radius: 20px; overflow: hidden; border: 1px solid #d4ccbc; }
+    .tb-dexpick-scope button { border: none; background: white; padding: 7px 12px; font-size: 12px; font-weight: 700; cursor: pointer; color: #777; }
+    .tb-dexpick-scope button.active { background: #43656e; color: white; }
+    .tb-dexpick-filter-btn { padding: 7px 12px; border-radius: 20px; border: 1px solid #d4ccbc; background: white; font-size: 12px; font-weight: 700; cursor: pointer; color: #555; }
+    .tb-dexpick-filter-btn.has-selection { border-color: #43656e; color: #43656e; background: rgba(67,101,110,0.08); }
+    .tb-dexpick-body { flex: 1; overflow-y: auto; padding: 14px; }
+    .tb-dexpick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(138px, 1fr)); gap: 10px; }
+    .tb-dexpick-card { background: white; border-radius: 12px; padding: 10px 8px 12px; display: flex; flex-direction: column; align-items: center; gap: 0; border: 2px solid #e8e4dd; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.07); min-height: 185px; }
+    .tb-dexpick-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.11); border-color: #c8bfaf; transform: translateY(-2px); }
+    .tb-dexpick-card-sprite-zone { display: flex; align-items: center; justify-content: center; margin-bottom: 8px; flex-shrink: 0; }
+    .tb-dexpick-card img.tb-dexpick-sprite { width: 88px; height: 88px; image-rendering: pixelated; display: block; }
+    .tb-dexpick-card-number { font-size: 10px; color: #a09890; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 3px; }
+    .tb-dexpick-card-name { font-family: 'Archivo Black', sans-serif; font-size: 12px; font-weight: 900; text-transform: capitalize; text-align: center; color: #1a1a1a; line-height: 1.2; margin-bottom: 7px; }
+    .tb-dexpick-card-badges { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; min-height: 34px; align-items: center; }
+    /* Type/Gen filter sheets — same slide-up pattern as the game-select sheet, own IDs */
+    .tb-dexpick-sheet-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 210; display: none; }
+    .tb-dexpick-sheet-backdrop.open { display: block; }
+    .tb-dexpick-sheet { position: fixed; left: 0; right: 0; bottom: -100%; max-height: 60%; overflow-y: auto; background: white; border-radius: 16px 16px 0 0; z-index: 220; transition: bottom 0.25s ease; box-shadow: 0 -4px 20px rgba(0,0,0,0.2); }
+    .tb-dexpick-sheet.open { bottom: 0; }
+    .tb-dexpick-sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #eee; position: sticky; top: 0; background: white; }
+    .tb-dexpick-sheet-title { font-weight: 700; font-size: 13px; }
+    .tb-dexpick-sheet-close { width: 26px; height: 26px; border-radius: 50%; background: #eee; border: none; cursor: pointer; font-size: 13px; }
+    .tb-dexpick-sheet-body { padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .tb-dexpick-pill { padding: 7px 12px; border-radius: 20px; border: 1px solid #d4ccbc; background: white; font-size: 12px; font-weight: 700; cursor: pointer; color: #555; }
+    .tb-dexpick-pill.selected { background: #43656e; color: white; border-color: #43656e; }
+
+    /* Coverage accordions — copies the Obtain modal's egg-group accordion pattern exactly
+       (.obtain-egg-accordion-*), just tb-prefixed and scoped under the party grid. */
+    .tb-coverage-accordion { display: flex; flex-direction: column; gap: 8px; max-width: 640px; margin: 4px auto 0; width: 100%; }
+    .tb-coverage-accordion-item { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); background: white; }
+    .tb-coverage-accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; user-select: none; font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.3px; color: #43656e; transition: background 0.15s; }
+    .tb-coverage-accordion-header:hover { background: rgba(0,0,0,0.03); }
+    .tb-coverage-accordion-arrow { font-size: 11px; color: #aaa; transition: transform 0.2s; }
+    .tb-coverage-accordion-item.open .tb-coverage-accordion-arrow { transform: rotate(180deg); }
+    .tb-coverage-accordion-body { display: none; padding: 14px 16px; border-top: 1px solid rgba(0,0,0,0.06); font-size: 12px; color: #999; font-style: italic; }
+    .tb-coverage-accordion-item.open .tb-coverage-accordion-body { display: block; }
 
     /* Game picker sheet — same slide-up-from-bottom mechanics as the app's other
        setupMobileSheet-driven pickers (Obtain's game list, Types/Generations filters),
@@ -1767,6 +1845,7 @@
       .card img.sprite { width: 72px; height: 72px; }
       .card-name { font-size: 11px; }
       #right-panel { width: 55%; }
+      .tb-party-slot { min-height: 155px; }
     }
     @media (max-width: 600px) {
       /* The real cause of the cut-off last row: body was fixed at "100vh", but mobile browsers
@@ -2058,14 +2137,25 @@
         width: auto; flex: 1; padding: 8px 4px;
       }
 
-      /* ── Team Builder: stack the party grid to a single column and let the header
-           controls wrap onto their own lines so nothing gets clipped on a phone screen. ── */
+      /* ── Team Builder: keep the fixed 3×2 party grid even on a phone screen (same
+           3-across treatment as the main Pokédex grid's own mobile override), just with a
+           tighter gap so it doesn't overflow, and let the header controls wrap onto their
+           own lines so nothing gets clipped. ── */
       .tb-hub, .tb-canvas { padding: 12px 12px 20px; gap: 10px; }
-      .tb-party-grid { grid-template-columns: 1fr; max-width: 420px; }
+      .tb-party-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; max-width: none; }
+      .tb-party-slot { min-height: 122px; border-radius: 10px; gap: 3px; }
+      .tb-party-slot-plus { font-size: 20px; }
+      .tb-party-slot-label { font-size: 9px; }
+      .tb-party-slot.filled { padding: 6px; }
+      .tb-party-slot-filled-row { flex-direction: column; text-align: center; gap: 4px; }
+      .tb-party-slot-sprite { width: 44px; height: 44px; }
+      .tb-party-slot-name { font-size: 10px; }
+      .tb-party-slot-shiny { font-size: 9px; }
       .tb-header-controls { gap: 8px; }
       .tb-toggle-btn { padding: 6px 10px; font-size: 11px; }
       .tb-game-select-btn { font-size: 11px; padding: 6px 10px; }
       .tb-name-input { font-size: 15px; }
+      .tb-hub-sort { margin-left: 0; width: 100%; }
     }
   </style>
 </head>
@@ -3009,6 +3099,24 @@
           <div class="tb-hub-title">My Teams</div>
           <button class="tb-create-btn" id="tb-create-team-btn">+ Create New Team</button>
         </div>
+        <div class="tb-hub-filters">
+          <div class="tb-hub-filter-group" id="tb-hub-mode-filters">
+            <button class="tb-hub-filter-pill" data-filter-mode="story">Story</button>
+            <button class="tb-hub-filter-pill" data-filter-mode="competitive">Competitive</button>
+          </div>
+          <div class="tb-hub-filter-group" id="tb-hub-format-filters">
+            <button class="tb-hub-filter-pill" data-filter-format="singles">Singles</button>
+            <button class="tb-hub-filter-pill" data-filter-format="doubles">Doubles</button>
+          </div>
+          <div class="tb-hub-sort">
+            <select id="tb-hub-sort-select">
+              <option value="updated">Last updated</option>
+              <option value="alpha">Alphabetical</option>
+              <option value="count">Pokémon count</option>
+            </select>
+            <div class="grid-sort-dir" id="tb-hub-sort-dir-btn">↓</div>
+          </div>
+        </div>
         <div class="grid-wrapper">
           <div class="grid tb-teams-grid" id="tb-teams-grid"></div>
         </div>
@@ -3049,6 +3157,23 @@
 
         <div class="grid-wrapper">
           <div class="tb-party-grid" id="tb-party-grid"></div>
+
+          <!-- Placeholder accordions — content comes in a later round; reuses the exact
+               open/close pattern as the Obtain modal's egg-group accordion. -->
+          <div class="tb-coverage-accordion">
+            <div class="tb-coverage-accordion-item" id="tb-defensive-coverage-item">
+              <div class="tb-coverage-accordion-header">
+                <span>Defensive Coverage</span><span class="tb-coverage-accordion-arrow">▼</span>
+              </div>
+              <div class="tb-coverage-accordion-body">Coming in a later round.</div>
+            </div>
+            <div class="tb-coverage-accordion-item" id="tb-offensive-coverage-item">
+              <div class="tb-coverage-accordion-header">
+                <span>Offensive Coverage</span><span class="tb-coverage-accordion-arrow">▼</span>
+              </div>
+              <div class="tb-coverage-accordion-body">Coming in a later round.</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -3062,6 +3187,45 @@
           <button class="tb-game-sheet-close" id="tb-game-sheet-close">✕</button>
         </div>
         <div class="tb-game-sheet-body" id="tb-game-sheet-body"></div>
+      </div>
+
+      <!-- ══════════ DEX PICKER — fully self-contained overlay for filling a party slot ══════════
+           Own DOM, own state, own render function. Reads shared global data (allPokemon,
+           regionalForms, GAME_LIST, getVersionsForGame, the card* helpers, getSprite,
+           makeBadgeImg) read-only; never touches the main grid's #grid/#search-input/state. -->
+      <div class="tb-dexpick-backdrop" id="tb-dexpick-backdrop">
+        <div class="tb-dexpick-panel" id="tb-dexpick-panel">
+          <div class="tb-dexpick-header">
+            <div class="tb-dexpick-title">Choose a Pokémon</div>
+            <button class="tb-dexpick-close" id="tb-dexpick-close">✕</button>
+          </div>
+          <div class="tb-dexpick-toolbar">
+            <input type="text" class="tb-dexpick-search" id="tb-dexpick-search" placeholder="Search Pokémon...">
+            <div class="tb-dexpick-scope" id="tb-dexpick-scope" style="display:none;">
+              <button data-scope="regional">Regional</button>
+              <button data-scope="national">National</button>
+            </div>
+            <button class="tb-dexpick-filter-btn" id="tb-dexpick-type-trigger">Types</button>
+            <button class="tb-dexpick-filter-btn" id="tb-dexpick-gen-trigger">Gen</button>
+            <select id="tb-dexpick-sort-select">
+              <option value="number">Pokédex #</option>
+              <option value="alpha">Alphabetical</option>
+            </select>
+          </div>
+          <div class="tb-dexpick-body">
+            <div class="tb-dexpick-grid" id="tb-dexpick-grid"></div>
+          </div>
+        </div>
+      </div>
+      <div class="tb-dexpick-sheet-backdrop" id="tb-dexpick-type-sheet-backdrop"></div>
+      <div class="tb-dexpick-sheet" id="tb-dexpick-type-sheet">
+        <div class="tb-dexpick-sheet-header"><span class="tb-dexpick-sheet-title">Types</span><button class="tb-dexpick-sheet-close" id="tb-dexpick-type-sheet-close">✕</button></div>
+        <div class="tb-dexpick-sheet-body" id="tb-dexpick-type-sheet-body"></div>
+      </div>
+      <div class="tb-dexpick-sheet-backdrop" id="tb-dexpick-gen-sheet-backdrop"></div>
+      <div class="tb-dexpick-sheet" id="tb-dexpick-gen-sheet">
+        <div class="tb-dexpick-sheet-header"><span class="tb-dexpick-sheet-title">Generation</span><button class="tb-dexpick-sheet-close" id="tb-dexpick-gen-sheet-close">✕</button></div>
+        <div class="tb-dexpick-sheet-body" id="tb-dexpick-gen-sheet-body"></div>
       </div>
 
     </div>
@@ -3821,9 +3985,10 @@
       // Update search placeholder
       const searchInput = document.getElementById('search-input');
       if (searchInput) {
-        searchInput.placeholder = name === 'abilities' ? 'Search abilities…' :
-                                   name === 'moves'     ? 'Search moves…' :
-                                   name === 'lists'     ? 'Search this list…' : 'Search Sevii';
+        searchInput.placeholder = name === 'abilities'   ? 'Search abilities…' :
+                                   name === 'moves'       ? 'Search moves…' :
+                                   name === 'lists'       ? 'Search this list…' :
+                                   name === 'teambuilder' ? 'Search your teams…' : 'Search Sevii';
         searchInput.value = '';
         document.getElementById('search-clear-btn').style.display = 'none';
       }
@@ -3832,6 +3997,13 @@
       document.getElementById('global-shiny').style.display = (name === 'pokemon' || name === 'lists') ? '' : 'none';
       if (name === 'pokemon') document.getElementById('global-shiny').classList.toggle('on', isGlobalShiny);
       if (name === 'lists') document.getElementById('global-shiny').classList.toggle('on', isListsShiny);
+      // The search bar is hidden entirely while the Team Builder's Canvas screen is showing
+      // (see tbShowCanvas/tbShowHub) — leaving that section any other way (a different nav
+      // tab) must restore it, same as any other shared header element getting reset here.
+      if (name !== 'teambuilder') {
+        const headerSearch = document.querySelector('.app-header-search');
+        if (headerSearch) headerSearch.style.display = '';
+      }
       closeSidenav();
       if (name === 'abilities') {
         if (!abLoaded) loadAbilitiesSection();
@@ -4369,41 +4541,80 @@
       tbActiveTeamId = null;
       document.getElementById('tb-hub').style.display = '';
       document.getElementById('tb-canvas').style.display = 'none';
+      const headerSearch = document.querySelector('.app-header-search');
+      if (headerSearch) headerSearch.style.display = '';
       renderTeamBuilderHub();
     }
     function tbShowCanvas(teamId){
       tbActiveTeamId = teamId;
       document.getElementById('tb-hub').style.display = 'none';
       document.getElementById('tb-canvas').style.display = 'flex';
+      // No search functionality inside the Canvas — hide the global search bar while it's
+      // showing. Restored by tbShowHub above and, for leaving via another nav tab entirely,
+      // by switchSection's generic header-reset logic.
+      const headerSearch = document.querySelector('.app-header-search');
+      if (headerSearch) headerSearch.style.display = 'none';
       renderTeamCanvas();
     }
 
     // ── Screen 1: Saved Teams Hub ──
+    // Filter/sort state for the Hub's team list. Multiple active pills within the same group
+    // (Mode, Format) combine as AND, matching how the search box and pills all compose together
+    // in renderTeamBuilderHub below.
+    let tbHubActiveModes = new Set();
+    let tbHubActiveFormats = new Set();
+    let tbHubSortMode = 'updated'; // 'updated' | 'alpha' | 'count'
+    let tbHubSortAscending = false; // most-recently-updated-first by default
+
+    function tbHubFilteredSortedTeams(){
+      let teams = getTeams().slice();
+      const q = (activeSection === 'teambuilder' ? (document.getElementById('search-input')?.value || '') : '').trim().toLowerCase();
+      if (q) teams = teams.filter(t => t.name.toLowerCase().includes(q));
+      if (tbHubActiveModes.size) teams = teams.filter(t => tbHubActiveModes.has(t.mode));
+      if (tbHubActiveFormats.size) teams = teams.filter(t => tbHubActiveFormats.has(t.format));
+      teams.sort((a,b)=>{
+        let cmp;
+        if (tbHubSortMode === 'alpha') cmp = a.name.localeCompare(b.name);
+        else if (tbHubSortMode === 'count') cmp = a.party.filter(Boolean).length - b.party.filter(Boolean).length;
+        else cmp = a.updatedAt - b.updatedAt;
+        return tbHubSortAscending ? cmp : -cmp;
+      });
+      return teams;
+    }
+
     function renderTeamBuilderHub(){
       const grid = document.getElementById('tb-teams-grid');
       if(!grid) return;
-      const teams = getTeams();
+      const allTeams = getTeams();
+      const teams = tbHubFilteredSortedTeams();
       grid.innerHTML = '';
-      if(teams.length===0){
+      if(allTeams.length===0){
         grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🧩</div><div class="empty-title">No teams yet</div><div class="empty-sub" style="margin-top:6px;">Build your first team to get started.</div><button class="tb-create-btn" id="tb-hub-empty-create-btn" style="margin-top:14px;">+ Create New Team</button></div>`;
         document.getElementById('tb-hub-empty-create-btn')?.addEventListener('click', tbCreateAndOpenTeam);
         return;
       }
-      // Newest-updated first
-      teams.slice().sort((a,b)=>b.updatedAt-a.updatedAt).forEach(team=>{
+      if(teams.length===0){
+        grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No teams match</div><div class="empty-sub" style="margin-top:6px;">Try clearing a filter or your search.</div></div>`;
+        return;
+      }
+      teams.forEach(team=>{
         const card = document.createElement('div');
         card.className = 'tb-team-card';
         const filledCount = team.party.filter(Boolean).length;
         const gameLabel = tbGameLabelFor(team.game) || 'No game set';
         card.innerHTML = `
-          <div class="tb-team-card-name">${escapeHtml(team.name)}</div>
-          <div class="tb-team-card-badges">
-            <span class="tb-badge">${team.mode==='competitive'?'Competitive':'Story'}</span>
-            <span class="tb-badge">${team.format==='doubles'?'Doubles':'Singles'}</span>
-            <span class="tb-badge">${escapeHtml(gameLabel)}</span>
+          <div class="tb-team-card-info">
+            <div class="tb-team-card-name">${escapeHtml(team.name)}</div>
+            <div class="tb-team-card-badges">
+              <span class="tb-badge">${team.mode==='competitive'?'Competitive':'Story'}</span>
+              <span class="tb-badge">${team.format==='doubles'?'Doubles':'Singles'}</span>
+              <span class="tb-badge">${escapeHtml(gameLabel)}</span>
+            </div>
           </div>
-          <div class="tb-team-card-sprites"></div>
-          <div class="tb-team-card-meta">${filledCount}/6 Pokémon</div>
+          <div class="tb-team-card-right">
+            <div class="tb-team-card-sprites"></div>
+            <div class="tb-team-card-meta">${filledCount}/6 Pokémon</div>
+          </div>
         `;
         const spriteRow = card.querySelector('.tb-team-card-sprites');
         team.party.forEach(member=>{
@@ -4421,6 +4632,35 @@
         grid.appendChild(card);
       });
     }
+
+    // Filter pills — Mode and Format each toggle independently within their own group and
+    // combine with each other (and the search box) as AND; no pill active in a group means
+    // that group doesn't filter at all.
+    document.getElementById('tb-hub-mode-filters')?.addEventListener('click', e=>{
+      const btn = e.target.closest('.tb-hub-filter-pill');
+      if(!btn) return;
+      const mode = btn.dataset.filterMode;
+      if(tbHubActiveModes.has(mode)) tbHubActiveModes.delete(mode); else tbHubActiveModes.add(mode);
+      btn.classList.toggle('active', tbHubActiveModes.has(mode));
+      renderTeamBuilderHub();
+    });
+    document.getElementById('tb-hub-format-filters')?.addEventListener('click', e=>{
+      const btn = e.target.closest('.tb-hub-filter-pill');
+      if(!btn) return;
+      const format = btn.dataset.filterFormat;
+      if(tbHubActiveFormats.has(format)) tbHubActiveFormats.delete(format); else tbHubActiveFormats.add(format);
+      btn.classList.toggle('active', tbHubActiveFormats.has(format));
+      renderTeamBuilderHub();
+    });
+    document.getElementById('tb-hub-sort-select')?.addEventListener('change', e=>{
+      tbHubSortMode = e.target.value;
+      renderTeamBuilderHub();
+    });
+    document.getElementById('tb-hub-sort-dir-btn')?.addEventListener('click', ()=>{
+      tbHubSortAscending = !tbHubSortAscending;
+      document.getElementById('tb-hub-sort-dir-btn').textContent = tbHubSortAscending ? '↑' : '↓';
+      renderTeamBuilderHub();
+    });
     // Small helper — the app doesn't seem to have a generic HTML-escape utility yet, and team
     // names are free-typed user input, so escape before dropping them into innerHTML.
     function escapeHtml(s){
@@ -4488,6 +4728,13 @@
       const team = getTeam(tbActiveTeamId);
       if(!team) return;
       team.mode = btn.dataset.mode;
+      // If the team already had a pre-Gen-8 game selected and just switched to Competitive,
+      // that game is no longer a valid option — clear it so the player re-picks a real one
+      // instead of the header silently showing a game that can't actually be chosen anymore.
+      if(team.mode === 'competitive' && team.game){
+        const gen = (function(){ for(const g of GAME_LIST){ if(g.games.some(x=>x.id===team.game)) return g.gen; } return null; })();
+        if(gen !== null && gen < 8) team.game = null;
+      }
       touchTeam(team);
       renderTeamCanvas();
     });
@@ -4513,6 +4760,7 @@
         slot.className = 'tb-party-slot' + (member ? ' filled' : '');
         if(member && member.speciesId){
           slot.innerHTML = `
+            <button class="tb-slot-remove-btn" title="Remove from team">✕</button>
             <div class="tb-party-slot-filled-row">
               <img class="tb-party-slot-sprite" src="${getEvoSpriteUrl(member.speciesId, member.shiny)}" alt="${escapeHtml(member.speciesName||'')}">
               <div>
@@ -4520,17 +4768,228 @@
                 ${member.shiny ? '<div class="tb-party-slot-shiny">✨ Shiny</div>' : ''}
               </div>
             </div>
+            <div class="tb-slot-shiny-toggle${member.shiny ? ' on' : ''}" title="Toggle shiny">
+              <span class="tb-slot-shiny-emoji">✨</span>
+              <div class="tb-slot-shiny-track${member.shiny ? ' on' : ''}"><div class="tb-slot-shiny-thumb"></div></div>
+            </div>
           `;
+          // Remove button — instant remove, no confirmation dialog per this round's scope.
+          slot.querySelector('.tb-slot-remove-btn').addEventListener('click', (e)=>{
+            e.stopPropagation();
+            team.party[i] = null;
+            touchTeam(team);
+            renderTeamPartyGrid(team);
+          });
+          // Shiny toggle — flips member.shiny and re-renders so the sprite (via getEvoSpriteUrl)
+          // updates to the shiny/non-shiny artwork immediately.
+          slot.querySelector('.tb-slot-shiny-toggle').addEventListener('click', (e)=>{
+            e.stopPropagation();
+            member.shiny = !member.shiny;
+            touchTeam(team);
+            renderTeamPartyGrid(team);
+          });
+          // Tapping the slot body itself (not the controls above) does nothing yet — Pokémon
+          // Studio (per-member customization) is still a future round, same stub pattern as
+          // Round 1 used for empty slots.
+          slot.addEventListener('click', ()=>{
+            // no-op — customization comes in a later round
+          });
         } else {
           slot.innerHTML = `<div class="tb-party-slot-plus">+</div><div class="tb-party-slot-label">Add Team Member</div>`;
           slot.addEventListener('click', ()=>{
-            // Dex Picker / Pokémon Studio come in a later round — Round 1 just stubs this out.
-            alert('Adding team members is coming in a later round of the Team Builder!');
+            tbOpenDexPicker(i);
           });
         }
         grid.appendChild(slot);
       }
     }
+
+    // ══════════════════════════════════════════════════════════════════════════════
+    // DEX PICKER — fully parallel/self-contained Pokémon-selection overlay for the Team
+    // Builder. Its own state, own DOM, own render function. Reads shared read-only data
+    // (allPokemon, regionalForms, GAME_LIST, getVersionsForGame, card*/getSprite/makeBadgeImg
+    // helpers) but never calls renderGrid(), never touches #grid/#search-input/activeTypes/
+    // activeGen/selectedPokemon, and never writes into the main grid's state.
+    // ══════════════════════════════════════════════════════════════════════════════
+    let tbDexPickSlotIndex = null;      // which party slot index we're filling
+    let tbDexPickSearch = '';
+    let tbDexPickActiveTypes = new Set();
+    let tbDexPickActiveGen = 'all';     // 'all' | '1'..'9'
+    let tbDexPickSort = 'number';       // 'number' | 'alpha'
+    let tbDexPickScope = 'regional';    // 'regional' | 'national' — only meaningful when the toggle is shown
+
+    function tbOpenDexPicker(slotIndex){
+      tbDexPickSlotIndex = slotIndex;
+      // Reset filters fresh each time the picker opens.
+      tbDexPickSearch = '';
+      tbDexPickActiveTypes = new Set();
+      tbDexPickActiveGen = 'all';
+      tbDexPickSort = 'number';
+      const team = getTeam(tbActiveTeamId);
+      const canScopeToGame = !!(team && team.mode === 'story' && team.game);
+      tbDexPickScope = canScopeToGame ? 'regional' : 'national';
+      const scopeToggle = document.getElementById('tb-dexpick-scope');
+      scopeToggle.style.display = canScopeToGame ? 'flex' : 'none';
+      scopeToggle.querySelectorAll('button').forEach(b=>b.classList.toggle('active', b.dataset.scope===tbDexPickScope));
+      document.getElementById('tb-dexpick-search').value = '';
+      document.getElementById('tb-dexpick-sort-select').value = 'number';
+      document.getElementById('tb-dexpick-type-trigger').classList.remove('has-selection');
+      document.getElementById('tb-dexpick-gen-trigger').classList.remove('has-selection');
+      document.getElementById('tb-dexpick-backdrop').classList.add('visible');
+      renderTbDexPickGrid();
+    }
+    function tbCloseDexPicker(){
+      document.getElementById('tb-dexpick-backdrop').classList.remove('visible');
+      tbDexPickSlotIndex = null;
+    }
+    document.getElementById('tb-dexpick-close')?.addEventListener('click', tbCloseDexPicker);
+    document.getElementById('tb-dexpick-backdrop')?.addEventListener('click', e=>{
+      if(e.target === document.getElementById('tb-dexpick-backdrop')) tbCloseDexPicker();
+    });
+
+    // Returns the internal PokéAPI version-name strings the currently-picked game maps to,
+    // via the shared getVersionsForGame() helper (handles DLC-bundled games like Sword/Shield).
+    function tbDexPickGameVersions(){
+      const team = getTeam(tbActiveTeamId);
+      if(!team || !team.game) return null;
+      return getVersionsForGame(team.game);
+    }
+
+    function tbDexPickFilteredSorted(){
+      let list = [...allPokemon, ...regionalForms];
+      if(tbDexPickScope === 'regional'){
+        const versions = tbDexPickGameVersions();
+        if(versions){
+          list = list.filter(p=>{
+            const data = cardData(p);
+            return Array.isArray(data.game_indices) && data.game_indices.some(gi => versions.includes(gi.version.name));
+          });
+        }
+      }
+      const q = tbDexPickSearch.trim().toLowerCase();
+      if(q) list = list.filter(p => cardData(p).name.toLowerCase().includes(q) || (p.__regional && p.cardLabel.toLowerCase().includes(q)));
+      if(tbDexPickActiveGen !== 'all'){
+        const [min,max] = GEN_RANGES[parseInt(tbDexPickActiveGen)];
+        list = list.filter(p => { const id = cardDexId(p); return id>=min && id<=max; });
+      }
+      if(tbDexPickActiveTypes.size){
+        list = list.filter(p => cardTypes(p).some(t => tbDexPickActiveTypes.has(t.type.name)));
+      }
+      list = [...list].sort((a,b)=>{
+        if(tbDexPickSort === 'alpha') return cardLabelText(a).localeCompare(cardLabelText(b));
+        return cardDexId(a) - cardDexId(b);
+      });
+      return list;
+    }
+
+    function renderTbDexPickGrid(){
+      const grid = document.getElementById('tb-dexpick-grid');
+      if(!grid) return;
+      const list = tbDexPickFilteredSorted();
+      grid.innerHTML = '';
+      if(list.length === 0){
+        grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No Pokémon match</div><div class="empty-sub" style="margin-top:6px;">Try clearing a filter or your search.</div></div>`;
+        return;
+      }
+      list.forEach(pokemon=>{
+        const entryData = cardData(pokemon);
+        const dexId = cardDexId(pokemon);
+        const card = document.createElement('div');
+        card.className = 'tb-dexpick-card';
+        const si = document.createElement('img');
+        si.src = getSprite(entryData, false);
+        si.alt = entryData.name;
+        si.className = 'tb-dexpick-sprite';
+        si.loading = 'lazy';
+        si.decoding = 'async';
+        si.width = 88; si.height = 88;
+        const spriteZone = document.createElement('div');
+        spriteZone.className = 'tb-dexpick-card-sprite-zone';
+        spriteZone.appendChild(si);
+        const ne = document.createElement('div'); ne.className = 'tb-dexpick-card-number'; ne.textContent = `#${String(dexId).padStart(3,'0')}`;
+        const nm = document.createElement('div'); nm.className = 'tb-dexpick-card-name'; nm.textContent = cardLabelText(pokemon);
+        const bd = document.createElement('div'); bd.className = 'tb-dexpick-card-badges';
+        cardTypes(pokemon).forEach(t => bd.appendChild(makeBadgeImg(t.type.name, false)));
+        card.appendChild(spriteZone); card.appendChild(ne); card.appendChild(nm); card.appendChild(bd);
+        card.addEventListener('click', ()=> tbDexPickSelect(pokemon));
+        grid.appendChild(card);
+      });
+    }
+
+    function tbDexPickSelect(pokemon){
+      if(tbDexPickSlotIndex === null) return;
+      const team = getTeam(tbActiveTeamId);
+      if(!team) return;
+      const entryData = cardData(pokemon);
+      const dexId = cardDexId(pokemon);
+      team.party[tbDexPickSlotIndex] = makeTeamMember(dexId, entryData.name, false);
+      touchTeam(team);
+      tbCloseDexPicker();
+      renderTeamPartyGrid(team);
+    }
+
+    document.getElementById('tb-dexpick-search')?.addEventListener('input', e=>{
+      tbDexPickSearch = e.target.value;
+      renderTbDexPickGrid();
+    });
+    document.getElementById('tb-dexpick-sort-select')?.addEventListener('change', e=>{
+      tbDexPickSort = e.target.value;
+      renderTbDexPickGrid();
+    });
+    document.getElementById('tb-dexpick-scope')?.addEventListener('click', e=>{
+      const btn = e.target.closest('button[data-scope]');
+      if(!btn) return;
+      tbDexPickScope = btn.dataset.scope;
+      document.querySelectorAll('#tb-dexpick-scope button').forEach(b=>b.classList.toggle('active', b.dataset.scope===tbDexPickScope));
+      renderTbDexPickGrid();
+    });
+
+    // Type filter sheet — multi-select OR logic (a card matches if it has ANY selected type).
+    setupMobileSheet('tb-dexpick-type-trigger','tb-dexpick-type-sheet','tb-dexpick-type-sheet-backdrop','tb-dexpick-type-sheet-close');
+    (function initTbDexPickTypeSheet(){
+      const body = document.getElementById('tb-dexpick-type-sheet-body');
+      if(!body) return;
+      TYPE_ORDER.forEach(type=>{
+        const pill = document.createElement('button');
+        pill.className = 'tb-dexpick-pill';
+        pill.textContent = type.charAt(0).toUpperCase()+type.slice(1);
+        pill.addEventListener('click', ()=>{
+          if(tbDexPickActiveTypes.has(type)) tbDexPickActiveTypes.delete(type); else tbDexPickActiveTypes.add(type);
+          pill.classList.toggle('selected', tbDexPickActiveTypes.has(type));
+          document.getElementById('tb-dexpick-type-trigger').classList.toggle('has-selection', tbDexPickActiveTypes.size>0);
+          renderTbDexPickGrid();
+        });
+        body.appendChild(pill);
+      });
+    })();
+
+    // Generation filter sheet — single-select pill row, Gen 1-9 plus an "All" option.
+    setupMobileSheet('tb-dexpick-gen-trigger','tb-dexpick-gen-sheet','tb-dexpick-gen-sheet-backdrop','tb-dexpick-gen-sheet-close');
+    (function initTbDexPickGenSheet(){
+      const body = document.getElementById('tb-dexpick-gen-sheet-body');
+      if(!body) return;
+      const options = ['all',...Object.keys(GEN_RANGES)];
+      options.forEach(gen=>{
+        const pill = document.createElement('button');
+        pill.className = 'tb-dexpick-pill' + (gen==='all' ? ' selected' : '');
+        pill.textContent = gen==='all' ? 'All' : `Gen ${gen}`;
+        pill.addEventListener('click', ()=>{
+          tbDexPickActiveGen = gen;
+          body.querySelectorAll('.tb-dexpick-pill').forEach(p=>p.classList.remove('selected'));
+          pill.classList.add('selected');
+          document.getElementById('tb-dexpick-gen-trigger').classList.toggle('has-selection', gen!=='all');
+          renderTbDexPickGrid();
+        });
+        body.appendChild(pill);
+      });
+    })();
+
+    // ── Coverage accordions (placeholders) — same open/close toggle as the Obtain modal's
+    // egg-group accordion (.obtain-egg-accordion-item), just tb-prefixed classes. ──
+    document.querySelectorAll('.tb-coverage-accordion-item').forEach(item=>{
+      const header = item.querySelector('.tb-coverage-accordion-header');
+      header?.addEventListener('click', ()=> item.classList.toggle('open'));
+    });
 
     // ── Game picker sheet — reuses setupMobileSheet() exactly like the app's other pickers ──
     setupMobileSheet('tb-game-select-btn','tb-game-sheet','tb-game-sheet-backdrop','tb-game-sheet-close');
@@ -4539,7 +4998,12 @@
       if(!body) return;
       const team = getTeam(tbActiveTeamId);
       body.innerHTML = '';
-      GAME_LIST.forEach(genGroup=>{
+      // Competitive teams only ever battle on Gen 8+ (Sword/Shield onward) — nobody is
+      // running ranked/VGC on Red/Blue. Story mode still shows every generation.
+      const gameListForMode = team && team.mode === 'competitive'
+        ? GAME_LIST.filter(genGroup => genGroup.gen >= 8)
+        : GAME_LIST;
+      gameListForMode.forEach(genGroup=>{
         const group = document.createElement('div');
         group.className = 'tb-game-gen-group';
         const label = document.createElement('div');
@@ -4967,6 +5431,7 @@
       if (activeSection === 'abilities') renderAbGrid();
       else if (activeSection === 'moves') renderMvGrid();
       else if (activeSection === 'lists') renderListsGrid();
+      else if (activeSection === 'teambuilder') renderTeamBuilderHub();
       else renderGrid();
     });
     document.getElementById('search-clear-btn').addEventListener('click', () => {
@@ -4975,6 +5440,7 @@
       if (activeSection === 'abilities') renderAbGrid();
       else if (activeSection === 'moves') renderMvGrid();
       else if (activeSection === 'lists') renderListsGrid();
+      else if (activeSection === 'teambuilder') renderTeamBuilderHub();
       else renderGrid();
     });
 
