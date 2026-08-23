@@ -1895,7 +1895,12 @@
     .tb-studio-sheet-backdrop.open { display: block; }
     .tb-studio-sheet { position: fixed; left: 0; right: 0; bottom: -100%; max-height: 70%; overflow-y: auto; background: white; border-radius: 16px 16px 0 0; z-index: 320; transition: bottom 0.25s ease; box-shadow: 0 -4px 20px rgba(0,0,0,0.2); }
     .tb-studio-sheet.open { bottom: 0; }
-    .tb-studio-sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #eee; position: sticky; top: 0; background: white; }
+    /* z-index + a forced compositing layer (transform/will-change) so this sticky header always
+       paints above ANY sheet-body content, including positioned elements like .tb-advice-pill
+       (z-index:1) — without this, elements with an explicit z-index can outrank a sticky header
+       that never set one (defaults to auto), and on some mobile browsers sticky content can
+       visibly bleed above the header during scroll/overscroll. Shared by all 6 picker sheets. */
+    .tb-studio-sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #eee; position: sticky; top: 0; background: white; z-index: 5; transform: translateZ(0); }
     .tb-studio-sheet-title { font-weight: 700; font-size: 13px; }
     .tb-studio-sheet-close { width: 26px; height: 26px; border-radius: 50%; background: #eee; border: none; cursor: pointer; font-size: 13px; }
     .tb-studio-sheet-body { padding: 8px 16px 16px; display: flex; flex-direction: column; }
