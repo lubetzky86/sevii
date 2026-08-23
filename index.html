@@ -1888,6 +1888,7 @@
     .tb-studio-opt-left { display: flex; align-items: center; gap: 10px; }
     .tb-studio-opt-row img.type-badge-img { width: 20px; height: 20px; }
     .tb-studio-item-icon { width: 24px; height: 24px; object-fit: contain; image-rendering: pixelated; flex-shrink: 0; }
+    .tb-item-icon-fallback { width: 24px; height: 24px; border-radius: 50%; background: var(--studio-dark, #606070); color: white; font-size: 11px; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: 'Archivo Black', sans-serif; }
     .tb-studio-item-cat { margin-bottom: 6px; }
     .tb-studio-item-cat-header { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 12px 4px; background: none; border: none; border-bottom: 1px solid #eee; cursor: pointer; font: inherit; text-align: left; }
     .tb-studio-item-cat-title { font-size: 13px; font-weight: 700; color: #1a1a1a; letter-spacing: 0.2px; }
@@ -5568,6 +5569,29 @@
       return slug.replace(/-/g,' ').replace(/\b\w/g, c=>c.toUpperCase());
     }
 
+    // Some real items (e.g. Booster Energy) genuinely have no sprite in PokéAPI's own data —
+    // sprites.default comes back null, not an error. Rather than leave an empty box, swap the
+    // <img> for a small circular initial-letter badge so every row/pill always shows *something*.
+    // Same fallback path also covers a slug that 404s outright (e.g. an unverified Z-A item id).
+    function tbItemIconFallback(icon, slug){
+      if(!icon || !icon.parentNode) return;
+      const span = document.createElement('span');
+      span.className = 'tb-item-icon-fallback';
+      span.textContent = (tbItemDisplayName(slug)[0] || '?').toUpperCase();
+      icon.replaceWith(span);
+      return span;
+    }
+    // Fetches the sprite (if any) and applies it to `icon`, or swaps in the fallback badge —
+    // shared by both the sheet rows and the selected-item pill so they never diverge.
+    function tbApplyItemIcon(icon, slug){
+      icon.onerror = ()=> tbItemIconFallback(icon, slug);
+      tbFetchItemSprite(slug).then(url=>{
+        if(!icon.parentNode) return; // row/pill was replaced or sheet closed before this resolved
+        if(url) icon.src = url;
+        else tbItemIconFallback(icon, slug);
+      });
+    }
+
     // Whether `item` (a taxonomy entry) is visible at all for the given team, per the mode gate
     // that applies to every one of the 6 categories, no exceptions.
     function tbItemPassesMode(itemEntry, team){
@@ -5856,7 +5880,7 @@
           lbl.textContent = tbItemDisplayName(slug);
           itemPill.appendChild(lbl);
           itemPill.classList.add('tb-studio-pill-set');
-          tbFetchItemSprite(slug).then(url=>{ if(url) icon.src = url; });
+          tbApplyItemIcon(icon, slug);
         }else{
           itemPill.textContent = 'Item';
           itemPill.classList.remove('tb-studio-pill-set');
@@ -6024,7 +6048,7 @@
             tbCloseStudioSheet('tb-studio-item-sheet','tb-studio-item-sheet-backdrop','tb-studio-item-pill');
           });
           catBody.appendChild(row);
-          tbFetchItemSprite(slug).then(url=>{ if(url) icon.src = url; });
+          tbApplyItemIcon(icon, slug);
         });
 
         body.appendChild(section);
