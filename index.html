@@ -1740,31 +1740,38 @@
        the screen's one and only title bar. Toggled via the body.tb-canvas-active class — see
        tbShowCanvas/tbShowHub and switchSection's generic reset. */
     body.tb-canvas-active #app-header { display: none; }
-    /* Canvas topbar — dark teal-gray header bar: title, (muted) Save button, circular close. */
-    .tb-canvas-topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #43656e; border-radius: 14px; padding: 12px 14px; margin: -4px -4px 0; }
-    .tb-canvas-topbar-title { font-family: 'Archivo Black', sans-serif; font-size: 14px; font-weight: 900; color: white; text-transform: uppercase; letter-spacing: 0.6px; }
-    .tb-canvas-topbar-right { display: flex; align-items: center; gap: 8px; }
-    .tb-canvas-save-btn { padding: 7px 14px; border-radius: 18px; border: 1.5px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.12); color: white; font-size: 12px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+    /* Canvas topbar — dark teal-gray header bar: title, (muted) Save button, circular close.
+       Compacted (round: shrink header stack) — tighter padding/margin, smaller title text,
+       smaller buttons, while keeping the close/save buttons at a comfortable tap size. */
+    .tb-canvas-topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #43656e; border-radius: 12px; padding: 8px 12px; margin: -4px -4px 0; }
+    .tb-canvas-topbar-title { font-family: 'Archivo Black', sans-serif; font-size: 12px; font-weight: 900; color: white; text-transform: uppercase; letter-spacing: 0.6px; }
+    .tb-canvas-topbar-right { display: flex; align-items: center; gap: 6px; }
+    .tb-canvas-save-btn { padding: 6px 12px; border-radius: 16px; border: 1.5px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.12); color: white; font-size: 11px; font-weight: 700; cursor: pointer; transition: background 0.15s; min-height: 30px; }
     .tb-canvas-save-btn:hover { background: rgba(255,255,255,0.25); }
-    .tb-back-btn { width: 30px; height: 30px; border-radius: 50%; border: none; background: rgba(255,255,255,0.18); color: white; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+    .tb-back-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: rgba(255,255,255,0.18); color: white; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
     .tb-back-btn:hover { background: rgba(255,255,255,0.32); }
-    .tb-context-header { background: #eae3d7; border: 1px solid #d4ccbc; border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
-    .tb-name-row { display: flex; align-items: center; gap: 8px; }
-    .tb-name-input { font-family: 'Archivo Black', sans-serif; font-size: 16px; font-weight: 900; color: #1a1a1a; border: 1.5px solid #c8bfaf; background: white; outline: none; flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: 0.3px; padding: 9px 12px; border-radius: 12px; transition: border-color 0.15s, background 0.15s; }
+    /* Context header — name row + battle-mode row now share a single tighter card, with the
+       "Battle Mode" row placed inline beside the name row on wider layouts and stacked closely
+       (small gap) on narrow ones, instead of the old generous vertical stack. */
+    .tb-context-header { background: #eae3d7; border: 1px solid #d4ccbc; border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+    .tb-name-row { display: flex; align-items: center; gap: 6px; }
+    .tb-name-input { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; color: #1a1a1a; border: 1.5px solid #c8bfaf; background: white; outline: none; flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: 0.3px; padding: 8px 10px; border-radius: 10px; transition: border-color 0.15s, background 0.15s; min-height: 36px; box-sizing: border-box; }
     .tb-name-input:focus { border-color: #43656e; background: white; }
-    .tb-name-edit-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: rgba(67,101,110,0.12); color: #43656e; font-size: 13px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .tb-name-edit-btn { width: 26px; height: 26px; border-radius: 50%; border: none; background: rgba(67,101,110,0.12); color: #43656e; font-size: 12px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
     .tb-name-edit-btn:hover { background: rgba(67,101,110,0.22); }
 
-    .tb-header-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .tb-battle-mode-label { font-size: 11px; font-weight: 900; color: #999; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 2px; }
-    .tb-toggle-group { display: inline-flex; background: rgba(255,255,255,0.55); border: 1.5px solid #c8bfaf; border-radius: 20px; padding: 2px; }
-    .tb-toggle-btn { border: none; background: none; padding: 6px 14px; border-radius: 18px; font-size: 12px; font-weight: 700; color: #43656e; cursor: pointer; transition: background 0.15s, color 0.15s; }
+    /* Battle Mode row: label sits inline to the left of the pills instead of stacked above them,
+       collapsing what used to be two lines of vertical space into one. */
+    .tb-header-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .tb-battle-mode-label { font-size: 9px; font-weight: 900; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0; flex-shrink: 0; }
+    .tb-toggle-group { display: inline-flex; background: rgba(255,255,255,0.55); border: 1.5px solid #c8bfaf; border-radius: 18px; padding: 2px; }
+    .tb-toggle-btn { border: none; background: none; padding: 5px 12px; border-radius: 16px; font-size: 11px; font-weight: 700; color: #43656e; cursor: pointer; transition: background 0.15s, color 0.15s; }
     .tb-toggle-btn.active { background: #43656e; color: white; }
     .tb-toggle-group.tb-disabled { opacity: 0.4; pointer-events: none; }
 
-    .tb-game-select-btn { display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 20px; border: 1.5px solid #c8bfaf; background: rgba(255,255,255,0.55); color: #43656e; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .tb-game-select-btn { display: flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 18px; border: 1.5px solid #c8bfaf; background: rgba(255,255,255,0.55); color: #43656e; font-size: 11px; font-weight: 700; cursor: pointer; min-height: 30px; box-sizing: border-box; }
     .tb-game-select-btn:hover { background: rgba(255,255,255,0.85); }
-    .tb-game-select-btn .tb-game-logo-img { height: 22px; max-width: 100px; }
+    .tb-game-select-btn .tb-game-logo-img { height: 18px; max-width: 90px; }
     .tb-game-select-chevron { font-size: 10px; color: #999; }
 
     /* Party grid: fixed 3 columns × 2 rows at every breakpoint (matches the reference layout —
@@ -1886,16 +1893,16 @@
        layout], so cell position N in a row always corresponds to party slot N. Built compact
        and data-dense per spec: everything must fit on a phone screen without scrolling once the
        accordion is open. */
-    .tb-coverage-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px 10px; }
+    .tb-coverage-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 16px; }
     .tb-coverage-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
-    .tb-coverage-type-badge { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: box-shadow 0.15s, transform 0.15s; }
-    .tb-coverage-type-badge img, .tb-coverage-type-badge .badge-fallback { width: 30px; height: 30px; border-radius: 50%; object-fit: contain; }
+    .tb-coverage-type-badge { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: box-shadow 0.15s, transform 0.15s; }
+    .tb-coverage-type-badge img, .tb-coverage-type-badge .badge-fallback { width: 24px; height: 24px; border-radius: 50%; object-fit: contain; }
     /* Threat highlight — >=3 weaknesses among the party. A crisp perimeter ring, not a soft
        drop-shadow, per spec ("high-contrast crimson perimeter border ... not a blurry
        drop-shadow"), plus a small scale bump so the flagged row reads instantly while scanning. */
     .tb-coverage-type-badge.threat { box-shadow: 0 0 0 2.5px #c0392b; transform: scale(1.08); }
-    .tb-coverage-cells { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 3px; flex: 1; min-width: 0; }
-    .tb-cov-cell { aspect-ratio: 1 / 1; width: 100%; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 900; line-height: 1; }
+    .tb-coverage-cells { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 2px; flex: 1; min-width: 0; max-width: 66px; }
+    .tb-cov-cell { aspect-ratio: 1 / 1; width: 100%; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 6px; font-weight: 900; line-height: 1; }
     /* Unfilled party slot — not yet meaningful, no calculation happened. Pale, blends toward the
        card background so it visually recedes behind any calculated (colored or neutral-gray)
        cell in the same row. */
@@ -1913,10 +1920,10 @@
     .tb-cov-cell.tb-cov-immune { background: #ffffff; border: 1.5px solid #999; color: #444; }
     .tb-coverage-note { margin-top: 12px; font-size: 11px; color: #999; font-style: italic; line-height: 1.5; text-align: center; }
     @media (max-width: 480px) {
-      .tb-coverage-matrix { gap: 5px 6px; }
-      .tb-coverage-type-badge, .tb-coverage-type-badge img, .tb-coverage-type-badge .badge-fallback { width: 24px; height: 24px; }
-      .tb-coverage-cells { gap: 2px; }
-      .tb-cov-cell { border-radius: 3px; font-size: 7px; }
+      .tb-coverage-matrix { gap: 12px 10px; }
+      .tb-coverage-type-badge, .tb-coverage-type-badge img, .tb-coverage-type-badge .badge-fallback { width: 20px; height: 20px; }
+      .tb-coverage-cells { gap: 2px; max-width: 48px; }
+      .tb-cov-cell { border-radius: 2px; font-size: 6px; }
     }
 
     /* Game picker sheet — same slide-up-from-bottom mechanics as the app's other
@@ -3237,9 +3244,8 @@
             <button class="tb-name-edit-btn" id="tb-team-name-edit-btn" title="Rename">✎</button>
           </div>
 
-          <div>
+          <div class="tb-header-controls">
             <div class="tb-battle-mode-label">Battle Mode</div>
-            <div class="tb-header-controls">
               <!-- Unified Format pill — merges the old separate Mode (Story/Competitive) and
                    Format (Singles/Doubles) toggles into one concept, opening the shared
                    #tb-format-sheet (context: canvas). Still sets team.mode/team.format underneath. -->
@@ -3252,7 +3258,6 @@
               <button class="tb-game-select-btn" id="tb-game-select-btn">
                 <span id="tb-game-select-label">Select a game</span><span class="tb-game-select-chevron">▾</span>
               </button>
-            </div>
           </div>
         </div>
 
