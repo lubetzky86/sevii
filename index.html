@@ -1912,6 +1912,33 @@
     .tb-studio-opt-row img.type-badge-img { width: 20px; height: 20px; }
     .tb-studio-item-icon { width: 24px; height: 24px; object-fit: contain; image-rendering: pixelated; flex-shrink: 0; }
     .tb-item-icon-fallback { width: 24px; height: 24px; border-radius: 50%; background: var(--studio-dark, #606070); color: white; font-size: 11px; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: 'Archivo Black', sans-serif; }
+
+    /* Tera Type picker (Step 2 of the 5-step Studio picker visual rebuild) — 3x6 icon grid of
+       Tera crystal buttons, no per-cell background/labels, matching Diego's sketch. This round
+       also establishes the shared "Sevii Advice" pill+frame treatment (--advice-brown /
+       .tb-advice-pill / .tb-advice-frame) that the remaining 5 picker rounds should reuse as-is
+       rather than inventing their own colors/classes. No fixed advice-brown existed anywhere in
+       the app before this round (Sevii Advice was still the deliberately-plain Step 1 text block
+       at #tb-studio-advice-block) — this hex is a new judgment call, not a match to something
+       pre-existing. */
+    :root { --advice-brown: #5c4a2e; }
+    .tb-studio-tera-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px 28px; padding: 20px 8px 12px; justify-items: center; }
+    .tb-studio-tera-cell { position: relative; width: 104px; height: 104px; display: flex; align-items: center; justify-content: center; background: none; border: none; padding: 0; cursor: pointer; }
+    .tb-studio-tera-cell img.tb-studio-tera-icon { width: 100%; height: 100%; object-fit: contain; }
+    .tb-studio-tera-cell .tb-item-icon-fallback { width: 72px; height: 72px; font-size: 22px; border-radius: 50%; }
+    .tb-studio-tera-cell:hover { opacity: 0.85; }
+    /* Shared advice pill+frame — reusable by the other 5 picker screens. .tb-advice-frame draws
+       a thick rounded-square border with breathing room around whatever it wraps; .tb-advice-pill
+       is the small overlapping label badge, horizontally centered on the frame's top edge. */
+    .tb-advice-frame { border: 4px solid var(--advice-brown); border-radius: 18px; padding: 10px; box-sizing: border-box; }
+    .tb-advice-pill { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); background: var(--advice-brown); color: white; font-style: italic; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 10px; white-space: nowrap; z-index: 1; }
+    @media (max-width: 600px) {
+      .tb-studio-tera-grid { gap: 24px 16px; padding: 14px 4px 10px; }
+      .tb-studio-tera-cell { width: 80px; height: 80px; }
+      .tb-studio-tera-cell .tb-item-icon-fallback { width: 56px; height: 56px; font-size: 18px; }
+      .tb-advice-pill { font-size: 9px; padding: 2px 8px; top: -9px; }
+      .tb-advice-frame { border-width: 3px; padding: 8px; border-radius: 14px; }
+    }
     .tb-studio-item-cat { margin-bottom: 6px; }
     .tb-studio-item-cat-header { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 12px 4px; background: none; border: none; border-bottom: 1px solid #eee; cursor: pointer; font: inherit; text-align: left; }
     .tb-studio-item-cat-title { font-size: 13px; font-weight: 700; color: #1a1a1a; letter-spacing: 0.2px; }
@@ -6354,12 +6381,17 @@
       const stage2 = tbAdviceStage2(member);
       const cls = tbAdviceClassify(member, baseStats, team, stage2);
       const archetype = TB_ADVICE_ARCHETYPES[cls.role];
+      // Still needed below for Rule 102 (Nature/EV conflict) and the Trick Room IV check —
+      // this reads the member's CURRENT nature (to diagnose it), separate from
+      // recommended_blueprint.nature below, which is the archetype's own independent guess.
       const natureEntry = TB_NATURES.find(n=>n.name === member.nature) || null;
 
       // ── recommended_blueprint ──
-      // Ability/Item/Tera/Moves are now independent guesses computed from the archetype +
-      // the Pokémon's real available options — NOT echoes of whatever the member already has
-      // selected (that was last round's bug). Nature/EVs are unchanged (already independent).
+      // Ability/Item/Tera/Moves/Nature/EVs are ALL independent guesses computed from the
+      // archetype + the Pokémon's real available options — never echoes of whatever the
+      // member already has selected. (Nature previously fell back to echoing member.nature
+      // whenever it happened to already be a valid nature name, which was effectively always
+      // — fixed to always use the archetype's own recommended nature instead.)
       const source = (stage2.forcePhysical || stage2.lockItem) ? 'signature_rule' : 'dynamic_fallback';
       const recommendedAbility = tbAdviceRecommendAbility(member);
       const recommendedItem = tbAdviceRecommendItem(cls.role, stage2);
@@ -6370,7 +6402,7 @@
         strategy_name: archetype.label,
         ability: recommendedAbility,
         item: recommendedItem,
-        nature: (natureEntry ? natureEntry.name : (archetype.natures[0])),
+        nature: archetype.natures[0],
         tera_type: recommendedTera,
         tera_applicable: !!(team && TB_STUDIO_GEN9_GAMES.has(team.game)),
         stat_focus: archetype.statFocus,
@@ -6608,16 +6640,10 @@
       html += `<li>EVs: ${evStr}</li>`;
       html += `<li>Moves: ${moveStr}</li>`;
       html += `</ul>`;
-      html += `<p><strong>Diagnostics (${report.diagnostics.length})</strong></p>`;
-      if(!report.diagnostics.length){
-        html += `<p>No diagnostic notices right now.</p>`;
-      } else {
-        html += `<dl>`;
-        report.diagnostics.forEach(d=>{
-          html += `<dt>[${d.severity}] ${d.title}</dt><dd>${d.message}</dd>`;
-        });
-        html += `</dl>`;
-      }
+      // Diagnostics (Stage 4, Rules 101-112) intentionally NOT rendered this round — demoted
+      // per Diego (2026-08-23): the underlying logic stays fully built and computed above
+      // (report.diagnostics still has the full list), just not shown to the user yet. Pinned
+      // in claude/sevii-dev-status.md for a future "edge case analysis" pass before it ships.
       block.innerHTML = html;
     }
 
@@ -6890,24 +6916,53 @@
     });
 
     // ── Tera Type picker ──
+    // Rebuilt (Step 2 of the 5-step Studio picker visual rebuild, from Diego's hand-drawn sketch)
+    // from a plain vertical row list into a 3x6 icon grid of Tera crystal buttons — behavior
+    // (what a tap does) is unchanged, only the visual layout. Icons point at a NEW local asset
+    // path, icons/types/buttons/{type}_tera.png, which is distinct from makeBadgeImg's round
+    // pill-badge PNGs used elsewhere — these files live only in Diego's own project folder and
+    // aren't present in this sandbox, so every <img> gets an onerror fallback (reusing the exact
+    // lettered-circle-badge pattern tbItemIconFallback established for missing item sprites) so a
+    // 404 never shows a broken-image icon or throws. The recommended type (if any) — read from
+    // tbEvaluateBuild's cached recommended_blueprint rather than re-deriving via
+    // tbAdviceRecommendTera + tbAdviceClassify directly, since tbEvaluateBuild is already the
+    // single source of truth tbRenderStudioAdvice reads from — gets the shared .tb-advice-frame /
+    // .tb-advice-pill treatment established above in the CSS block.
     setupMobileSheet('tb-studio-tera-pill','tb-studio-tera-sheet','tb-studio-tera-sheet-backdrop','tb-studio-tera-sheet-close');
     document.getElementById('tb-studio-tera-pill')?.addEventListener('click', ()=>{
       const body = document.getElementById('tb-studio-tera-sheet-body');
       if(!body) return;
       body.innerHTML = '';
       const member = tbStudioTeam && tbStudioSlotIndex !== null ? tbStudioTeam.party[tbStudioSlotIndex] : null;
+      // Guarded: tbEvaluateBuild computes a lot of unrelated diagnostics beyond the tera pick,
+      // and a failure anywhere in that report must never prevent the grid itself from rendering.
+      let recommendedTera = null;
+      try{
+        if(member && tbStudioTeam && tbStudioBaseStats){
+          const report = tbEvaluateBuild(member, tbStudioTeam, tbStudioBaseStats);
+          if(report.recommended_blueprint.tera_applicable) recommendedTera = report.recommended_blueprint.tera_type;
+        }
+      }catch(e){ recommendedTera = null; }
+      const grid = document.createElement('div');
+      grid.className = 'tb-studio-tera-grid';
       TYPE_ORDER.forEach(type=>{
-        const row = document.createElement('button');
-        row.className = 'tb-studio-opt-row' + (member && member.teraType === type ? ' selected' : '');
-        const left = document.createElement('span');
-        left.className = 'tb-studio-opt-left';
-        left.appendChild(makeBadgeImg(type, false));
-        const nm = document.createElement('span');
-        nm.className = 'tb-studio-opt-name';
-        nm.textContent = type;
-        left.appendChild(nm);
-        row.appendChild(left);
-        row.addEventListener('click', ()=>{
+        const cell = document.createElement('button');
+        const isRecommended = recommendedTera === type;
+        cell.className = 'tb-studio-tera-cell' + (isRecommended ? ' tb-advice-frame' : '') + (member && member.teraType === type ? ' selected' : '');
+        cell.setAttribute('aria-label', toTitleCase(type));
+        if(isRecommended){
+          const pill = document.createElement('span');
+          pill.className = 'tb-advice-pill';
+          pill.textContent = 'Sevii Advice';
+          cell.appendChild(pill);
+        }
+        const icon = document.createElement('img');
+        icon.className = 'tb-studio-tera-icon';
+        icon.alt = type;
+        icon.src = `icons/types/buttons/${type}_tera.png`;
+        icon.onerror = ()=> tbItemIconFallback(icon, type);
+        cell.appendChild(icon);
+        cell.addEventListener('click', ()=>{
           if(!tbStudioTeam || tbStudioSlotIndex === null) return;
           const m = tbStudioTeam.party[tbStudioSlotIndex];
           if(!m) return;
@@ -6917,8 +6972,9 @@
           tbRenderStudioAdvice(m);
           tbCloseStudioSheet('tb-studio-tera-sheet','tb-studio-tera-sheet-backdrop','tb-studio-tera-pill');
         });
-        body.appendChild(row);
+        grid.appendChild(cell);
       });
+      body.appendChild(grid);
     });
 
     // ── Item picker ──
