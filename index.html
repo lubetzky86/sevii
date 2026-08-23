@@ -6993,7 +6993,12 @@
         const res = await fetch(`https://pokeapi.co/api/v2/item/${slug}/`);
         const data = await res.json();
         const ee = data.effect_entries?.find(e => e.language.name === 'en');
-        const text = ee?.short_effect || ee?.effect || null;
+        let text = ee?.short_effect || ee?.effect || null;
+        // PokéAPI prefixes most held-item effect text with a literal "Held: " label (it
+        // distinguishes a held-item effect from other usage contexts in its own data model) —
+        // meaningless to a Sevii user since every item shown here is always the HELD item, so
+        // strip a leading "Held:" (case-insensitive, optional following whitespace) if present.
+        if(text) text = text.replace(/^\s*held\s*:\s*/i, '');
         tbItemEffectCache[slug] = text;
         return text;
       }catch(e){
