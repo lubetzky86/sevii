@@ -1834,33 +1834,52 @@
        (applyStudioTheme). Never touches --theme-*, #right-panel, #info-*, or .card.selected. ══ */
     .tb-studio-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 210; display: none; align-items: center; justify-content: center; padding: 10px 20px; }
     .tb-studio-backdrop.visible { display: flex; }
-    .tb-studio-panel { width: 100%; max-width: 640px; height: 92%; background: var(--studio-bg, #fafafa); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.25); border-left: 3px solid var(--studio-dark, #606070); transition: background 0.3s, border-color 0.3s; }
-    .tb-studio-header { flex-shrink: 0; padding: 18px 16px 24px; background: linear-gradient(to bottom, var(--studio-dark, #606070) 0%, var(--studio-dark, #606070) 55%, var(--studio-bg, #fafafa) 100%); transition: background 0.3s; display: flex; flex-direction: column; align-items: center; position: relative; }
+    /* Diego (2026-08-23): the Studio panel's own dark theme color should fill the ENTIRE screen
+       height, not just the header before fading into a light --studio-bg partway down like it
+       used to. .tb-studio-panel and .tb-studio-body both now use --studio-dark directly, and the
+       header lost its fade-to-light gradient — it's a flat continuation of the same color. Every
+       plain-text element that used to assume "dark text on a light body background" (section
+       titles, stat labels/numbers, BST, the plain advice list) is recolored to light/white further
+       below; the white ability/nature/item "value set" pills and move-slot cards were ALREADY
+       styled to flip to a light card once filled, so they read even better now — they pop off the
+       dark backdrop instead of blending into a light one, which is closer to Diego's sketch anyway. */
+    .tb-studio-panel { width: 100%; max-width: 640px; height: 92%; background: var(--studio-dark, #606070); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.25); border-left: 3px solid var(--studio-dark, #606070); transition: background 0.3s, border-color 0.3s; }
+    .tb-studio-header { flex-shrink: 0; padding: 18px 16px 24px; background: var(--studio-dark, #606070); transition: background 0.3s; display: flex; flex-direction: column; align-items: center; position: relative; }
     .tb-studio-close { position: absolute; top: 10px; right: 10px; width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.25); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; color: white; transition: background 0.15s; }
     .tb-studio-close:hover { background: rgba(255,255,255,0.4); }
     .tb-studio-sprite { width: 120px; height: 120px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.25)); }
     .tb-studio-nickname-input { margin-top: 6px; font-family: 'Archivo Black', sans-serif; font-size: 18px; font-weight: 900; text-align: center; text-transform: uppercase; color: white; background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.5); border-radius: 10px; padding: 6px 10px; width: 80%; max-width: 260px; }
     .tb-studio-nickname-input::placeholder { color: rgba(255,255,255,0.7); }
     .tb-studio-nickname-input:focus { outline: none; background: rgba(255,255,255,0.25); }
-    .tb-studio-badges { display: flex; gap: 6px; margin-top: 8px; }
-    .tb-studio-body { flex: 1; overflow-y: auto; background: var(--studio-bg, #fafafa); padding: 16px; transition: background 0.3s; display: flex; flex-direction: column; gap: 18px; }
-    .tb-studio-section-title { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.6px; color: var(--studio-dark, #606070); transition: color 0.3s; }
+    .tb-studio-badges { display: flex; gap: 6px; margin-top: 8px; align-items: center; }
+    /* Tera badge reuses .type-badge-img's sizing (round type-badge PNGs and the hex-crystal Tera
+       art are drawn at the same 32px so they sit evenly in the row) — the shapes read as distinct
+       from the art itself (round vs. hex-crystal), no extra CSS masking needed. */
+    .tb-studio-tera-badge { width: 32px; height: 32px; }
+    .tb-studio-body { flex: 1; overflow-y: auto; background: var(--studio-dark, #606070); padding: 16px; transition: background 0.3s; display: flex; flex-direction: column; gap: 18px; }
+    .tb-studio-section-title { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.6px; color: rgba(255,255,255,0.85); transition: color 0.3s; }
     .tb-studio-tera-pill { align-self: flex-start; padding: 8px 16px; border-radius: 24px; background: var(--studio-dark, #606070); border: 1.5px solid rgba(255,255,255,0.5); font-size: 13px; font-weight: 600; color: white; cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
     .tb-studio-tera-pill:hover { opacity: 0.85; transform: translateY(-1px); }
     .tb-studio-stats-block { display: flex; flex-direction: column; gap: 8px; }
     .tb-studio-stat-row { display: flex; align-items: center; gap: 8px; }
-    .tb-studio-stat-name { font-size: 12px; font-weight: 900; width: 32px; flex-shrink: 0; text-align: right; color: var(--studio-dark, #606070); transition: color 0.3s; }
-    .tb-studio-stat-bar-bg { flex: 1; height: 14px; background: rgba(0,0,0,0.08); border-radius: 7px; overflow: hidden; }
+    .tb-studio-stat-name { font-size: 12px; font-weight: 900; width: 32px; flex-shrink: 0; text-align: right; color: rgba(255,255,255,0.85); transition: color 0.3s; }
+    .tb-studio-stat-bar-bg { flex: 1; height: 14px; background: rgba(255,255,255,0.2); border-radius: 7px; overflow: hidden; }
     .tb-studio-stat-bar-fill { height: 100%; border-radius: 7px; transition: width 0.5s ease, background 0.4s; }
-    .tb-studio-stat-num { font-size: 12px; font-weight: 700; color: #444; width: 28px; flex-shrink: 0; text-align: right; }
-    .tb-studio-bst-row { display: flex; align-items: center; gap: 8px; border-top: 1.5px solid rgba(0,0,0,0.1); padding-top: 6px; margin-top: 2px; }
-    .tb-studio-bst-label { font-size: 12px; font-weight: 900; color: var(--studio-dark, #606070); width: 32px; text-align: right; transition: color 0.3s; }
-    .tb-studio-bst-num { font-size: 13px; font-weight: 900; color: #1a1a1a; flex: 1; text-align: right; }
-    .tb-studio-stats-note { font-size: 11px; color: #999; font-style: italic; line-height: 1.4; }
-    .tb-studio-evs-header-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
-    .tb-studio-ev-total { font-size: 12px; font-weight: 700; color: var(--studio-dark, #606070); transition: color 0.3s; }
-    .tb-studio-ev-total.tb-studio-ev-total-maxed { color: #c0392b; }
-    .tb-studio-ev-hint { font-size: 11px; color: #999; font-style: italic; margin-bottom: 8px; line-height: 1.4; }
+    .tb-studio-stat-num { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.9); width: 28px; flex-shrink: 0; text-align: right; }
+    /* Nature boost/drop arrow coloring, now shared by the single unified stats block (these
+       modifier classes used to only apply to the separate Final Stats block's own .tb-studio-
+       final-num — kept the same class names/colors, just also wired to .tb-studio-stat-num). */
+    .tb-studio-stat-num.tb-studio-final-boost { color: #c0392b; }
+    .tb-studio-stat-num.tb-studio-final-drop { color: #2c6fbb; }
+    .tb-studio-stat-num { width: auto; min-width: 28px; }
+    .tb-studio-stat-arrow { font-size: 9px; }
+    .tb-studio-bst-row { display: flex; align-items: center; gap: 8px; border-top: 1.5px solid rgba(255,255,255,0.2); padding-top: 6px; margin-top: 2px; }
+    .tb-studio-bst-label { font-size: 12px; font-weight: 900; color: rgba(255,255,255,0.85); width: 32px; text-align: right; transition: color 0.3s; }
+    .tb-studio-bst-num { font-size: 13px; font-weight: 900; color: white; flex: 1; text-align: right; }
+    .tb-studio-stats-note { font-size: 11px; color: rgba(255,255,255,0.7); font-style: italic; line-height: 1.4; }
+    .tb-studio-ev-total { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.85); transition: color 0.3s; }
+    .tb-studio-ev-total.tb-studio-ev-total-maxed { color: #ff8a7a; }
+    .tb-studio-ev-hint { font-size: 11px; color: rgba(255,255,255,0.7); font-style: italic; margin-bottom: 8px; line-height: 1.4; }
     .tb-studio-iv-maxall-btn { font-size: 11px; font-weight: 700; color: var(--studio-dark, #606070); background: none; border: 1.5px solid var(--studio-dark, #606070); border-radius: 12px; padding: 4px 10px; cursor: pointer; transition: opacity 0.15s; }
     .tb-studio-iv-maxall-btn:hover { opacity: 0.7; }
     .tb-studio-ev-block, .tb-studio-iv-block { display: flex; flex-direction: column; gap: 6px; }
@@ -1871,19 +1890,14 @@
     .tb-studio-ev-bar-bg, .tb-studio-iv-bar-bg { flex: 1; height: 10px; background: rgba(0,0,0,0.08); border-radius: 5px; overflow: hidden; }
     .tb-studio-ev-bar-fill { height: 100%; border-radius: 5px; background: var(--studio-dark, #606070); transition: width 0.2s ease; }
     .tb-studio-iv-bar-fill { height: 100%; border-radius: 5px; background: #8aa; transition: width 0.2s ease; }
-    .tb-studio-final-block { display: flex; flex-direction: column; gap: 8px; }
-    .tb-studio-final-row { display: flex; align-items: center; gap: 8px; }
-    .tb-studio-final-name { font-size: 12px; font-weight: 900; width: 32px; flex-shrink: 0; text-align: right; color: var(--studio-dark, #606070); transition: color 0.3s; }
-    .tb-studio-final-bar-bg { flex: 1; height: 14px; background: rgba(0,0,0,0.08); border-radius: 7px; overflow: hidden; }
-    .tb-studio-final-bar-fill { height: 100%; border-radius: 7px; transition: width 0.3s ease, background 0.3s; }
-    .tb-studio-final-num { font-size: 12px; font-weight: 700; color: #444; width: 34px; flex-shrink: 0; text-align: right; }
-    .tb-studio-final-num.tb-studio-final-boost { color: #c0392b; }
-    .tb-studio-final-num.tb-studio-final-drop { color: #2c6fbb; }
+    /* Old separate Final Stats block's own row/bar/name CSS removed — .tb-studio-stats-block /
+       .tb-studio-stat-row etc. now handle both base and final display (see tbRenderStudioStats).
+       .tb-studio-final-lv is still used, just now inline inside the single dynamic section title. */
     .tb-studio-final-lv { font-size: 10px; font-weight: 700; color: #999; text-transform: none; letter-spacing: 0; }
     .tb-studio-pill-row { display: flex; gap: 8px; }
     .tb-studio-pill-btn { flex: 1; padding: 10px 8px; border-radius: 24px; background: var(--studio-dark, #606070); border: 1.5px solid rgba(255,255,255,0.5); font-size: 13px; font-weight: 600; color: white; cursor: pointer; transition: background 0.15s, opacity 0.15s, transform 0.1s; text-align: center; }
     .tb-studio-pill-btn:hover { opacity: 0.85; transform: translateY(-1px); }
-    .tb-studio-pill-hint { font-size: 11px; color: var(--studio-dark, #606070); font-style: italic; min-height: 14px; transition: color 0.3s; }
+    .tb-studio-pill-hint { font-size: 11px; color: rgba(255,255,255,0.75); font-style: italic; min-height: 14px; transition: color 0.3s; }
     .tb-studio-pill-btn.tb-studio-pill-set { background: var(--studio-bg, #fafafa); color: var(--studio-dark, #606070); border: 1.5px solid var(--studio-dark, #606070); }
     .tb-studio-tera-pill.tb-studio-pill-set { background: var(--studio-bg, #fafafa); color: var(--studio-dark, #606070); display: flex; align-items: center; gap: 6px; }
     .tb-studio-tera-pill.tb-studio-pill-set img { width: 16px; height: 16px; }
@@ -2145,9 +2159,16 @@
       .tb-move-table tbody tr.tb-advice-frame { box-shadow: inset 0 0 0 1.5px var(--advice-brown); }
       .tb-move-table tbody tr.tb-advice-frame .tb-advice-pill { top: -8px; font-size: 9px; padding: 2px 8px; }
     }
-    .tb-studio-footer { flex-shrink: 0; padding: 12px 16px; background: var(--studio-bg, #fafafa); border-top: 1px solid rgba(0,0,0,0.08); transition: background 0.3s; }
+    .tb-studio-footer { flex-shrink: 0; padding: 12px 16px; background: var(--studio-dark, #606070); border-top: 1px solid rgba(255,255,255,0.15); transition: background 0.3s; }
     .tb-studio-done-btn { width: 100%; padding: 12px; border-radius: 24px; background: var(--studio-dark, #606070); border: 1.5px solid rgba(255,255,255,0.5); font-size: 14px; font-weight: 700; color: white; cursor: pointer; transition: opacity 0.15s, transform 0.1s; text-transform: uppercase; letter-spacing: 0.4px; }
     .tb-studio-done-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+    /* The footer now sits on the same full-height --studio-dark background as the rest of the
+       card, so the button's old same-color-as-its-background fill (distinguished only by a faint
+       white border) would nearly disappear into it. Scoped to just the Studio card's own footer —
+       .tb-studio-done-btn is reused as-is (dark bg, unchanged) by the EVs/IVs sheet's "Confirm
+       Spread" button, which sits on that sheet's white background and still needs its original
+       contrast there. */
+    .tb-studio-footer .tb-studio-done-btn { background: white; color: var(--studio-dark, #606070); border: 1.5px solid white; }
 
     /* ══════════ DEX PICKER — fully self-contained overlay, parallel to the main grid ══════════ */
     .tb-dexpick-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 200; display: none; align-items: center; justify-content: center; padding: 10px 20px; }
@@ -2196,7 +2217,7 @@
     /* Sevii Advice — deliberately plain/unstyled (Step 1 of the planned build): default
        black-on-white text, basic spacing only, no colors/icons/cards. Diego reviews the logic
        first; visual treatment is a later round. */
-    .tb-advice-plain { font-size: 13px; line-height: 1.5; color: #222; }
+    .tb-advice-plain { font-size: 13px; line-height: 1.5; color: rgba(255,255,255,0.9); }
     .tb-advice-plain p { margin: 6px 0; }
     .tb-advice-plain ul { margin: 4px 0 10px; padding-left: 20px; }
     .tb-advice-plain dl { margin: 4px 0; }
@@ -3743,14 +3764,8 @@
               <button class="tb-studio-tera-pill" id="tb-studio-tera-pill">+ Tera Type</button>
             </div>
             <div>
-              <div class="tb-studio-section-title">Base Stats</div>
+              <div class="tb-studio-section-title" id="tb-studio-stats-title">Base Stats</div>
               <div class="tb-studio-stats-block" id="tb-studio-stats-block"></div>
-            </div>
-            <div>
-              <div class="tb-studio-evs-header-row">
-                <div class="tb-studio-section-title">Final Stats <span class="tb-studio-final-lv">(Lv. 50)</span></div>
-              </div>
-              <div class="tb-studio-final-block" id="tb-studio-final-block"></div>
             </div>
             <div id="tb-studio-evsivs-section">
               <div class="tb-studio-section-title">EVs / IVs</div>
@@ -6241,30 +6256,74 @@
     // statColor for the bar/number color — its rgb ramp (0-255+ hue sweep, capped visually around
     // 130+) still reads sensibly at Lv.50 final-stat magnitudes (roughly 20-200ish for non-HP
     // stats, up to ~200+ for HP), so no separate final-stats-tuned variant was needed.
-    function tbRenderStudioFinalStats(member){
-      const finalBlock = document.getElementById('tb-studio-final-block');
-      if(!finalBlock || !tbStudioBaseStats) return;
+    // Whether this member has started customizing their build enough that FINAL (Lv. 50,
+    // nature/EV/IV-adjusted) stats should replace the raw BASE stat display. Diego: "only one
+    // stat bar graph in the Studio at once" — no more separate Base Stats + Final Stats sections
+    // stacked on top of each other. A member with nature unset and all-zero EVs/IVs (the default
+    // for a freshly-added party member, per the EVs/IVs round's IV-default-to-0 change) reads as
+    // "untouched," so the card shows plain base stats until the user starts actually building.
+    function tbStudioStatsAreCustomized(member){
+      if(!member) return false;
+      if(member.nature) return true;
+      if(tbStudioEvTotal(member.evs) > 0) return true;
+      if(tbStudioIvTotal(member.ivs) > 0) return true;
+      return false;
+    }
+
+    // Single unified stats block — replaces the old two-section Base Stats / Final Stats pair.
+    // Renders base stats verbatim until the member is customized (see tbStudioStatsAreCustomized
+    // above), then switches to the same Lv. 50 tbCalcFinalStat computation the old Final Stats
+    // block used, nature arrows and all. tbRenderStudioFinalStats is kept as a thin alias below so
+    // every existing call site (EVs/IVs sheet edits, Ability/Nature/Item/Tera/Move selection, etc.)
+    // keeps working unchanged — this function is the one and only place stat display logic lives.
+    function tbRenderStudioStats(member){
+      const statsBlock = document.getElementById('tb-studio-stats-block');
+      const titleEl = document.getElementById('tb-studio-stats-title');
+      if(!statsBlock || !tbStudioBaseStats || !member) return;
+      const customized = tbStudioStatsAreCustomized(member);
       const natureEntry = TB_NATURES.find(n=>n.name === member.nature) || null;
-      finalBlock.innerHTML = '';
+      if(titleEl) titleEl.innerHTML = customized
+        ? 'Final Stats <span class="tb-studio-final-lv">(Lv. 50)</span>'
+        : 'Base Stats';
+      statsBlock.innerHTML = '';
+      let baseTotal = 0;
       TB_STUDIO_STAT_ORDER.forEach(statKey=>{
         const base = tbStudioBaseStats[statKey];
         if(base == null) return;
-        const iv = (member.ivs[statKey]!=null) ? member.ivs[statKey] : 0;
-        const ev = member.evs[statKey] || 0;
-        let natureMod = 1.0;
-        let natureClass = '';
-        if(natureEntry && statKey !== 'hp'){
-          if(natureEntry.boost === statKey && natureEntry.drop !== statKey){ natureMod = 1.1; natureClass = 'tb-studio-final-boost'; }
-          else if(natureEntry.drop === statKey && natureEntry.boost !== statKey){ natureMod = 0.9; natureClass = 'tb-studio-final-drop'; }
-        }
-        const val = tbCalcFinalStat(statKey, base, iv, ev, natureMod);
+        baseTotal += base;
         const label = TB_STUDIO_STAT_SHORT_LABELS[statKey];
-        const pct = Math.min(Math.round((val/300)*100), 100);
+        let displayVal = base, natureClass = '', pct;
+        if(customized){
+          const iv = (member.ivs[statKey]!=null) ? member.ivs[statKey] : 0;
+          const ev = member.evs[statKey] || 0;
+          let natureMod = 1.0;
+          if(natureEntry && statKey !== 'hp'){
+            if(natureEntry.boost === statKey && natureEntry.drop !== statKey){ natureMod = 1.1; natureClass = 'tb-studio-final-boost'; }
+            else if(natureEntry.drop === statKey && natureEntry.boost !== statKey){ natureMod = 0.9; natureClass = 'tb-studio-final-drop'; }
+          }
+          displayVal = tbCalcFinalStat(statKey, base, iv, ev, natureMod);
+          pct = Math.min(Math.round((displayVal/300)*100), 100);
+        } else {
+          pct = Math.round((base/255)*100);
+        }
+        const arrow = natureClass === 'tb-studio-final-boost' ? ' <span class="tb-studio-stat-arrow boost">▲</span>'
+          : natureClass === 'tb-studio-final-drop' ? ' <span class="tb-studio-stat-arrow drop">▼</span>' : '';
         const row = document.createElement('div');
-        row.className = 'tb-studio-final-row';
-        row.innerHTML = `<div class="tb-studio-final-name">${label}</div><div class="tb-studio-final-bar-bg"><div class="tb-studio-final-bar-fill" style="width:${pct}%;background:${statColor(base)}"></div></div><div class="tb-studio-final-num ${natureClass}">${val}</div>`;
-        finalBlock.appendChild(row);
+        row.className = 'tb-studio-stat-row';
+        row.innerHTML = `<div class="tb-studio-stat-name">${label}</div><div class="tb-studio-stat-bar-bg"><div class="tb-studio-stat-bar-fill" style="width:${pct}%;background:${statColor(base)}"></div></div><div class="tb-studio-stat-num ${natureClass}">${displayVal}${arrow}</div>`;
+        statsBlock.appendChild(row);
       });
+      const bst = document.createElement('div');
+      bst.className = 'tb-studio-bst-row';
+      bst.innerHTML = `<div class="tb-studio-bst-label">BST</div><div class="tb-studio-bst-num">${baseTotal}</div>`;
+      statsBlock.appendChild(bst);
+    }
+
+    // Alias — every pre-existing call site (written back when Base Stats and Final Stats were two
+    // separate blocks) calls this name to mean "the displayed stats just changed, re-render them."
+    // That's exactly what tbRenderStudioStats now does as the single source of truth.
+    function tbRenderStudioFinalStats(member){
+      tbRenderStudioStats(member);
     }
 
     // ══════════════════════════════════════════════════════════════════════════════
@@ -6991,9 +7050,8 @@
       const nickInput = document.getElementById('tb-studio-nickname-input');
       nickInput.value = member.nickname || '';
       nickInput.placeholder = member.speciesName || '';
-      const badgesEl = document.getElementById('tb-studio-badges');
-      badgesEl.innerHTML = '';
-      if(Array.isArray(member.types)) member.types.forEach(t=>badgesEl.appendChild(makeBadgeImg(t, false)));
+      // Badge row (types + Tera Type once set) is built by tbRenderStudioBadges, called below via
+      // tbUpdateStudioPillLabels — no need to duplicate that here.
 
       // Tera Type slot — only for Gen 9 contexts
       const teraSection = document.getElementById('tb-studio-tera-section');
@@ -7019,30 +7077,16 @@
         if(tbStudioTeam !== team || tbStudioSlotIndex !== slotIndex) return;
         applyStudioTheme(data.colorName);
         tbStudioAbilitiesForMember = data.abilities || [];
-        const STAT_LABELS = {hp:'HP',attack:'ATK',defense:'DEF','special-attack':'SpA','special-defense':'SpD',speed:'SPD'};
-        statsBlock.innerHTML = '';
-        let total = 0;
         const baseByShortKey = {};
         data.stats.forEach(s=>{
-          total += s.base;
-          const pct = Math.round((s.base/255)*100);
-          const label = STAT_LABELS[s.name] || s.name;
           const shortKey = TB_POKEAPI_STAT_TO_SHORT[s.name];
           if(shortKey) baseByShortKey[shortKey] = s.base;
-          const row = document.createElement('div');
-          row.className = 'tb-studio-stat-row';
-          row.innerHTML = `<div class="tb-studio-stat-name">${label}</div><div class="tb-studio-stat-bar-bg"><div class="tb-studio-stat-bar-fill" style="width:${pct}%;background:${statColor(s.base)}"></div></div><div class="tb-studio-stat-num">${s.base}</div>`;
-          statsBlock.appendChild(row);
         });
-        const bst = document.createElement('div');
-        bst.className = 'tb-studio-bst-row';
-        bst.innerHTML = `<div class="tb-studio-bst-label">BST</div><div class="tb-studio-bst-num">${total}</div>`;
-        statsBlock.appendChild(bst);
 
-        // Base stats captured for this member's session — EV/IV editors and the Final Stats
-        // block below read from this on every keystroke without re-fetching.
+        // Base stats captured for this member's session — EV/IV editors and the single unified
+        // stats block below read from this on every keystroke without re-fetching.
         tbStudioBaseStats = baseByShortKey;
-        tbRenderStudioFinalStats(member);
+        tbRenderStudioStats(member);
 
         // Warm the full move-detail cache for this species BEFORE the first Advice render, so
         // the Moves recommendation is fully populated on first open rather than thin/empty until
@@ -7104,8 +7148,32 @@
 
     // Updates the Ability/Nature/Tera pill labels to reflect the currently-open member's saved
     // state (called on Studio open, and again right after each selection).
+    // Renders the badge row under the sprite: the member's 1-2 types (unchanged, via the app's own
+    // makeBadgeImg — round pill-badge PNGs from icons/types/buttons/{type}.png, no suffix), plus a
+    // 3rd Tera Type badge when one is set, using that SAME folder's _tera-suffixed art (Diego,
+    // 2026-08-23: "circular type badges ... don't have the _tera suffix ... tera icons ... have
+    // the _tera suffix"). Re-run on open AND every time Tera Type changes (see the Tera picker's
+    // click handler), so the row always reflects the member's current selection without needing
+    // the Studio card to be closed and reopened.
+    function tbRenderStudioBadges(member){
+      const badgesEl = document.getElementById('tb-studio-badges');
+      if(!badgesEl || !member) return;
+      badgesEl.innerHTML = '';
+      if(Array.isArray(member.types)) member.types.forEach(t=>badgesEl.appendChild(makeBadgeImg(t, false)));
+      if(member.teraType){
+        const icon = document.createElement('img');
+        icon.className = 'type-badge-img tb-studio-tera-badge';
+        icon.alt = toTitleCase(member.teraType) + ' Tera Type';
+        icon.title = 'Tera Type: ' + toTitleCase(member.teraType);
+        icon.src = `icons/types/buttons/${member.teraType}_tera.png`;
+        icon.onerror = ()=> tbItemIconFallback(icon, member.teraType);
+        badgesEl.appendChild(icon);
+      }
+    }
+
     function tbUpdateStudioPillLabels(member){
       if(!member) return;
+      tbRenderStudioBadges(member);
       const abilityPill = document.getElementById('tb-studio-ability-pill');
       if(abilityPill){
         abilityPill.textContent = member.ability ? member.ability.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) : 'Ability';
