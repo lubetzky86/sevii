@@ -1727,10 +1727,19 @@
        decorative, doesn't touch member data. */
     .tb-sprite-shiny-badge { position: absolute; top: -2px; right: -2px; font-size: 10px; line-height: 1; filter: drop-shadow(0 0 1px rgba(0,0,0,0.4)); pointer-events: none; }
     /* Small branded game-logo image used inside badges/pills wherever a game needs to be shown.
-       Falls back to text-only (via onerror hiding the <img>) if a filename doesn't exist. */
-    .tb-game-logo-img { height: 14px; width: auto; max-width: 46px; object-fit: contain; vertical-align: middle; border-radius: 2px; }
-    .tb-badge.tb-badge-game { display: inline-flex; align-items: center; gap: 4px; }
+       The icon IS the label (no redundant text alongside it) — sized to fill the height of
+       whatever pill/badge/button it sits in. Falls back to a text span (via tbGameImgFallback(),
+       wired through onerror) if a filename doesn't exist. */
+    .tb-game-logo-img { height: 16px; width: auto; max-width: 64px; object-fit: contain; vertical-align: middle; border-radius: 2px; display: block; }
+    .tb-game-logo-fallback { font-weight: 700; }
+    .tb-badge.tb-badge-game { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; }
+    .tb-badge.tb-badge-game .tb-game-logo-img { height: 14px; }
 
+    /* While the Team Canvas screen (an opened team, not the Hub) is active, the app's global
+       top header (hamburger + Sevii logo strip) is hidden so .tb-canvas-topbar below reads as
+       the screen's one and only title bar. Toggled via the body.tb-canvas-active class — see
+       tbShowCanvas/tbShowHub and switchSection's generic reset. */
+    body.tb-canvas-active #app-header { display: none; }
     /* Canvas topbar — dark teal-gray header bar: title, (muted) Save button, circular close. */
     .tb-canvas-topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #43656e; border-radius: 14px; padding: 12px 14px; margin: -4px -4px 0; }
     .tb-canvas-topbar-title { font-family: 'Archivo Black', sans-serif; font-size: 14px; font-weight: 900; color: white; text-transform: uppercase; letter-spacing: 0.6px; }
@@ -1753,8 +1762,9 @@
     .tb-toggle-btn.active { background: #43656e; color: white; }
     .tb-toggle-group.tb-disabled { opacity: 0.4; pointer-events: none; }
 
-    .tb-game-select-btn { display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 20px; border: 1.5px solid #c8bfaf; background: rgba(255,255,255,0.55); color: #43656e; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .tb-game-select-btn { display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 20px; border: 1.5px solid #c8bfaf; background: rgba(255,255,255,0.55); color: #43656e; font-size: 12px; font-weight: 700; cursor: pointer; }
     .tb-game-select-btn:hover { background: rgba(255,255,255,0.85); }
+    .tb-game-select-btn .tb-game-logo-img { height: 22px; max-width: 100px; }
     .tb-game-select-chevron { font-size: 10px; color: #999; }
 
     /* Party grid: fixed 3 columns × 2 rows at every breakpoint (matches the reference layout —
@@ -1765,11 +1775,11 @@
     /* Empty slots: solid muted tan/greige fill (no dashed border) per the sketch, instead of the
        old white-with-dashed-border look. Filled slots keep their existing white-card treatment
        below (untouched). */
-    .tb-party-slot { background: #e8e0d0; border: 2px solid transparent; border-radius: 14px; min-height: 185px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
-    .tb-party-slot:hover { background: #ddd2bc; border-color: #c8bfaf; }
-    .tb-party-slot-plus { font-size: 26px; color: #8f8570; line-height: 1; }
-    .tb-party-slot-label { font-size: 12px; font-weight: 700; color: #8f8570; text-transform: uppercase; letter-spacing: 0.4px; text-align: center; }
-    .tb-party-slot.filled { border-style: solid; border-color: #e8e4dd; cursor: default; align-items: stretch; justify-content: flex-start; padding: 10px; }
+    .tb-party-slot { background: #eae3d7; border: 2px solid #b0b0b0; border-radius: 14px; min-height: 185px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+    .tb-party-slot:hover { background: #ddd2bc; border-color: #999; }
+    .tb-party-slot-plus { font-size: 26px; color: #999; line-height: 1; }
+    .tb-party-slot-label { font-size: 12px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.4px; text-align: center; }
+    .tb-party-slot.filled { background: white; border-style: solid; border-color: #e8e4dd; cursor: default; align-items: stretch; justify-content: flex-start; padding: 10px; }
     .tb-party-slot-filled-row { display: flex; align-items: center; gap: 10px; }
     .tb-party-slot-sprite { width: 56px; height: 56px; object-fit: contain; image-rendering: pixelated; flex-shrink: 0; }
     .tb-party-slot-name { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; color: #1a1a1a; text-transform: uppercase; }
@@ -1885,7 +1895,8 @@
     .tb-game-pill { padding: 7px 10px; border-radius: 16px; border: 1.5px solid #e2ddd0; background: #f7f5f0; font-size: 12px; font-weight: 700; color: #43656e; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; text-align: center; }
     .tb-game-pill:hover { border-color: #43656e; }
     .tb-game-pill.selected { background: #43656e; border-color: #43656e; color: white; }
-    .tb-game-pill img.tb-game-logo-img { height: 16px; }
+    .tb-game-pill { min-height: 34px; }
+    .tb-game-pill img.tb-game-logo-img { height: 24px; max-width: 90%; }
 
     @media (max-width: 900px) {
       .app-header { padding: 0 8px; gap: 6px; }
@@ -4158,6 +4169,10 @@
       if (name !== 'teambuilder') {
         const headerSearch = document.querySelector('.app-header-search');
         if (headerSearch) headerSearch.style.display = '';
+        // Leaving Team Builder entirely (any other nav tab) must also restore the global
+        // header if the Canvas screen had suppressed it — tbShowHub only runs when landing
+        // back inside Team Builder, not when navigating away from it outright.
+        document.body.classList.remove('tb-canvas-active');
       }
       closeSidenav();
       if (name === 'abilities') {
@@ -4699,6 +4714,9 @@
       document.getElementById('tb-canvas').style.display = 'none';
       const headerSearch = document.querySelector('.app-header-search');
       if (headerSearch) headerSearch.style.display = '';
+      // Canvas topbar no longer needs to stand in for the global header once we're back on
+      // the Hub — restore the normal hamburger/logo strip.
+      document.body.classList.remove('tb-canvas-active');
       renderTeamBuilderHub();
     }
     function tbShowCanvas(teamId){
@@ -4710,6 +4728,11 @@
       // by switchSection's generic header-reset logic.
       const headerSearch = document.querySelector('.app-header-search');
       if (headerSearch) headerSearch.style.display = 'none';
+      // The Canvas's own .tb-canvas-topbar (title + Save + Close) becomes the screen's sole
+      // title bar — suppress the app-wide hamburger/logo header while it's showing. Restored
+      // by tbShowHub above and, for leaving via another nav tab entirely, by switchSection's
+      // generic reset below.
+      document.body.classList.add('tb-canvas-active');
       renderTeamCanvas();
     }
 
@@ -4750,9 +4773,20 @@
     // ids already match the filenames directly (kebab-case throughout), so no remapping table is
     // needed. onerror hides the <img> so a missing file falls back gracefully to text-only rather
     // than showing a broken-image icon.
-    function tbGameIconImgHtml(gameId, extraClass){
-      if(!gameId) return '';
-      return `<img class="tb-game-logo-img${extraClass?(' '+extraClass):''}" src="icons/games/${gameId}.png" alt="" onerror="this.remove()">`;
+    // Swaps a broken game-logo <img> for a plain text fallback span carrying the same label —
+    // called via onerror so the icon-only pills/badges/buttons never end up empty.
+    function tbGameImgFallback(img){
+      const span = document.createElement('span');
+      span.className = 'tb-game-logo-fallback' + (img.dataset.extraClass ? (' '+img.dataset.extraClass) : '');
+      span.textContent = img.dataset.label || '';
+      img.replaceWith(span);
+    }
+    // Icon-only game representation: the logo image IS the label (no separate text alongside it)
+    // wherever it renders successfully; onerror swaps to a text fallback via tbGameImgFallback().
+    function tbGameIconImgHtml(gameId, label, extraClass){
+      const safeLabel = escapeHtml(label || '');
+      if(!gameId) return `<span class="tb-game-logo-fallback${extraClass?(' '+extraClass):''}">${safeLabel}</span>`;
+      return `<img class="tb-game-logo-img${extraClass?(' '+extraClass):''}" src="icons/games/${gameId}.png" alt="${safeLabel}" data-label="${safeLabel}"${extraClass?` data-extra-class="${extraClass}"`:''} onerror="tbGameImgFallback(this)">`;
     }
 
     function renderTeamBuilderHub(){
@@ -4780,7 +4814,7 @@
             <div class="tb-team-card-name">${escapeHtml(team.name)}</div>
             <div class="tb-team-card-badges">
               <span class="tb-badge">${team.mode==='competitive'?(team.format==='doubles'?'Doubles':'Singles'):'Playthrough'}</span>
-              <span class="tb-badge tb-badge-game">${tbGameIconImgHtml(team.game)}${escapeHtml(gameLabel)}</span>
+              <span class="tb-badge tb-badge-game">${tbGameIconImgHtml(team.game, gameLabel)}</span>
             </div>
           </div>
           <div class="tb-team-card-right">
@@ -4914,7 +4948,7 @@
         genGroup.games.forEach(game=>{
           const pill = document.createElement('button');
           pill.className = 'tb-game-pill' + (tbHubActiveGames.has(game.id) ? ' selected' : '');
-          pill.innerHTML = `${tbGameIconImgHtml(game.id)}<span>${escapeHtml(game.name)}</span>`;
+          pill.innerHTML = tbGameIconImgHtml(game.id, game.name);
           pill.addEventListener('click', ()=>{
             if(tbHubActiveGames.has(game.id)) tbHubActiveGames.delete(game.id); else tbHubActiveGames.add(game.id);
             document.getElementById('tb-hub-game-pill')?.classList.toggle('has-selection', tbHubActiveGames.size>0);
@@ -4983,7 +5017,7 @@
 
       // Game selector label (+ logo, when available)
       const gameLabelEl = document.getElementById('tb-game-select-label');
-      if(gameLabelEl) gameLabelEl.innerHTML = `${tbGameIconImgHtml(team.game)}<span>${escapeHtml(tbGameLabelFor(team.game) || 'Select a game')}</span>`;
+      if(gameLabelEl) gameLabelEl.innerHTML = tbGameIconImgHtml(team.game, tbGameLabelFor(team.game) || 'Select a game');
 
       renderTeamPartyGrid(team);
     }
@@ -5551,7 +5585,7 @@
         genGroup.games.forEach(game=>{
           const pill = document.createElement('button');
           pill.className = 'tb-game-pill' + (team && team.game===game.id ? ' selected' : '');
-          pill.innerHTML = `${tbGameIconImgHtml(game.id)}<span>${escapeHtml(game.name)}</span>`;
+          pill.innerHTML = tbGameIconImgHtml(game.id, game.name);
           pill.addEventListener('click', ()=>{
             const t = getTeam(tbActiveTeamId);
             if(!t) return;
@@ -5565,7 +5599,7 @@
             t.game = game.id;
             touchTeam(t);
             const gameLabelEl = document.getElementById('tb-game-select-label');
-            if(gameLabelEl) gameLabelEl.innerHTML = `${tbGameIconImgHtml(game.id)}<span>${escapeHtml(game.name)}</span>`;
+            if(gameLabelEl) gameLabelEl.innerHTML = tbGameIconImgHtml(game.id, game.name);
             document.getElementById('tb-game-sheet').classList.remove('open');
             document.getElementById('tb-game-sheet-backdrop').classList.remove('open');
             renderTeamGameSheet();
