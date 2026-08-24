@@ -1909,26 +1909,38 @@
       transition: background 0.3s;
       padding: 14px 16px 28px;
     }
-    .tb-studio-close { position: absolute; top: 10px; right: 10px; width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.25); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; color: white; transition: background 0.15s; z-index: 2; }
+    /* Round 5 (Diego, 2026-08-24): the header is now a real flex ROW of controls, matching the
+       golden Info card's own .info-controls-bar mechanism exactly — Name editor, Shiny toggle,
+       Close button as true siblings in one row, instead of two independently position:absolute
+       floating buttons over a flex-column header (the old approach, which is what made small
+       spacing/alignment drift keep creeping back in). */
+    .tb-studio-controls-bar { display: flex; align-items: center; gap: 8px; width: 100%; }
+    .tb-studio-close { position: static; flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.25); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; color: white; transition: background 0.15s; z-index: 2; }
     /* Shiny toggle — same size/shape as the Info card's own (.obtain-shiny-btn family, defined
-       once and shared app-wide), just repositioned to sit left of the Studio's own close button
-       rather than inside a flex controls-bar row (the Studio header isn't laid out as rows the
-       way the Info card's pinned-top is). */
-    #tb-studio-shiny-control { position: absolute; top: 15px; right: 44px; z-index: 2; }
+       once and shared app-wide), now a plain flex sibling in the controls bar rather than an
+       absolutely-positioned overlay. */
+    #tb-studio-shiny-control { position: static; flex-shrink: 0; z-index: 2; }
     .tb-studio-close:hover { background: rgba(255,255,255,0.4); }
-    /* Round 4 (Diego): the nickname editor sits where the Info card's name row normally sits —
-       right under the top controls strip, well above the sprite — not drifted down into the
-       middle of the header the way round 3 left it. It's the one deliberate departure from an
-       otherwise 1:1 recycle of the Info card's top section (a plain name has nothing to edit). */
-    .tb-studio-nickname-wrap { position: relative; margin-top: 22px; width: auto; max-width: 200px; }
-    .tb-studio-nickname-input { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; text-align: center; text-transform: none; color: white; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.35); border-radius: 14px; padding: 5px 26px 5px 12px; width: 100%; box-sizing: border-box; }
-    .tb-studio-nickname-input::placeholder { color: rgba(255,255,255,0.65); }
-    .tb-studio-nickname-input:focus { outline: none; border-color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.24); }
-    .tb-studio-nickname-pencil { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); font-size: 10px; color: white; opacity: 0.75; pointer-events: none; }
-    /* Sprite zone — recycled directly from the Info card's #info-sprite-zone / .info-backdrop-circle
-       / .info-sprite-img: same 150px white backdrop circle (border colored by the Pokémon's theme),
-       same 200px sprite deliberately overflowing the circle's bounds. The freed-up space from
-       moving the nickname editor up goes straight into this larger sprite, per Diego's request. */
+    /* Round 5 (Diego): the nickname editor moves into the header's controls-bar row itself, at
+       the far left — same position/role the Party screen's team-name field holds in its own
+       topbar — instead of sitting in its own row below the controls. Recycles the Party screen's
+       name-field treatment directly: big Archivo Black clamp() text, pencil button inside the
+       box's right edge, same as .tb-canvas-name-wrap/.tb-canvas-name-input/.tb-name-edit-btn. */
+    .tb-studio-name-wrap { position: relative; flex: 1 1 auto; min-width: 0; display: flex; }
+    .tb-studio-name-input {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: clamp(20px, 5vw, 32px); /* same scale as the Party screen's team-name field —
+        recycled directly per Diego's request, see .tb-canvas-name-input for the original. */
+      font-weight: 900; color: white; border: 1.5px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.16); outline: none; flex: 1 1 auto; min-width: 0; width: 0; overflow: hidden; text-overflow: ellipsis; text-transform: none; letter-spacing: 0.3px; padding: 8px 40px 8px 12px; border-radius: 10px; transition: border-color 0.15s, background 0.15s; min-height: 48px; box-sizing: border-box;
+    }
+    .tb-studio-name-input::placeholder { color: rgba(255,255,255,0.6); }
+    .tb-studio-name-input:focus { border-color: white; background: rgba(255,255,255,0.28); }
+    /* Sprite zone — recycled directly from the Info card's #info-sprite-zone / .info-sprite-img.
+       Round 5 (Diego, 2026-08-24): the white backdrop circle behind the sprite has been removed
+       here as an experiment ("let's see how it looks with just the sprite and the glow") — if it
+       reads well, this may get promoted to the golden standard and removed from the Info card
+       too. .tb-studio-backdrop-circle's CSS rule is left in place (unused) in case that
+       experiment needs to be reverted. */
     .tb-studio-sprite-zone { position: relative; display: flex; align-items: center; justify-content: center; min-height: 180px; padding: 0 14px; }
     .tb-studio-backdrop-circle { position: absolute; width: 150px; height: 150px; border-radius: 50%; background: white; border: 8px solid var(--studio-dark, #606070); transition: border-color 0.3s; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; }
     /* Glow — tightened + intensified (Diego, round 4: "more intense and defined around the
@@ -1948,13 +1960,24 @@
        stylesheet and, at equal class-selector specificity, won the cascade on mobile. */
     .tb-studio-badges { display: flex; gap: 16px; margin-top: 10px; align-items: center; justify-content: center; }
     #tb-studio-badges img.tb-studio-type-badge { width: 38px; height: 38px; object-fit: contain; }
+    /* Type-name labels under each icon — the missing piece vs. golden's own .info-type-item/
+       .info-type-label (Diego, round 5: "add the missing type-name labels under each icon to
+       match golden"). Icon + label stack in a column, same shape as golden's type row items. */
+    .tb-studio-type-item { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .tb-studio-type-label { font-family: 'Archivo Black', system-ui, sans-serif; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: var(--studio-dark, #606070); transition: color 0.3s; }
     .tb-studio-body { flex: 1; overflow-y: auto; background: var(--studio-bg, #fafafa); padding: 16px; padding-top: 6px; transition: background 0.3s; display: flex; flex-direction: column; gap: 18px; position: relative; z-index: 1; }
-    .tb-studio-section-title { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.6px; color: var(--studio-dark, #606070); transition: color 0.3s; }
+    /* Section labels — matched to golden's .info-section-header/.info-section-title exactly
+       (Diego, round 5): 14px Archivo Black, centered, not the old 11px left-aligned treatment. */
+    .tb-studio-section-header { text-align: center; margin-bottom: 8px; }
+    .tb-studio-section-title { font-family: 'Archivo Black', system-ui, sans-serif; font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: var(--studio-dark, #606070); transition: color 0.3s; }
     .tb-studio-stats-block { display: flex; flex-direction: column; gap: 8px; }
     .tb-studio-stat-row { display: flex; align-items: center; gap: 8px; }
     .tb-studio-stat-name { font-size: 12px; font-weight: 900; width: 32px; flex-shrink: 0; text-align: right; color: var(--studio-dark, #606070); transition: color 0.3s; }
     .tb-studio-stat-bar-bg { flex: 1; height: 14px; background: rgba(0,0,0,0.08); border-radius: 7px; overflow: hidden; }
-    .tb-studio-stat-bar-fill { height: 100%; border-radius: 7px; transition: width 0.5s ease, background 0.4s; }
+    /* Fill color — matches golden exactly now (Diego, round 5): every bar is the SAME solid
+       theme-dark color, no more red/orange/yellow/green statColor() gradient by stat value. The
+       default here is the fallback; tbApplyStudioTheme sets the real --studio-dark per Pokémon. */
+    .tb-studio-stat-bar-fill { height: 100%; border-radius: 7px; background: var(--studio-dark, #606070); transition: width 0.5s ease, background 0.4s; }
     .tb-studio-stat-num { font-size: 12px; font-weight: 700; color: #444; width: auto; min-width: 28px; flex-shrink: 0; text-align: right; }
     /* Nature boost/drop arrow coloring — Diego (2026-08-23): blue for the stat that went UP,
        red for the stat that went DOWN. These class names (tb-studio-final-boost/drop) are a
@@ -1963,12 +1986,17 @@
     .tb-studio-stat-num.tb-studio-final-boost { color: #2c6fbb; }
     .tb-studio-stat-num.tb-studio-final-drop { color: #c0392b; }
     .tb-studio-stat-arrow { font-size: 9px; }
-    /* BST + "+ EVs / IVs" now share one row (Diego's sketch) instead of BST living inside the
-       stats block and EVs/IVs being a separate full-width section below it with its own label. */
-    .tb-studio-bst-evs-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-top: 1.5px solid rgba(0,0,0,0.1); padding-top: 8px; margin-top: 2px; }
-    .tb-studio-bst-inline { display: flex; align-items: baseline; gap: 6px; }
-    .tb-studio-bst-label { font-size: 12px; font-weight: 900; color: var(--studio-dark, #606070); }
-    .tb-studio-bst-num { font-size: 13px; font-weight: 900; color: #1a1a1a; }
+    /* Round 5 (Diego, 2026-08-24): "+ EVs / IVs" moved to its own row directly under the "Stats"
+       section label, right-aligned, above the stat bars — no longer sharing a row with the total
+       number. The total number moved to its OWN row below all the stat bars instead, using the
+       same label/spacer/number shape as golden's .info-bst-row. Since EVs/IVs/Nature now modify
+       these numbers, the label reads "TOTAL" here (Studio only) instead of "BST" — the Pokémon
+       Info card keeps "BST" since its numbers really are unmodified base stats. */
+    .tb-studio-evsivs-row { display: flex; justify-content: flex-end; margin-bottom: 6px; }
+    .tb-studio-total-row { display: flex; align-items: center; gap: 6px; border-top: 1.5px solid rgba(0,0,0,0.1); padding-top: 8px; margin-top: 8px; }
+    .tb-studio-total-label { font-size: 12px; font-weight: 900; color: var(--studio-dark, #606070); }
+    .tb-studio-total-spacer { flex: 1; }
+    .tb-studio-total-num { font-size: 13px; font-weight: 900; color: #1a1a1a; }
     .tb-studio-evsivs-pill { padding: 7px 14px; border-radius: 20px; background: none; border: 1.5px solid var(--studio-dark, #606070); font-size: 12px; font-weight: 700; color: var(--studio-dark, #606070); cursor: pointer; transition: opacity 0.15s, transform 0.1s; white-space: nowrap; }
     .tb-studio-evsivs-pill:hover { opacity: 0.7; transform: translateY(-1px); }
     .tb-studio-stats-note { font-size: 11px; color: #999; font-style: italic; line-height: 1.4; }
@@ -1978,13 +2006,14 @@
        .tb-studio-stat-row etc. now handle both base and final display (see tbRenderStudioStats).
        .tb-studio-final-lv is still used, just now inline inside the single dynamic section title. */
     .tb-studio-final-lv { font-size: 10px; font-weight: 700; color: #999; text-transform: none; letter-spacing: 0; }
-    /* Ability/Nature/Item pills — recycled from the Info card's own .info-measure-pill format
-       (the Height/Weight pills): a small white rounded card with a soft shadow, NOT a tall solid
-       accent-colored button. Round 2 kept the old bold pill-button treatment; Diego asked for the
-       measure-pill's exact height/weight and "less bloated" feel instead. */
+    /* Ability/Nature/Item pills — round 5 (Diego, 2026-08-24): text size/padding matched exactly
+       to golden's own .info-ability-pill (14px / weight 600, 10px 14px padding), replacing round
+       2's smaller 12px/weight 700 tighter-padded treatment. Empty-state placeholder color (#999,
+       via .tb-studio-pill-btn:not(.tb-studio-pill-set)) is the one deliberate difference golden
+       doesn't need, since the Info card's ability pill is never shown empty. */
     .tb-studio-pill-row { display: flex; gap: 10px; }
-    .tb-studio-pill-btn { flex: 1; background: white; border-radius: 10px; padding: 8px 10px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); border: none; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; font-weight: 700; color: #999; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s, color 0.15s; text-align: center; text-transform: none; letter-spacing: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .tb-studio-pill-btn:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.13); }
+    .tb-studio-pill-btn { flex: 1; background: white; border-radius: 10px; padding: 10px 14px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); border: none; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px; font-weight: 600; color: #999; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s, color 0.15s; text-align: center; text-transform: none; letter-spacing: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tb-studio-pill-btn:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.13); transform: translateY(-1px); }
     .tb-studio-pill-btn:active { transform: scale(0.99); }
     .tb-studio-pill-hint { font-size: 11px; color: var(--studio-dark, #606070); font-style: italic; min-height: 14px; transition: color 0.3s; }
     .tb-studio-pill-btn.tb-studio-pill-set { color: var(--studio-dark, #606070); }
@@ -1993,7 +2022,9 @@
        a plain "+" on a dashed circular outline, matching the "+ Move" empty-slot convention
        elsewhere. Filled state: the Tera art fills the ENTIRE button edge to edge with NO visible
        pill background/border, staying clickable to change the pick. */
-    .tb-studio-badges .tb-studio-tera-pill { align-self: auto; width: 38px; height: 38px; padding: 0; border-radius: 50%; background: none; border: 2px dashed rgba(255,255,255,0.5); font-size: 15px; font-weight: 700; color: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: opacity 0.15s, transform 0.1s; overflow: hidden; }
+    /* Sized ~15% bigger than the 2 type badges (38px → 44px), per Diego's round-5 request, so the
+       Tera artwork renders fully without cropped edges. */
+    .tb-studio-badges .tb-studio-tera-pill { align-self: auto; width: 44px; height: 44px; padding: 0; border-radius: 50%; background: none; border: 2px dashed rgba(255,255,255,0.5); font-size: 15px; font-weight: 700; color: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: opacity 0.15s, transform 0.1s; overflow: hidden; }
     .tb-studio-badges .tb-studio-tera-pill:hover { opacity: 0.8; transform: translateY(-1px); }
     .tb-studio-badges .tb-studio-tera-pill.tb-studio-pill-set { border: none; }
     .tb-studio-tera-badge-icon { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -3903,43 +3934,44 @@
       <div class="tb-studio-backdrop" id="tb-studio-backdrop">
         <div class="tb-studio-panel" id="tb-studio-panel">
           <div class="tb-studio-header">
-            <!-- Round 4 (Diego, 2026-08-23): the top of the Studio card (from here down through
-                 the type-icon row) now recycles the Info card's #info-pinned-top structure/format
-                 directly — controls-bar-with-only-close (plus the shiny toggle, added back this
-                 round — see below), then the "name row" slot (here the nickname text EDITOR
-                 instead of the plain name — the one deliberate exception), then the sprite zone
-                 (backdrop circle + full-size sprite, same 150px/200px as the Info card), then the
-                 type-icon row at the Info card's own 38px size. Favorites/Lists buttons, the
-                 Pokédex number + species classification text, and the cry button are Info-card-
-                 only elements that are intentionally NOT brought over.
-                 Shiny toggle (round: Diego, 2026-08-24): moved here from a small per-card ✨
-                 button on the party slot, which read as cluttered and was the only place in the
-                 app where shininess got toggled outside the Studio/Info-card convention. Reuses
-                 the exact `.obtain-shiny-btn`/`.obtain-shiny-track`/`.obtain-shiny-thumb` markup
-                 and CSS the Info card uses (see #info-shiny-control) — same size/position idiom,
-                 mirrored to sit left of the close button. Toggles THIS member's `member.shiny`
-                 (not the app-wide `isInfoShiny` — each party member needs its own independent
-                 shiny state), reusing the same `playShiny()`/`showSparkle()` reveal functions
-                 every other shiny toggle in the app calls. -->
-            <div class="obtain-shiny-btn" id="tb-studio-shiny-control" title="Toggle Shiny">
-              <span class="obtain-shiny-emoji">✨</span>
-              <div class="obtain-shiny-track" id="tb-studio-shiny-toggle">
-                <div class="obtain-shiny-thumb"></div>
+            <!-- Round 5 (Diego, 2026-08-24): the header is now a real flex-row controls bar,
+                 matching golden's #info-pinned-top / .info-controls-bar structure exactly — Name
+                 editor, Shiny toggle, Close button as true row siblings (left to right), not two
+                 independently-floating buttons. The name editor recycles the Party screen's own
+                 team-name field treatment (big Archivo Black clamp() text + pencil button inside
+                 the box), moved here from its own row below the controls. The sprite zone below
+                 has had its white backdrop circle removed as a visual experiment (see
+                 .tb-studio-sprite-zone comment in the CSS), then the type-icon row (now with
+                 name labels under each icon, matching golden) + Tera badge-button. Favorites/
+                 Lists buttons, the Pokédex number + species classification text, and the cry
+                 button are Info-card-only elements intentionally NOT brought over. -->
+            <div class="tb-studio-controls-bar">
+              <div class="tb-studio-name-wrap">
+                <input type="text" class="tb-studio-name-input" id="tb-studio-nickname-input" maxlength="12" placeholder="Nickname">
+                <button class="tb-name-edit-btn" id="tb-studio-nickname-edit-btn" title="Rename">✎</button>
               </div>
-            </div>
-            <button class="tb-studio-close" id="tb-studio-close" title="Close">✕</button>
-            <div class="tb-studio-nickname-wrap">
-              <input type="text" class="tb-studio-nickname-input" id="tb-studio-nickname-input" maxlength="12" placeholder="Nickname">
-              <span class="tb-studio-nickname-pencil">✎</span>
+              <!-- Shiny toggle — reuses the exact `.obtain-shiny-btn`/`.obtain-shiny-track`/
+                   `.obtain-shiny-thumb` markup and CSS the Info card uses (see
+                   #info-shiny-control). Toggles THIS member's `member.shiny` (not the app-wide
+                   `isInfoShiny` — each party member needs its own independent shiny state),
+                   reusing the same `playShiny()`/`showSparkle()` reveal functions every other
+                   shiny toggle in the app calls. -->
+              <div class="obtain-shiny-btn" id="tb-studio-shiny-control" title="Toggle Shiny">
+                <span class="obtain-shiny-emoji">✨</span>
+                <div class="obtain-shiny-track" id="tb-studio-shiny-toggle">
+                  <div class="obtain-shiny-thumb"></div>
+                </div>
+              </div>
+              <button class="tb-studio-close" id="tb-studio-close" title="Close">✕</button>
             </div>
             <div class="tb-studio-sprite-zone">
-              <div class="tb-studio-backdrop-circle"></div>
               <img class="tb-studio-sprite" id="tb-studio-sprite" alt="">
             </div>
-            <!-- Badge row: 2 type badges + a 3rd Tera Type badge-button (id kept as
-                 tb-studio-tera-pill so the existing setupMobileSheet/click-handler bindings
-                 keep working unchanged — only its DOM position + CSS moved). Gen9-gated: hidden
-                 via inline display:none when the team's game doesn't support Tera. -->
+            <!-- Badge row: 2 type badges (each with a name label underneath, matching golden's
+                 .info-type-item) + a 3rd Tera Type badge-button, rendered ~15% bigger than the
+                 type badges so its artwork isn't cropped (id kept as tb-studio-tera-pill so the
+                 existing setupMobileSheet/click-handler bindings keep working unchanged). Gen9-
+                 gated: hidden via inline display:none when the team's game doesn't support Tera. -->
             <div class="tb-studio-badges" id="tb-studio-badges">
               <button class="tb-studio-tera-pill" id="tb-studio-tera-pill" title="Tera Type">+</button>
             </div>
@@ -3954,15 +3986,21 @@
               <div class="tb-studio-pill-hint" id="tb-studio-pill-hint"></div>
             </div>
             <div>
-              <div class="tb-studio-section-title" id="tb-studio-stats-title">Base Stats</div>
-              <div class="tb-studio-stats-block" id="tb-studio-stats-block"></div>
-              <div class="tb-studio-bst-evs-row">
-                <div class="tb-studio-bst-inline" id="tb-studio-bst-inline"></div>
+              <div class="tb-studio-section-header"><div class="tb-studio-section-title" id="tb-studio-stats-title">Stats</div></div>
+              <!-- Round 5 (Diego, 2026-08-24): "+ EVs / IVs" now sits in its own row directly
+                   under the section label, right-aligned, one row above the stat bars — no
+                   longer sharing a row with the total number (see .tb-studio-total-row below). -->
+              <div class="tb-studio-evsivs-row">
                 <button class="tb-studio-evsivs-pill" id="tb-studio-evsivs-pill">+ EVs / IVs</button>
               </div>
+              <div class="tb-studio-stats-block" id="tb-studio-stats-block"></div>
+              <!-- TOTAL row — its own row below all stat bars, label/spacer/number layout matching
+                   golden's .info-bst-row. Labeled "TOTAL" (not "BST") since EVs/IVs/Nature
+                   modifications make this no longer a pure base-stat total — Studio only. -->
+              <div class="tb-studio-total-row" id="tb-studio-total-row"></div>
             </div>
             <div>
-              <div class="tb-studio-section-title">Moves</div>
+              <div class="tb-studio-section-header"><div class="tb-studio-section-title">Moves</div></div>
               <div class="tb-studio-moves-grid" id="tb-studio-moves-grid"></div>
             </div>
             <!-- Sevii Advice — still computed on every change (tbRenderStudioAdvice), but Diego
@@ -6446,10 +6484,10 @@
       tbRenderStudioAdvice(member);
     }
 
-    // Renders the live Final Stats block from tbStudioBaseStats + member.evs/ivs/nature. Reuses
-    // statColor for the bar/number color — its rgb ramp (0-255+ hue sweep, capped visually around
-    // 130+) still reads sensibly at Lv.50 final-stat magnitudes (roughly 20-200ish for non-HP
-    // stats, up to ~200+ for HP), so no separate final-stats-tuned variant was needed.
+    // Renders the live Final Stats block from tbStudioBaseStats + member.evs/ivs/nature. Bar fill
+    // color is a single solid theme-dark color for every bar (see .tb-studio-stat-bar-fill) —
+    // statColor() is no longer called here (round 5, Diego: matches golden, which removed
+    // stat-value color-coding entirely).
     // Whether this member has started customizing their build enough that FINAL (Lv. 50,
     // nature/EV/IV-adjusted) stats should replace the raw BASE stat display. Diego: "only one
     // stat bar graph in the Studio at once" — no more separate Base Stats + Final Stats sections
@@ -6477,8 +6515,8 @@
       const customized = tbStudioStatsAreCustomized(member);
       const natureEntry = TB_NATURES.find(n=>n.name === member.nature) || null;
       if(titleEl) titleEl.innerHTML = customized
-        ? 'Final Stats <span class="tb-studio-final-lv">(Lv. 50)</span>'
-        : 'Base Stats';
+        ? 'Stats <span class="tb-studio-final-lv">(Lv. 50)</span>'
+        : 'Stats';
       statsBlock.innerHTML = '';
       let baseTotal = 0;
       TB_STUDIO_STAT_ORDER.forEach(statKey=>{
@@ -6506,14 +6544,18 @@
           : natureClass === 'tb-studio-final-drop' ? '<span class="tb-studio-stat-arrow drop">▼</span> ' : '';
         const row = document.createElement('div');
         row.className = 'tb-studio-stat-row';
-        row.innerHTML = `<div class="tb-studio-stat-name">${label}</div><div class="tb-studio-stat-bar-bg"><div class="tb-studio-stat-bar-fill" style="width:${pct}%;background:${statColor(base)}"></div></div><div class="tb-studio-stat-num ${natureClass}">${arrow}${displayVal}</div>`;
+        // Round 5 (Diego, 2026-08-24): fill color no longer comes from statColor()'s red/orange/
+        // yellow/green value ramp — every bar is the same solid theme-dark color, matching golden
+        // exactly (see .tb-studio-stat-bar-fill's CSS default; the inline style here is left off
+        // entirely now so the CSS var, kept current per-Pokémon by applyStudioTheme, always wins).
+        row.innerHTML = `<div class="tb-studio-stat-name">${label}</div><div class="tb-studio-stat-bar-bg"><div class="tb-studio-stat-bar-fill" style="width:${pct}%;"></div></div><div class="tb-studio-stat-num ${natureClass}">${arrow}${displayVal}</div>`;
         statsBlock.appendChild(row);
       });
-      // BST now renders into its own inline slot (#tb-studio-bst-inline) instead of appending
-      // inside the stats block, so it can sit on the SAME row as the "+ EVs / IVs" pill per
-      // Diego's sketch (see .tb-studio-bst-evs-row) rather than stacked above it.
-      const bstInline = document.getElementById('tb-studio-bst-inline');
-      if(bstInline) bstInline.innerHTML = `<span class="tb-studio-bst-label">BST</span><span class="tb-studio-bst-num">${baseTotal}</span>`;
+      // TOTAL now renders into its own row below all the stat bars (#tb-studio-total-row),
+      // label/spacer/number layout matching golden's .info-bst-row exactly, instead of sharing a
+      // row with the "+ EVs / IVs" pill. Labeled "TOTAL" not "BST" — Studio only, see CSS comment.
+      const totalRow = document.getElementById('tb-studio-total-row');
+      if(totalRow) totalRow.innerHTML = `<span class="tb-studio-total-label">TOTAL</span><span class="tb-studio-total-spacer"></span><span class="tb-studio-total-num">${baseTotal}</span>`;
     }
 
     // Alias — every pre-existing call site (written back when Base Stats and Final Stats were two
@@ -7331,6 +7373,13 @@
     }
 
     document.getElementById('tb-studio-nickname-input')?.addEventListener('blur', tbSaveStudioNickname);
+    // Pencil button — recycled from the Party screen's own tb-team-name-edit-btn pattern (focus +
+    // select the input rather than toggling any separate edit mode, since the field is always
+    // directly editable).
+    document.getElementById('tb-studio-nickname-edit-btn')?.addEventListener('click', ()=>{
+      document.getElementById('tb-studio-nickname-input')?.focus();
+      document.getElementById('tb-studio-nickname-input')?.select();
+    });
     document.getElementById('tb-studio-close')?.addEventListener('click', tbCloseStudio);
     // Shiny toggle — flips THIS member's own member.shiny (not the app-wide isInfoShiny), reusing
     // the exact same reveal (playShiny()/showSparkle()) every other shiny toggle in the app uses.
@@ -7386,11 +7435,21 @@
       // Only clear the 2 type badges (own class), not the whole row — the Tera badge-button is a
       // static element (id=tb-studio-tera-pill) that setupMobileSheet already bound a click
       // handler to at load time; wiping badgesEl.innerHTML here would silently kill that binding.
-      badgesEl.querySelectorAll('.tb-studio-type-badge').forEach(el=>el.remove());
+      // Round 5 (Diego, 2026-08-24): each type icon now renders inside a .tb-studio-type-item
+      // wrapper with a name label underneath, matching golden's .info-type-item/.info-type-label
+      // exactly (the missing piece the corrected audit flagged) — was previously a bare <img>.
+      badgesEl.querySelectorAll('.tb-studio-type-item').forEach(el=>el.remove());
       if(Array.isArray(member.types)) member.types.slice().reverse().forEach(t=>{
+        const wrap = document.createElement('div');
+        wrap.className = 'tb-studio-type-item';
         const img = makeBadgeImg(t, false);
         img.classList.add('tb-studio-type-badge');
-        badgesEl.insertBefore(img, badgesEl.firstChild);
+        const label = document.createElement('span');
+        label.className = 'tb-studio-type-label';
+        label.textContent = t;
+        wrap.appendChild(img);
+        wrap.appendChild(label);
+        badgesEl.insertBefore(wrap, badgesEl.firstChild);
       });
     }
 
