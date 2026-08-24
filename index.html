@@ -2269,6 +2269,15 @@
        read-only viewer. Kept fully tb-prefixed/parallel; never touches .moveset-* classes. ── */
     .tb-studio-sheet.tb-move-sheet { max-height: 80vh; }
     .tb-studio-sheet.tb-evsivs-sheet { max-height: 80vh; }
+    /* Accordion-bearing sheets (Nature, Item, Moves) get a genuinely FIXED height, not just a
+       max-height ceiling — otherwise the sheet auto-sizes to its content, and since it's anchored
+       to the viewport's bottom edge, expanding/collapsing an accordion inside it makes the whole
+       sheet's top edge (and every fixed-position element in it) visibly jump up and down as the
+       user browses. Locking the outer frame to a fixed height means only the inner content
+       scrolls; the sheet itself never moves. Trades a little empty space at the bottom when
+       content is short for a stable, non-jumping frame. */
+    .tb-studio-sheet.tb-nature-sheet, .tb-studio-sheet.tb-item-sheet { height: 65vh; max-height: 65vh; }
+    .tb-studio-sheet.tb-move-sheet { height: 80vh; }
     .tb-evsivs-confirm-wrap { margin-top: 18px; display: flex; justify-content: center; }
     @media (max-width: 600px) { .tb-evsivs-confirm-wrap { margin-top: 14px; } }
     .tb-move-sheet-body { display: flex; flex-direction: column; gap: 10px; }
@@ -2565,7 +2574,7 @@
       #mv-type-filter-row, #mv-gen-filter-row, #mv-cat-filter-row, #mv-sort-wrap,
       #lists-mylists-sheet {
         position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 401;
-        display: flex; flex-direction: column; background: white; border-radius: 16px 16px 0 0;
+        display: flex; flex-direction: column; align-items: stretch; background: white; border-radius: 16px 16px 0 0;
         max-height: 65vh; overflow-y: auto; padding: 14px 14px calc(14px + env(safe-area-inset-bottom, 0px));
         transform: translateY(100%); transition: transform 0.25s ease; box-shadow: 0 -6px 24px rgba(0,0,0,0.2);
       }
@@ -4064,7 +4073,7 @@
       </div>
 
       <div class="tb-studio-sheet-backdrop" id="tb-studio-nature-sheet-backdrop"></div>
-      <div class="tb-studio-sheet" id="tb-studio-nature-sheet">
+      <div class="tb-studio-sheet tb-nature-sheet" id="tb-studio-nature-sheet">
         <div class="tb-studio-sheet-header"><span class="tb-studio-sheet-title">Nature</span><button class="tb-studio-sheet-close" id="tb-studio-nature-sheet-close">✕</button></div>
         <div class="tb-studio-sheet-body" id="tb-studio-nature-sheet-body"></div>
       </div>
@@ -4089,7 +4098,7 @@
       <!-- Item picker sheet — same setupMobileSheet pattern as Ability/Nature/Tera above, but its
            body is organized into per-category collapsible sections rather than a flat list. -->
       <div class="tb-studio-sheet-backdrop" id="tb-studio-item-sheet-backdrop"></div>
-      <div class="tb-studio-sheet" id="tb-studio-item-sheet">
+      <div class="tb-studio-sheet tb-item-sheet" id="tb-studio-item-sheet">
         <div class="tb-studio-sheet-header"><span class="tb-studio-sheet-title">Item</span><button class="tb-studio-sheet-close" id="tb-studio-item-sheet-close">✕</button></div>
         <div class="tb-studio-sheet-body" id="tb-studio-item-sheet-body"></div>
       </div>
