@@ -1813,18 +1813,13 @@
     .tb-party-slot-sprite-zone { position: relative; flex-shrink: 0; }
     .tb-party-slot-sprite { width: 88px; height: 88px; object-fit: contain; image-rendering: pixelated; display: block; }
     .tb-party-slot-name { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; color: #1a1a1a; text-transform: capitalize; }
-    /* Filled-slot corner controls: shiny toggle (top-left) + remove button (top-right).
-       Positioned absolutely inside .tb-party-slot.filled (which is already `position` default
-       static, so give it relative here) — kept purely local to the Team Builder, no reuse of
-       the main grid's card chrome. Remove button uses a small red minus (not an "X", which
-       reads as "close window" rather than "delete"), and the shiny control is a plain tappable
-       glyph (dim gray off / gold on) instead of a toggle-switch, so it takes less visual weight. */
+    /* Filled-slot corner control: remove button (top-right). The shiny toggle that used to sit
+       top-left here (Diego, 2026-08-24) moved into the Studio header instead — see
+       #tb-studio-shiny-control — since a per-card ✨ button read as cluttered and was the only
+       place in the app where shininess got toggled outside a Pokémon's own detail view. */
     .tb-party-slot.filled { position: relative; }
     .tb-slot-remove-btn { position: absolute; top: 6px; right: 6px; width: 16px; height: 16px; border-radius: 50%; background: #d9534f; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 11px; line-height: 1; color: white; font-weight: 900; transition: background 0.15s, transform 0.15s; z-index: 2; padding: 0; }
     .tb-slot-remove-btn:hover { background: #c0392b; transform: scale(1.1); }
-    .tb-slot-shiny-toggle { position: absolute; top: 6px; left: 6px; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; z-index: 2; background: none; border: none; padding: 0; font-size: 14px; line-height: 1; color: #999; opacity: 0.45; transition: opacity 0.2s, color 0.2s, transform 0.15s; }
-    .tb-slot-shiny-toggle:hover { transform: scale(1.12); }
-    .tb-slot-shiny-toggle.on { color: #f8d030; opacity: 1; }
     /* Party-slot type badges — sized to match .tb-coverage-type-badge (24px / 20px on mobile,
        see the Coverage matrix rules below) so the same type icon reads at a consistent size
        everywhere on the Canvas screen. Scoped to this class only, doesn't touch the coverage
@@ -1863,6 +1858,11 @@
       padding: 14px 16px 28px;
     }
     .tb-studio-close { position: absolute; top: 10px; right: 10px; width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.25); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; color: white; transition: background 0.15s; z-index: 2; }
+    /* Shiny toggle — same size/shape as the Info card's own (.obtain-shiny-btn family, defined
+       once and shared app-wide), just repositioned to sit left of the Studio's own close button
+       rather than inside a flex controls-bar row (the Studio header isn't laid out as rows the
+       way the Info card's pinned-top is). */
+    #tb-studio-shiny-control { position: absolute; top: 15px; right: 44px; z-index: 2; }
     .tb-studio-close:hover { background: rgba(255,255,255,0.4); }
     /* Round 4 (Diego): the nickname editor sits where the Info card's name row normally sits —
        right under the top controls strip, well above the sprite — not drifted down into the
@@ -1884,7 +1884,10 @@
        near-opaque rim that hugs the sprite's own alpha silhouette closely (well-defined edge),
        then two wider, still-strong layers for the ambient glow. No per-Pokémon logic — this is the
        same static filter on every sprite, exactly as Diego asked ("no fancy logic here"). */
-    .tb-studio-sprite { position: relative; z-index: 2; width: 200px; height: 200px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3)) drop-shadow(0 0 6px rgba(255,255,255,1)) drop-shadow(0 0 14px rgba(255,255,255,0.95)) drop-shadow(0 0 26px rgba(255,255,255,0.7)); }
+    /* Contour glow — see the <svg><filter id="tb-sprite-glow"> defs near the Studio markup for
+       the full explanation. url(#tb-sprite-glow) does the dilate+blur+colorize contour glow;
+       the drop-shadow() after it adds a small grounding shadow on top of that result. */
+    .tb-studio-sprite { position: relative; z-index: 2; width: 200px; height: 200px; object-fit: contain; filter: url(#tb-sprite-glow) drop-shadow(0 4px 8px rgba(0,0,0,0.25)); }
     /* Type badges — sized/spaced to match the Info card's own .info-type-item img exactly (38px,
        16px gap). Given #tb-studio-badges id-level specificity so a narrower-viewport media-query
        rule elsewhere in the stylesheet targeting the shared .type-badge-img class (used by other,
@@ -3796,6 +3799,31 @@
         <div class="tb-dexpick-sheet-body" id="tb-dexpick-gen-sheet-body"></div>
       </div>
 
+      <!-- Contour glow filter for the Studio's hero sprite (Diego, round: 2026-08-24) — ported
+           from a Canva "Glow" effect (Size 86 / Blur 80 / Intensity 100 on a white glow) rather
+           than approximated. Canva's glow dilates the shape's own alpha silhouette outward by
+           "Size" BEFORE blurring by "Blur level," then composites that blurred silhouette as a
+           solid color UNDER the original art at "Intensity" opacity — a plain CSS drop-shadow()
+           can't do the dilate step (it only blurs the existing alpha edge, so it reads as a soft
+           halo rather than a defined rim hugging the actual contour). This SVG filter reproduces
+           the same 3 steps directly: feMorphology (dilate = Size) → feGaussianBlur (= Blur level)
+           → feFlood/feComposite (solid white, = Intensity 100%) → feMerge under the original
+           sprite. Same static filter applied to every sprite, no per-Pokémon logic. -->
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+          <filter id="tb-sprite-glow" x="-60%" y="-60%" width="220%" height="220%">
+            <feMorphology in="SourceAlpha" operator="dilate" radius="3" result="dilated"/>
+            <feGaussianBlur in="dilated" stdDeviation="7" result="blurred"/>
+            <feFlood flood-color="#ffffff" flood-opacity="1" result="glowColor"/>
+            <feComposite in="glowColor" in2="blurred" operator="in" result="glow"/>
+            <feMerge>
+              <feMergeNode in="glow"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+      </svg>
+
       <!-- ══════════ POKÉMON STUDIO — fully self-contained per-member overlay ══════════
            Own DOM, own state, own theme function (applyStudioTheme). Reads shared read-only
            data (POKEMON_PALETTE, statColor, getEvoSpriteUrl, setSpriteSrc, makeBadgeImg,
@@ -3806,13 +3834,28 @@
           <div class="tb-studio-header">
             <!-- Round 4 (Diego, 2026-08-23): the top of the Studio card (from here down through
                  the type-icon row) now recycles the Info card's #info-pinned-top structure/format
-                 directly — controls-bar-with-only-close, then the "name row" slot (here the
-                 nickname text EDITOR instead of the plain name — the one deliberate exception),
-                 then the sprite zone (backdrop circle + full-size sprite, same 150px/200px as the
-                 Info card), then the type-icon row at the Info card's own 38px size. Favorites/
-                 Lists buttons, the shiny toggle, the Pokédex number + species classification text,
-                 and the cry button are Info-card-only elements that are intentionally NOT brought
-                 over. -->
+                 directly — controls-bar-with-only-close (plus the shiny toggle, added back this
+                 round — see below), then the "name row" slot (here the nickname text EDITOR
+                 instead of the plain name — the one deliberate exception), then the sprite zone
+                 (backdrop circle + full-size sprite, same 150px/200px as the Info card), then the
+                 type-icon row at the Info card's own 38px size. Favorites/Lists buttons, the
+                 Pokédex number + species classification text, and the cry button are Info-card-
+                 only elements that are intentionally NOT brought over.
+                 Shiny toggle (round: Diego, 2026-08-24): moved here from a small per-card ✨
+                 button on the party slot, which read as cluttered and was the only place in the
+                 app where shininess got toggled outside the Studio/Info-card convention. Reuses
+                 the exact `.obtain-shiny-btn`/`.obtain-shiny-track`/`.obtain-shiny-thumb` markup
+                 and CSS the Info card uses (see #info-shiny-control) — same size/position idiom,
+                 mirrored to sit left of the close button. Toggles THIS member's `member.shiny`
+                 (not the app-wide `isInfoShiny` — each party member needs its own independent
+                 shiny state), reusing the same `playShiny()`/`showSparkle()` reveal functions
+                 every other shiny toggle in the app calls. -->
+            <div class="obtain-shiny-btn" id="tb-studio-shiny-control" title="Toggle Shiny">
+              <span class="obtain-shiny-emoji">✨</span>
+              <div class="obtain-shiny-track" id="tb-studio-shiny-toggle">
+                <div class="obtain-shiny-thumb"></div>
+              </div>
+            </div>
             <button class="tb-studio-close" id="tb-studio-close" title="Close">✕</button>
             <div class="tb-studio-nickname-wrap">
               <input type="text" class="tb-studio-nickname-input" id="tb-studio-nickname-input" maxlength="12" placeholder="Nickname">
@@ -5592,7 +5635,6 @@
         if(member && member.speciesId){
           slot.innerHTML = `
             <button class="tb-slot-remove-btn" title="Remove from team">&minus;</button>
-            <button class="tb-slot-shiny-toggle${member.shiny ? ' on' : ''}" title="Toggle shiny">✨</button>
             <div class="tb-party-slot-filled-row">
               <div class="tb-party-slot-sprite-zone">
                 <img class="tb-party-slot-sprite" src="${getEvoSpriteUrl(member.speciesId, member.shiny)}" alt="${escapeHtml(member.speciesName||'')}">
@@ -5616,23 +5658,11 @@
             touchTeam(team);
             renderTeamPartyGrid(team);
           });
-          // Shiny toggle — flips member.shiny and re-renders so the sprite (via getEvoSpriteUrl)
-          // updates to the shiny/non-shiny artwork immediately. Reuses the app-wide shiny
-          // reveal (sparkle gif + sound) via showSparkle()/playShiny() — same functions the
-          // main Pokémon/Abilities/Moves panels call — but only celebrates turning shiny ON,
-          // matching the main info panel's isInfoShiny asymmetry (see info-shiny-control).
-          slot.querySelector('.tb-slot-shiny-toggle').addEventListener('click', (e)=>{
-            e.stopPropagation();
-            const turningShinyOn = !member.shiny;
-            member.shiny = !member.shiny;
-            touchTeam(team);
-            renderTeamPartyGrid(team);
-            if(turningShinyOn){
-              playShiny();
-              const zone = grid.children[i]?.querySelector('.tb-party-slot-sprite-zone');
-              if(zone) showSparkle(zone);
-            }
-          });
+          // Shiny toggle removed from here (Diego, 2026-08-24) — it now lives inside the Studio
+          // header instead (see #tb-studio-shiny-control), matching the app-wide convention that
+          // shininess is toggled from a Pokémon's detail view, not a compact card. The sprite
+          // above still reads `member.shiny` via getEvoSpriteUrl, so a shiny pick made inside the
+          // Studio is reflected here automatically.
           // Tapping the slot body itself (not the controls above) opens the Pokémon Studio
           // for this party member.
           slot.addEventListener('click', ()=>{
@@ -7119,6 +7149,8 @@
       if(speciesTitleEl) speciesTitleEl.textContent = member.speciesName || '';
       const sprite = document.getElementById('tb-studio-sprite');
       setSpriteSrc(sprite, member.speciesId, member.shiny);
+      document.getElementById('tb-studio-shiny-control')?.classList.toggle('on', !!member.shiny);
+      document.getElementById('tb-studio-shiny-toggle')?.classList.toggle('on', !!member.shiny);
       const nickInput = document.getElementById('tb-studio-nickname-input');
       nickInput.value = member.nickname || '';
       nickInput.placeholder = member.speciesName || '';
@@ -7203,6 +7235,28 @@
 
     document.getElementById('tb-studio-nickname-input')?.addEventListener('blur', tbSaveStudioNickname);
     document.getElementById('tb-studio-close')?.addEventListener('click', tbCloseStudio);
+    // Shiny toggle — flips THIS member's own member.shiny (not the app-wide isInfoShiny), reusing
+    // the exact same reveal (playShiny()/showSparkle()) every other shiny toggle in the app uses.
+    // Only celebrates turning shiny ON, matching the Info card's own isInfoShiny asymmetry.
+    document.getElementById('tb-studio-shiny-control')?.addEventListener('click', ()=>{
+      if(!tbStudioTeam || tbStudioSlotIndex === null) return;
+      const member = tbStudioTeam.party[tbStudioSlotIndex];
+      if(!member) return;
+      const turningShinyOn = !member.shiny;
+      member.shiny = !member.shiny;
+      touchTeam(tbStudioTeam);
+      document.getElementById('tb-studio-shiny-control')?.classList.toggle('on', member.shiny);
+      document.getElementById('tb-studio-shiny-toggle')?.classList.toggle('on', member.shiny);
+      const sprite = document.getElementById('tb-studio-sprite');
+      if(sprite) setSpriteSrc(sprite, member.speciesId, member.shiny);
+      if(turningShinyOn){
+        playShiny();
+        showSparkle(document.querySelector('.tb-studio-sprite-zone'));
+      }
+      // Party grid card sprite should reflect the change too, same as it always did when the
+      // toggle lived there directly.
+      renderTeamPartyGrid(tbStudioTeam);
+    });
     document.getElementById('tb-studio-done-btn')?.addEventListener('click', tbCloseStudio);
     document.getElementById('tb-studio-backdrop')?.addEventListener('click', e=>{
       if(e.target === document.getElementById('tb-studio-backdrop')) tbCloseStudio();
