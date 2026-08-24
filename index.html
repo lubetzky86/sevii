@@ -651,6 +651,9 @@
       align-items: center; justify-content: center;
       padding: 0 14px 0 14px; min-height: 180px;
     }
+    /* Backdrop circle — removed from the sprite zone (Diego, round 9: promoted the Studio's
+       "sprite + contour glow, no circle" look to golden-standard status after seeing it live).
+       Rule kept dormant (unused) rather than deleted, in case this needs reverting. */
     .info-backdrop-circle {
       position: absolute;
       width: 150px; height: 150px; border-radius: 50%;
@@ -660,11 +663,14 @@
       top: 50%; left: 50%; transform: translate(-50%, -50%);
       z-index: 1;
     }
+    /* Contour glow — now the golden standard (see url(#tb-sprite-glow), the same SVG filter the
+       Studio's own sprite uses — defs live in the Studio's markup but are globally addressable
+       by id from anywhere in the document, so no duplicate filter def was needed here). */
     .info-sprite-img {
       position: relative; z-index: 2;
       width: 200px; height: 200px;
       object-fit: contain; image-rendering: pixelated;
-      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.25));
+      filter: url(#tb-sprite-glow) drop-shadow(0 4px 8px rgba(0,0,0,0.25));
     }
     .info-sprite-shadow {
       position: relative; z-index: 2;
@@ -2027,7 +2033,12 @@
     .tb-studio-badges .tb-studio-tera-pill { align-self: auto; width: 44px; height: 44px; padding: 0; border-radius: 50%; background: none; border: 2px dashed rgba(255,255,255,0.5); font-size: 15px; font-weight: 700; color: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: opacity 0.15s, transform 0.1s; overflow: hidden; }
     .tb-studio-badges .tb-studio-tera-pill:hover { opacity: 0.8; transform: translateY(-1px); }
     .tb-studio-badges .tb-studio-tera-pill.tb-studio-pill-set { border: none; }
-    .tb-studio-tera-badge-icon { width: 100%; height: 100%; object-fit: cover; display: block; }
+    /* Round 9 fix (Diego): was width/height:100% + object-fit:cover, which stretched-then-cropped
+       the artwork to fill the ENTIRE button (and got visibly worse once the button grew to 44px
+       for the container-size fix). Now a fixed 38px + object-fit:contain — same visual size as
+       the 2 type-badge icons beside it, fully rendered with no cropping, simply centered inside
+       the larger 44px tap target by the button's own flex centering. */
+    .tb-studio-tera-badge-icon { width: 38px; height: 38px; object-fit: contain; display: block; }
 
     /* ── Ability/Nature/Tera picker sheets — reuse the exact tb-dexpick-sheet visual language
        (same slide-up card, header, close button) at a higher z-index so they stack above the
@@ -3312,7 +3323,6 @@
 
           <!-- Sprite zone -->
           <div class="info-sprite-zone" id="info-sprite-zone">
-            <div class="info-backdrop-circle" id="info-backdrop-circle"></div>
             <img class="info-sprite-img" id="info-sprite-img" src="" alt="" />
             <div class="info-sprite-shadow"></div>
             <!-- Cry + gender controls -->
@@ -4922,8 +4932,10 @@
       // Pinned bottom gradient
       document.getElementById('info-pinned-bottom').style.background=
         `linear-gradient(to top, ${p.dark} 0%, ${p.dark} 55%, ${p.bg} 100%)`;
-      // Backdrop circle border
-      document.getElementById('info-backdrop-circle').style.borderColor=p.dark;
+      // Backdrop circle border — element removed (round 9), guarded lookup left in place
+      // harmlessly in case the circle ever needs reverting.
+      const infoBc=document.getElementById('info-backdrop-circle');
+      if(infoBc)infoBc.style.borderColor=p.dark;
       // Scrollable bg
       document.getElementById('info-scroll-body').style.background=p.bg;
       // Action buttons fill
@@ -6518,11 +6530,16 @@
         ? 'Stats <span class="tb-studio-final-lv">(Lv. 50)</span>'
         : 'Stats';
       statsBlock.innerHTML = '';
-      let baseTotal = 0;
+      // Round 9 fix (Diego): the TOTAL number must sum whatever's actually being DISPLAYED in
+      // the rows above it — base stats when untouched, but the Lv.50 nature/EV/IV-adjusted FINAL
+      // stats once customized — not always the raw base-stat sum. Previously this always summed
+      // `base`, so a customized build's TOTAL silently stayed at the base-stat total (e.g. still
+      // showing Mamoswine's 530) even though the rows above it were already showing modified
+      // numbers that summed to something different.
+      let displayTotal = 0;
       TB_STUDIO_STAT_ORDER.forEach(statKey=>{
         const base = tbStudioBaseStats[statKey];
         if(base == null) return;
-        baseTotal += base;
         const label = TB_STUDIO_STAT_SHORT_LABELS[statKey];
         let displayVal = base, natureClass = '', pct;
         if(customized){
@@ -6538,6 +6555,7 @@
         } else {
           pct = Math.round((base/255)*100);
         }
+        displayTotal += displayVal;
         // Arrow goes BEFORE the number (Diego, round 3) — trailing it threw off the right-aligned
         // column since rows with an arrow read wider than rows without one.
         const arrow = natureClass === 'tb-studio-final-boost' ? '<span class="tb-studio-stat-arrow boost">▲</span> '
@@ -6555,7 +6573,7 @@
       // label/spacer/number layout matching golden's .info-bst-row exactly, instead of sharing a
       // row with the "+ EVs / IVs" pill. Labeled "TOTAL" not "BST" — Studio only, see CSS comment.
       const totalRow = document.getElementById('tb-studio-total-row');
-      if(totalRow) totalRow.innerHTML = `<span class="tb-studio-total-label">TOTAL</span><span class="tb-studio-total-spacer"></span><span class="tb-studio-total-num">${baseTotal}</span>`;
+      if(totalRow) totalRow.innerHTML = `<span class="tb-studio-total-label">TOTAL</span><span class="tb-studio-total-spacer"></span><span class="tb-studio-total-num">${displayTotal}</span>`;
     }
 
     // Alias — every pre-existing call site (written back when Base Stats and Final Stats were two
@@ -7466,10 +7484,11 @@
         naturePill.textContent = member.nature || 'Nature';
         naturePill.classList.toggle('tb-studio-pill-set', !!member.nature);
       }
-      // Tera badge-button (Diego, 2026-08-23): now the 3rd slot in the type-badge row, not its
-      // own labeled pill section. Once set, the icon fills the ENTIRE button edge-to-edge with no
-      // visible pill/border (see .tb-studio-badges .tb-studio-tera-pill.tb-studio-pill-set CSS) —
-      // it stays a clickable button either way, reopening the Tera Type sheet.
+      // Tera badge-button: the 3rd slot in the type-badge row, not its own labeled pill section.
+      // Once set, the icon renders at the same 38px size as the 2 type badges beside it (round 9
+      // fix — was stretched to fill the whole button, which cropped the art), with no visible
+      // pill/border (see .tb-studio-badges .tb-studio-tera-pill.tb-studio-pill-set CSS) — it
+      // stays a clickable button either way, reopening the Tera Type sheet.
       const teraPill = document.getElementById('tb-studio-tera-pill');
       if(teraPill){
         if(member.teraType){
@@ -7491,18 +7510,20 @@
       if(itemPill){
         if(member.item){
           const slug = member.item;
+          // Round 9 fix (Diego): sprite + item name almost always overflowed the pill's width.
+          // Dropped the name label entirely — just the sprite, centered, with the full item name
+          // still available as a tooltip via title="" for anyone who wants it on hover.
           itemPill.innerHTML = '';
           const icon = document.createElement('img');
           icon.className = 'tb-studio-item-icon';
-          icon.alt = '';
+          icon.alt = tbItemDisplayName(slug);
+          itemPill.title = tbItemDisplayName(slug);
           itemPill.appendChild(icon);
-          const lbl = document.createElement('span');
-          lbl.textContent = tbItemDisplayName(slug);
-          itemPill.appendChild(lbl);
           itemPill.classList.add('tb-studio-pill-set');
           tbApplyItemIcon(icon, slug);
         }else{
           itemPill.textContent = 'Item';
+          itemPill.removeAttribute('title');
           itemPill.classList.remove('tb-studio-pill-set');
         }
       }
