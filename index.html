@@ -1756,9 +1756,6 @@
     .tb-team-card-sprite-slot { background: #f7f5f0; border: 1.5px solid #e8e4dd; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px 3px 6px; min-height: 96px; position: relative; }
     .tb-team-card-sprite-slot img { width: 56px; height: 56px; object-fit: contain; image-rendering: pixelated; }
     .tb-team-card-sprite-name { font-size: 10px; font-weight: 700; color: #555; text-transform: capitalize; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
-    /* Shiny sparkle indicator overlaid on a hub-card sprite slot whose member is shiny — purely
-       decorative, doesn't touch member data. */
-    .tb-sprite-shiny-badge { position: absolute; top: -2px; right: -2px; font-size: 10px; line-height: 1; filter: drop-shadow(0 0 1px rgba(0,0,0,0.4)); pointer-events: none; }
     /* Small branded game-logo image used inside badges/pills wherever a game needs to be shown.
        The icon IS the label (no redundant text alongside it) — sized to fill the height of
        whatever pill/badge/button it sits in. Falls back to a text span (via tbGameImgFallback(),
@@ -1781,21 +1778,36 @@
        remains in .tb-context-header beneath this band. Negative margin cancels .tb-canvas's own
        padding so this band runs edge-to-edge; kept in sync with that padding value and with the
        mobile override below. */
-    .tb-canvas-topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #43656e; padding: 12px 16px; margin: -18px -22px 0; min-height: 60px; flex-shrink: 0; box-sizing: border-box; }
-    .tb-canvas-topbar-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-    .tb-canvas-save-btn { padding: 6px 12px; border-radius: 16px; border: 1.5px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.12); color: white; font-size: 11px; font-weight: 700; cursor: pointer; transition: background 0.15s; min-height: 30px; flex-shrink: 0; }
+    .tb-canvas-topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #43656e; padding: 14px 16px; margin: -18px -22px 0; min-height: 76px; flex-shrink: 0; box-sizing: border-box; }
+    .tb-canvas-topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    /* Wider now that it's a two-word label plus a floppy-disk icon, not just a bare word —
+       a visibly bigger tap target so the app's one "commit changes" action reads as more
+       consequential than the plain Close button beside it. */
+    .tb-canvas-save-btn { display: flex; align-items: center; gap: 6px; padding: 8px 20px; border-radius: 18px; border: 1.5px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.12); color: white; font-size: 12px; font-weight: 700; cursor: pointer; transition: background 0.15s; min-height: 34px; flex-shrink: 0; }
     .tb-canvas-save-btn:hover { background: rgba(255,255,255,0.25); }
+    .tb-canvas-save-icon { font-size: 13px; line-height: 1; }
     .tb-back-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: rgba(255,255,255,0.18); color: white; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; flex-shrink: 0; }
     .tb-back-btn:hover { background: rgba(255,255,255,0.32); }
     /* Team-name input, now living inside the dark topbar band in place of the old static
        title text. Semi-transparent white fill for contrast against #43656e (mirrors the
        "input in dark header" treatment used nowhere else in-app yet, so this establishes the
        convention for Team Builder); flex:1 + min-width:0 + ellipsis so it never pushes
-       Save/Close off-screen at narrow widths. */
-    .tb-canvas-name-input { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; color: white; border: 1.5px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.16); outline: none; flex: 1 1 auto; min-width: 0; width: 0; text-overflow: ellipsis; letter-spacing: 0.3px; padding: 8px 10px; border-radius: 10px; transition: border-color 0.15s, background 0.15s; min-height: 36px; box-sizing: border-box; }
+       Save/Close off-screen at narrow widths. Wrapped in .tb-canvas-name-wrap so the pencil
+       button can sit inside the box's right edge instead of as a separate element beside it. */
+    .tb-canvas-name-wrap { position: relative; flex: 1 1 auto; min-width: 0; display: flex; }
+    .tb-canvas-name-input {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: clamp(20px, 5vw, 32px); /* same scale family as .info-pokemon-name (the Pokémon
+        section modal's own header size, clamp(28px,5vw,44px)) — kept one notch smaller here so a
+        40-char team name still fits a single-line input inside a compact topbar, while still
+        reading as a clear size increase over the old fixed 13px. */
+      font-weight: 900; color: white; border: 1.5px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.16); outline: none; flex: 1 1 auto; min-width: 0; width: 0; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.3px; padding: 8px 40px 8px 12px; border-radius: 10px; transition: border-color 0.15s, background 0.15s; min-height: 48px; box-sizing: border-box;
+    }
     .tb-canvas-name-input::placeholder { color: rgba(255,255,255,0.6); }
     .tb-canvas-name-input:focus { border-color: white; background: rgba(255,255,255,0.28); }
-    .tb-name-edit-btn { width: 26px; height: 26px; border-radius: 50%; border: none; background: rgba(255,255,255,0.16); color: white; font-size: 12px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    /* Pencil now sits inside the input's own right edge (vertically centered) instead of as a
+       separate button next to it — same icon/behavior, just recycled into the box per spec. */
+    .tb-name-edit-btn { position: absolute; top: 50%; right: 8px; transform: translateY(-50%); width: 26px; height: 26px; border-radius: 50%; border: none; background: rgba(255,255,255,0.16); color: white; font-size: 12px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
     .tb-name-edit-btn:hover { background: rgba(255,255,255,0.28); }
     /* Context header — now holds only the Battle Mode row (name row moved into the topbar
        band above), so its own padding/margin is trimmed to reclaim the freed vertical space. */
@@ -1856,6 +1868,16 @@
        badges' own sizing. */
     .tb-party-slot-badges.type-badges { display: flex; gap: 3px; flex-wrap: wrap; }
     .tb-party-slot-badges.type-badges img, .tb-party-slot-badges.type-badges .badge-fallback { width: 24px; height: 24px; border-radius: 50%; object-fit: contain; }
+    /* Held-item (bottom-left) / Tera Type (bottom-right) mini-badges — same corner-overlay
+       idiom as the remove button above, just anchored to the card's bottom edge instead of the
+       top. Only rendered when the member actually has that field set (Studio-selected), so an
+       unconfigured party member's card stays exactly as clean as before. */
+    .tb-party-slot-item-badge, .tb-party-slot-tera-badge { position: absolute; bottom: 6px; width: 20px; height: 20px; border-radius: 6px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; overflow: hidden; z-index: 2; }
+    .tb-party-slot-item-badge { left: 6px; }
+    .tb-party-slot-tera-badge { right: 6px; border-radius: 50%; }
+    .tb-party-slot-item-badge img, .tb-party-slot-item-badge .tb-item-icon-fallback { width: 100%; height: 100%; object-fit: contain; }
+    .tb-party-slot-tera-badge img { width: 100%; height: 100%; object-fit: contain; }
+    .tb-party-slot-item-badge .tb-item-icon-fallback { display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800; color: #43656e; background: #eef4f3; width: 100%; height: 100%; }
 
     /* ══════════ POKÉMON STUDIO — fully self-contained overlay, parallel to the main grid's
        info detail panel. Own DOM ids, own CSS vars (--studio-*), own theme function
@@ -2311,29 +2333,34 @@
        and data-dense per spec: everything must fit on a phone screen without scrolling once the
        accordion is open. */
     .tb-coverage-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 16px; }
-    .tb-coverage-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .tb-coverage-row { display: flex; align-items: center; gap: 6px; min-width: 0; border-radius: 8px; transition: box-shadow 0.15s; }
+    /* Threat highlight (Diego, 2026-08-24) — when a type accumulates 3+ weaknesses, the whole
+       row (badge + its 3x2 cell grid together) gets wrapped in a noticeable-but-elegant red
+       perimeter border, not just the badge — a thin outline + a little breathing-room padding
+       rather than a heavy box, so it reads as a flag, not a warning klaxon. */
+    .tb-coverage-row.threat { box-shadow: 0 0 0 1.5px #ff0000; padding: 3px; margin: -3px; }
     .tb-coverage-type-badge { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: box-shadow 0.15s, transform 0.15s; }
     .tb-coverage-type-badge img, .tb-coverage-type-badge .badge-fallback { width: 24px; height: 24px; border-radius: 50%; object-fit: contain; }
     /* Threat highlight — >=3 weaknesses among the party. A crisp perimeter ring, not a soft
        drop-shadow, per spec ("high-contrast crimson perimeter border ... not a blurry
        drop-shadow"), plus a small scale bump so the flagged row reads instantly while scanning. */
-    .tb-coverage-type-badge.threat { box-shadow: 0 0 0 2.5px #c0392b; transform: scale(1.08); }
+    .tb-coverage-type-badge.threat { box-shadow: 0 0 0 2.5px #ff0000; transform: scale(1.08); }
     .tb-coverage-cells { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 2px; flex: 1; min-width: 0; max-width: 66px; }
     .tb-cov-cell { aspect-ratio: 1 / 1; width: 100%; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 6px; font-weight: 900; line-height: 1; }
     /* Unfilled party slot — not yet meaningful, no calculation happened. Pale, blends toward the
        card background so it visually recedes behind any calculated (colored or neutral-gray)
        cell in the same row. */
     .tb-cov-cell.tb-cov-empty { background: #ece8de; }
-    /* Calculated-neutral (1x) — deliberately a slightly deeper, more saturated gray than the
-       "empty" placeholder above so the two read as different states at a glance, per spec. */
-    .tb-cov-cell.tb-cov-neutral { background: #b7b0a0; }
-    .tb-cov-cell.tb-cov-weak { background: #f2994a; }           /* 2x weakness — orange */
-    .tb-cov-cell.tb-cov-weak-strong { background: #a01818; }    /* 4x+ weakness — dark red/crimson */
-    .tb-cov-cell.tb-cov-resist { background: #5cb85c; }         /* 0.5x resistance — green */
-    .tb-cov-cell.tb-cov-resist-strong { background: #276b1f; }  /* <=0.25x resistance — dark green */
-    .tb-cov-cell.tb-cov-weak-off { background: #f2994a; }       /* offense: best move only 0.5x — orange */
-    .tb-cov-cell.tb-cov-great { background: #5cb85c; }          /* offense: best move 2x — green */
-    .tb-cov-cell.tb-cov-great-strong { background: #276b1f; }   /* offense: best move 4x+ — dark green */
+    /* Calculated-neutral (1x, shared by both accordions) — Diego's exact hex, 2026-08-24 round. */
+    .tb-cov-cell.tb-cov-neutral { background: #a6a6a6; }
+    .tb-cov-cell.tb-cov-weak { background: #ff8a00; }            /* defense: 2x weakness */
+    .tb-cov-cell.tb-cov-weak-strong { background: #ff0000; }     /* defense: 4x+ weakness */
+    .tb-cov-cell.tb-cov-resist { background: #6ae15b; }          /* defense: 0.5x resistance */
+    .tb-cov-cell.tb-cov-resist-strong { background: #129500; }   /* defense: <=0.25x resistance */
+    .tb-cov-cell.tb-cov-weak-off { background: #ff8a00; }        /* offense: only 0.5x strong moves available */
+    .tb-cov-cell.tb-cov-weak-off-strong { background: #ff0000; } /* offense: only 0.25x strong moves available */
+    .tb-cov-cell.tb-cov-great { background: #6ae15b; }           /* offense: 2x strong move available */
+    .tb-cov-cell.tb-cov-great-strong { background: #129500; }    /* offense: 4x strong move available */
     .tb-cov-cell.tb-cov-immune { background: #ffffff; border: 1.5px solid #999; color: #444; }
     .tb-coverage-note { margin-top: 12px; font-size: 11px; color: #999; font-style: italic; line-height: 1.5; text-align: center; }
     @media (max-width: 480px) {
@@ -2684,7 +2711,9 @@
            tighter gap so it doesn't overflow, and let the header controls wrap onto their
            own lines so nothing gets clipped. ── */
       .tb-hub, .tb-canvas { padding: 12px 12px 20px; gap: 8px; }
-      .tb-canvas-topbar { margin: -12px -12px 0; padding: 10px 12px; min-height: 52px; }
+      .tb-canvas-topbar { margin: -12px -12px 0; padding: 10px 12px; min-height: 64px; }
+      .tb-canvas-name-input { min-height: 40px; padding: 6px 34px 6px 10px; }
+      .tb-canvas-save-btn { padding: 7px 14px; }
       .tb-party-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; max-width: none; }
       .tb-party-slot { min-height: 122px; border-radius: 10px; gap: 3px; }
       .tb-party-slot-plus { font-size: 20px; }
@@ -3662,10 +3691,12 @@
       <!-- Screen 2: Team Canvas — context header + 2×3 party grid -->
       <div class="tb-canvas" id="tb-canvas" style="display:none;">
         <div class="tb-canvas-topbar">
-          <input type="text" class="tb-canvas-name-input" id="tb-team-name-input" maxlength="40" placeholder="Enter team name">
-          <div class="tb-canvas-topbar-right">
+          <div class="tb-canvas-name-wrap">
+            <input type="text" class="tb-canvas-name-input" id="tb-team-name-input" maxlength="40" placeholder="Enter team name">
             <button class="tb-name-edit-btn" id="tb-team-name-edit-btn" title="Rename">✎</button>
-            <button class="tb-canvas-save-btn" id="tb-canvas-save-btn">Save</button>
+          </div>
+          <div class="tb-canvas-topbar-right">
+            <button class="tb-canvas-save-btn" id="tb-canvas-save-btn">Save<span class="tb-canvas-save-icon">💾</span></button>
             <button class="tb-back-btn" id="tb-back-to-hub-btn" title="Close">✕</button>
           </div>
         </div>
@@ -5428,12 +5459,6 @@
             name.className = 'tb-team-card-sprite-name';
             name.textContent = member.nickname || member.speciesName || '';
             slot.appendChild(name);
-            if(member.shiny){
-              const spark = document.createElement('span');
-              spark.className = 'tb-sprite-shiny-badge';
-              spark.textContent = '✨';
-              slot.appendChild(spark);
-            }
           }
           spriteRow.appendChild(slot);
         });
@@ -5674,12 +5699,39 @@
                 ${Array.isArray(member.types) && member.types.length ? '<div class="tb-party-slot-badges type-badges"></div>' : ''}
               </div>
             </div>
+            ${member.item ? '<div class="tb-party-slot-item-badge"></div>' : ''}
+            ${member.teraType ? '<div class="tb-party-slot-tera-badge"></div>' : ''}
           `;
           // Type badges — only rendered when the member has captured type data (members added
           // before this fix have no `types` field and simply show no badge row, per spec).
           if(Array.isArray(member.types) && member.types.length){
             const badgeRow = slot.querySelector('.tb-party-slot-badges');
             if(badgeRow) member.types.forEach(t => badgeRow.appendChild(makeBadgeImg(t, false)));
+          }
+          // Held-item mini-badge (bottom-left) — same 3-tier icon resolution (local sprite →
+          // PokéAPI → lettered fallback) the Studio's own item pill uses, via tbApplyItemIcon.
+          if(member.item){
+            const itemBadge = slot.querySelector('.tb-party-slot-item-badge');
+            if(itemBadge){
+              const icon = document.createElement('img');
+              icon.alt = tbItemDisplayName(member.item);
+              icon.title = tbItemDisplayName(member.item);
+              itemBadge.appendChild(icon);
+              tbApplyItemIcon(icon, member.item);
+            }
+          }
+          // Tera Type mini-badge (bottom-right) — same local icon path the Studio's own Tera
+          // badge-button uses (icons/types/buttons/{type}_tera.png), same fallback on 404.
+          if(member.teraType){
+            const teraBadge = slot.querySelector('.tb-party-slot-tera-badge');
+            if(teraBadge){
+              const icon = document.createElement('img');
+              icon.alt = toTitleCase(member.teraType) + ' Tera Type';
+              icon.title = 'Tera Type: ' + toTitleCase(member.teraType);
+              icon.src = `icons/types/buttons/${member.teraType}_tera.png`;
+              icon.onerror = ()=> tbItemIconFallback(icon, member.teraType);
+              teraBadge.appendChild(icon);
+            }
           }
           // Remove button — instant remove, no confirmation dialog per this round's scope.
           slot.querySelector('.tb-slot-remove-btn').addEventListener('click', (e)=>{
@@ -5860,7 +5912,8 @@
       }
       // offense
       if(m <= 0) return 'tb-cov-immune';
-      if(m < 1)   return 'tb-cov-weak-off';
+      if(m < 0.5) return 'tb-cov-weak-off-strong'; // only 0.25x strong moves available
+      if(m < 1)   return 'tb-cov-weak-off';        // only 0.5x strong moves available
       if(m === 1) return 'tb-cov-neutral';
       if(m <= 2)  return 'tb-cov-great';
       return 'tb-cov-great-strong';
@@ -5874,7 +5927,7 @@
       wrap.className = 'tb-coverage-matrix';
       rows.forEach(row=>{
         const rowEl = document.createElement('div');
-        rowEl.className = 'tb-coverage-row';
+        rowEl.className = 'tb-coverage-row' + (mode==='defense' && row.weakCount>=3 ? ' threat' : '');
         const badge = document.createElement('div');
         badge.className = 'tb-coverage-type-badge' + (mode==='defense' && row.weakCount>=3 ? ' threat' : '');
         badge.title = row.type.charAt(0).toUpperCase()+row.type.slice(1) + (mode==='defense' && row.weakCount>=3 ? ' — threatened (3+ weaknesses)' : '');
@@ -5938,7 +5991,7 @@
       body.appendChild(tbRenderCoverageMatrix(tbCalcOffensiveCoverage(team), 'offense'));
       const note = document.createElement('div');
       note.className = 'tb-coverage-note';
-      note.textContent = 'Move-based offensive coverage will appear here once you assign moves to your Pokémon in the Studio.';
+      note.textContent = 'Assign movesets to view offensive coverage analysis';
       body.appendChild(note);
     }
 
