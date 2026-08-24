@@ -2860,25 +2860,20 @@
       <button class="sidenav-item active" data-section="pokemon">
         <img src="icons/sections/pokemon.png" alt="Pokémon" class="sidenav-section-img">
       </button>
-      <button class="sidenav-item" data-section="abilities">
-        <img src="icons/sections/abilities.png" alt="Abilities" class="sidenav-section-img">
+      <!-- icons/sections/teams.png now exists — swapped in for the placeholder inline-SVG icon
+           this tab used to fall back to. Team Building promoted to 2nd position per Diego's
+           final ordering: Pokémon, Team Building, Moves, Abilities, Lists. -->
+      <button class="sidenav-item sidenav-item-teambuilder" data-section="teambuilder">
+        <img src="icons/sections/teams.png" alt="Team Building" class="sidenav-section-img">
       </button>
       <button class="sidenav-item" data-section="moves">
         <img src="icons/sections/moves.png" alt="Moves" class="sidenav-section-img">
       </button>
+      <button class="sidenav-item" data-section="abilities">
+        <img src="icons/sections/abilities.png" alt="Abilities" class="sidenav-section-img">
+      </button>
       <button class="sidenav-item sidenav-item-lists" data-section="lists">
         <img src="icons/sections/lists.png" alt="Lists" class="sidenav-section-img">
-      </button>
-      <!-- No icons/sections/teambuilder.png asset exists yet in this build, so this nav item
-           uses the app's existing inline-SVG fallback pattern (see the
-           ".sidenav-item svg.sidenav-section-img" rule above) instead of an <img>. Diego: drop a
-           teambuilder.png into icons/sections/ later and swap this <svg> for an <img> to match
-           the other four tabs — no other code needs to change. -->
-      <button class="sidenav-item sidenav-item-teambuilder" data-section="teambuilder">
-        <svg class="sidenav-section-img" viewBox="0 0 24 24" fill="none" stroke="#43656e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="12" cy="17" r="3"/>
-          <path d="M9.2 8.7 10.6 15M14.8 8.7 13.4 15"/>
-        </svg>
       </button>
     </div>
 
