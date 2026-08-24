@@ -2297,8 +2297,13 @@
     .tb-move-table thead th:first-child { padding-left: 10px; width: 34px; }
     .tb-move-table thead th.tb-mv-col-move { width: 26%; }
     .tb-move-table thead th.tb-mv-col-type { width: 40px; }
-    .tb-move-table thead th.tb-mv-col-cat { width: 44px; }
-    .tb-move-table thead th.right { text-align: right; padding-right: 10px; width: 36px; }
+    /* Cat./Pwr/Acc/PP were fixed px widths that, combined with the Move column's % width and the
+       Num/Type columns' px widths, never summed to the table's actual full 100% width under
+       table-layout:fixed — the shortfall showed up as dead blank space to the right of the PP
+       column. Converting these four to % (all other columns' widths untouched, per Diego's ask)
+       makes them consume that leftover space instead of leaving it blank. */
+    .tb-move-table thead th.tb-mv-col-cat { width: 15%; }
+    .tb-move-table thead th.right { text-align: right; padding-right: 10px; width: 13%; }
     /* Click-to-sort — same visual language as the main Moveset modal's .moveset-table
        (.sortable/.sort-asc/.sort-desc), just re-scoped to .tb-move-table since that's a
        separate stylesheet block; attachTableSort() itself is the exact same shared function. */
@@ -2325,11 +2330,25 @@
        the framed row makes it the pill's positioning context, same overlap look as every other
        screen, and it's appended as a plain positioned child of the <tr> (see tbBuildMoveTable) so
        it never sits inside a <td> and can't push the Move column's text or widen any column. */
-    .tb-move-table tbody tr.tb-advice-frame { position: relative; box-shadow: inset 0 0 0 2px var(--advice-brown); background: rgba(92,74,46,0.05); }
-    .tb-move-table tbody tr.tb-advice-frame:hover { background: rgba(92,74,46,0.09); }
+    /* Revised recommended-row framing: the inset box-shadow approach above drew a hard rectangle
+       across the whole row while the row's own border-bottom (from tbody tr, above) and each td's
+       own box model still rendered underneath/alongside it — combined with the fully-rounded
+       .tb-advice-pill sitting right on top, that layered look is the "circular border on top of
+       thicker square borders" Diego flagged. Fix: put the actual border/background on the row's
+       <td>s instead of the <tr> (a real border, not a box-shadow), only round the two end cells,
+       and explicitly kill the row's own border-bottom so nothing doubles up underneath it. This
+       is table-appropriate but reads much closer to the rounded-frame look every other picker
+       screen's .tb-advice-frame gets on a card/cell. */
+    .tb-move-table tbody tr.tb-advice-frame { position: relative; border-bottom: none; }
+    .tb-move-table tbody tr.tb-advice-frame td { border-top: 2px solid var(--advice-brown); border-bottom: 2px solid var(--advice-brown); background: rgba(92,74,46,0.05); }
+    .tb-move-table tbody tr.tb-advice-frame td:first-child { border-left: 2px solid var(--advice-brown); border-top-left-radius: 10px; border-bottom-left-radius: 10px; }
+    .tb-move-table tbody tr.tb-advice-frame td:last-child { border-right: 2px solid var(--advice-brown); border-top-right-radius: 10px; border-bottom-right-radius: 10px; }
+    .tb-move-table tbody tr.tb-advice-frame:hover td { background: rgba(92,74,46,0.09); }
     .tb-move-table tbody tr.tb-advice-frame .tb-advice-pill { top: -9px; }
     @media (max-width: 600px) {
-      .tb-move-table tbody tr.tb-advice-frame { box-shadow: inset 0 0 0 1.5px var(--advice-brown); }
+      .tb-move-table tbody tr.tb-advice-frame td { border-top-width: 1.5px; border-bottom-width: 1.5px; }
+      .tb-move-table tbody tr.tb-advice-frame td:first-child { border-left-width: 1.5px; }
+      .tb-move-table tbody tr.tb-advice-frame td:last-child { border-right-width: 1.5px; }
       .tb-move-table tbody tr.tb-advice-frame .tb-advice-pill { top: -8px; font-size: 9px; padding: 2px 8px; }
     }
     /* Footer — same gradient technique as the header (see the big comment above .tb-studio-header):
