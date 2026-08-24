@@ -1686,8 +1686,6 @@
        ══════════════════════════════════════════ */
     #section-teambuilder { position: relative; }
     .tb-hub, .tb-canvas { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 18px 22px 28px; gap: 10px; }
-    .tb-hub-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-    .tb-hub-title { font-family: 'Archivo Black', sans-serif; font-size: 18px; font-weight: 900; color: #43656e; text-transform: uppercase; letter-spacing: 0.4px; }
     .tb-create-btn { padding: 9px 18px; border-radius: 24px; border: none; background: #43656e; color: white; font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
     .tb-create-btn:hover { opacity: 0.85; }
     /* Full-width, prominent "CREATE NEW TEAM" button per the sketch — placed below the filters
@@ -1700,32 +1698,57 @@
     .tb-create-btn-full:hover { opacity: 0.85; transform: translateY(-1px); }
     .tb-create-btn-full:active { transform: scale(0.99); }
 
-    /* Hub filter row — "FILTERS" label + "Clear all" link above three unified pill triggers
-       (Format / Game / Sort), each of which opens a bottom sheet on tap (setupMobileSheet). */
+    /* Hub filter bar — recycled directly from the Pokémon section's own filters-bar golden
+       standard: a white card standing out from the tan app background, holding a "Filters"
+       label + "Clear all" link above three equal-width triggers (Format / Game / Sort) styled
+       exactly like .mobile-filter-trigger (Archivo Black uppercase, tan outline, teal on
+       selection), each carrying a numeric "#" badge instead of a chevron so an active filter is
+       obvious at a glance — the same treatment the Pokémon/Ability/Move sections use for their
+       own mobile trigger row, just applied permanently here since the Hub is always narrow/
+       single-column and every filter here already opens a bottom sheet, never an inline strip. */
+    .tb-hub-filters-bar { background: white; border-radius: 12px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); border: 1px solid #eee; }
     .tb-hub-filters-label-row { display: flex; align-items: center; justify-content: space-between; }
-    .tb-hub-filters-label { font-size: 11px; font-weight: 900; color: #999; text-transform: uppercase; letter-spacing: 0.6px; }
+    .tb-hub-filters-label { font-family: 'Archivo Black', sans-serif; font-size: 11px; font-weight: 900; color: #999; text-transform: uppercase; letter-spacing: 0.6px; }
     .tb-hub-clear-link { background: none; border: none; font-size: 12px; font-weight: 700; color: #43656e; cursor: pointer; padding: 2px 4px; text-decoration: underline; }
     .tb-hub-clear-link:hover { opacity: 0.7; }
-    .tb-hub-filters { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+    .tb-hub-filters { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+    /* Scoped to the Hub specifically (.tb-hub-filter-trigger, not the shared .tb-pill-trigger
+       the Canvas screen's Battle Mode pill still uses) so this round's rework can't leak its
+       look into a screen Diego didn't ask to touch this round. */
+    .tb-hub-filter-trigger { display: flex; align-items: center; justify-content: center; gap: 6px; height: 40px; padding: 0 10px; border-radius: 8px; border: 1.5px solid #e2ddd0; background: #f7f5f0; font-family: 'Archivo Black', sans-serif; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; color: #43656e; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+    .tb-hub-filter-trigger:hover { border-color: #43656e; }
+    .tb-hub-filter-trigger.has-selection { border-color: #43656e; background: #eef4f3; }
+    .tb-pill-trigger-count { display: none; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #43656e; color: white; font-size: 9px; font-weight: 800; align-items: center; justify-content: center; }
+    .tb-hub-sort-trigger span:first-child { font-size: 12px; }
     .tb-pill-trigger { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 18px; border: 1.5px solid #c8bfaf; background: transparent; font-size: 12px; font-weight: 700; color: #43656e; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
     .tb-pill-trigger:hover { border-color: #43656e; background: rgba(67,101,110,0.06); }
     .tb-pill-trigger.has-selection { border-color: #43656e; background: rgba(67,101,110,0.1); }
-    .tb-pill-trigger .tb-pill-chevron { font-size: 9px; color: #999; }
+    .tb-pill-chevron { font-size: 9px; color: #999; }
 
     /* One team per row — a vertical list of full-width cards rather than the auto-fill grid
        every other section uses, so a team's full context reads at a glance without opening it. */
-    .tb-teams-grid { display: flex; flex-direction: column; gap: 10px; }
-    .tb-team-card { background: white; border-radius: 12px; padding: 14px 18px; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; border: 2px solid #e8e4dd; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
+    .tb-teams-grid { display: flex; flex-direction: column; gap: 12px; }
+    .tb-team-card { position: relative; background: white; border-radius: 12px; padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 10px; border: 2px solid #e8e4dd; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
     .tb-team-card:hover { border-color: #c8bfaf; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .tb-team-card-info { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1 1 200px; }
-    .tb-team-card-name { font-family: 'Archivo Black', sans-serif; font-size: 15px; font-weight: 900; color: #1a1a1a; text-transform: uppercase; letter-spacing: 0.3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .tb-team-card-badges { display: flex; gap: 6px; flex-wrap: wrap; }
-    .tb-badge { font-size: 10px; font-weight: 800; color: #43656e; text-transform: uppercase; letter-spacing: 0.4px; background: rgba(67,101,110,0.1); padding: 3px 8px; border-radius: 10px; }
-    .tb-team-card-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
-    .tb-team-card-sprites { display: flex; gap: 4px; }
-    .tb-team-card-sprite-slot { width: 34px; height: 34px; border-radius: 8px; background: #f0efe9; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
-    .tb-team-card-sprite-slot img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
-    .tb-team-card-meta { font-size: 11px; color: #999; white-space: nowrap; }
+    .tb-team-card-topbar { display: flex; align-items: center; gap: 10px; min-width: 0; padding-right: 22px; }
+    .tb-team-card-name { font-family: 'Archivo Black', sans-serif; font-size: 15px; font-weight: 900; color: #1a1a1a; text-transform: uppercase; letter-spacing: 0.3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+    .tb-team-card-badges { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; flex-shrink: 0; margin-left: auto; }
+    .tb-badge { font-size: 10px; font-weight: 800; color: #43656e; text-transform: uppercase; letter-spacing: 0.4px; background: rgba(67,101,110,0.1); padding: 3px 8px; border-radius: 10px; white-space: nowrap; }
+    /* Game badge: per the app-wide icon standard, the branded logo image IS the entire badge —
+       no separate pill capsule drawn behind it. */
+    .tb-badge.tb-badge-game { display: inline-flex; align-items: center; background: none; padding: 0; border-radius: 0; }
+    .tb-badge.tb-badge-game .tb-game-logo-img { height: 20px; }
+    /* Delete-team button — recycled exactly from the Party screen's own party-slot remove
+       button (.tb-slot-remove-btn), just anchored to the whole card instead of one slot. */
+    .tb-team-card-delete-btn { top: 12px; right: 12px; }
+
+    /* Roster row — expanded now that the name label and battle-mode badges moved up to their
+       own row and the "X/6 Pokémon" counter is gone: a full-width 6-across row of bigger,
+       named sprite cards (same white-card-with-name idiom as .tb-party-slot.filled). */
+    .tb-team-card-sprites { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+    .tb-team-card-sprite-slot { background: #f7f5f0; border: 1.5px solid #e8e4dd; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px 3px 6px; min-height: 96px; position: relative; }
+    .tb-team-card-sprite-slot img { width: 56px; height: 56px; object-fit: contain; image-rendering: pixelated; }
+    .tb-team-card-sprite-name { font-size: 10px; font-weight: 700; color: #555; text-transform: capitalize; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
     /* Shiny sparkle indicator overlaid on a hub-card sprite slot whose member is shiny — purely
        decorative, doesn't touch member data. */
     .tb-sprite-shiny-badge { position: absolute; top: -2px; right: -2px; font-size: 10px; line-height: 1; filter: drop-shadow(0 0 1px rgba(0,0,0,0.4)); pointer-events: none; }
@@ -2669,6 +2692,10 @@
       .tb-game-select-btn { font-size: 11px; padding: 6px 10px; }
       .tb-name-input { font-size: 15px; }
       .tb-hub-sort { margin-left: 0; width: 100%; }
+      .tb-team-card-sprite-slot { min-height: 66px; border-radius: 8px; gap: 2px; padding: 5px 2px 4px; }
+      .tb-team-card-sprite-slot img { width: 36px; height: 36px; }
+      .tb-team-card-sprite-name { font-size: 8px; }
+      .tb-team-card-name { font-size: 12px; }
     }
   </style>
 </head>
@@ -3608,17 +3635,16 @@
 
       <!-- Screen 1: Saved Teams Hub — a grid of team cards, or an empty state -->
       <div class="tb-hub" id="tb-hub">
-        <div class="tb-hub-toolbar">
-          <div class="tb-hub-title">My Teams</div>
-        </div>
-        <div class="tb-hub-filters-label-row">
-          <span class="tb-hub-filters-label">Filters</span>
-          <button class="tb-hub-clear-link" id="tb-hub-clear-filters-btn">Clear all</button>
-        </div>
-        <div class="tb-hub-filters">
-          <button class="tb-pill-trigger" id="tb-hub-format-pill">Format<span class="tb-pill-chevron">▾</span></button>
-          <button class="tb-pill-trigger" id="tb-hub-game-pill">Game<span class="tb-pill-chevron">▾</span></button>
-          <button class="tb-pill-trigger" id="tb-hub-sort-pill">Sort: Last updated<span class="tb-pill-chevron">↓</span></button>
+        <div class="tb-hub-filters-bar">
+          <div class="tb-hub-filters-label-row">
+            <span class="tb-hub-filters-label">Filters</span>
+            <button class="tb-hub-clear-link" id="tb-hub-clear-filters-btn">Clear all</button>
+          </div>
+          <div class="tb-hub-filters">
+            <button class="tb-hub-filter-trigger" id="tb-hub-format-pill">Format<span class="tb-pill-trigger-count" id="tb-hub-format-count">0</span></button>
+            <button class="tb-hub-filter-trigger" id="tb-hub-game-pill">Game<span class="tb-pill-trigger-count" id="tb-hub-game-count">0</span></button>
+            <button class="tb-hub-filter-trigger tb-hub-sort-trigger" id="tb-hub-sort-pill"><span id="tb-hub-sort-dir-icon">↓</span> Sort</button>
+          </div>
         </div>
         <button class="tb-create-btn-full" id="tb-create-team-btn">+ Create New Team</button>
         <div class="grid-wrapper">
@@ -3731,19 +3757,13 @@
           <button class="tb-game-sheet-close" id="tb-hub-sort-sheet-close">✕</button>
         </div>
         <div class="tb-game-sheet-body" id="tb-hub-sort-sheet-body">
-          <div class="tb-game-gen-group">
-            <div class="tb-game-pill-row" id="tb-hub-sort-options" style="grid-template-columns:1fr;">
-              <button class="tb-game-pill" data-sort="updated">Last updated</button>
-              <button class="tb-game-pill" data-sort="alpha">Alphabetical</button>
-              <button class="tb-game-pill" data-sort="count">Pokémon count</button>
-            </div>
-          </div>
-          <div class="tb-game-gen-group">
-            <div class="tb-game-gen-label">Direction</div>
-            <div class="tb-game-pill-row" style="grid-template-columns:1fr 1fr;">
-              <button class="tb-game-pill" id="tb-hub-sort-desc-btn">↓ Descending</button>
-              <button class="tb-game-pill" id="tb-hub-sort-asc-btn">↑ Ascending</button>
-            </div>
+          <label for="tb-hub-sort-select">Sort by</label>
+          <div class="sort-row">
+            <select id="tb-hub-sort-select">
+              <option value="updated">Last updated</option>
+              <option value="alpha">Alphabetical</option>
+            </select>
+            <div class="grid-sort-dir" id="tb-hub-sort-dir-btn">↓</div>
           </div>
         </div>
       </div>
@@ -5307,7 +5327,7 @@
     // search box) as AND; an empty set means that facet doesn't filter at all.
     let tbHubActiveFormatKeys = new Set();
     let tbHubActiveGames = new Set();
-    let tbHubSortMode = 'updated'; // 'updated' | 'alpha' | 'count'
+    let tbHubSortMode = 'updated'; // 'updated' | 'alpha'
     let tbHubSortAscending = false; // most-recently-updated-first by default
 
     // A team matches a unified Format key if: 'story' <-> team.mode==='story', or
@@ -5326,7 +5346,6 @@
       teams.sort((a,b)=>{
         let cmp;
         if (tbHubSortMode === 'alpha') cmp = a.name.localeCompare(b.name);
-        else if (tbHubSortMode === 'count') cmp = a.party.filter(Boolean).length - b.party.filter(Boolean).length;
         else cmp = a.updatedAt - b.updatedAt;
         return tbHubSortAscending ? cmp : -cmp;
       });
@@ -5371,21 +5390,25 @@
       teams.forEach(team=>{
         const card = document.createElement('div');
         card.className = 'tb-team-card';
-        const filledCount = team.party.filter(Boolean).length;
         const gameLabel = tbGameLabelFor(team.game) || 'No game set';
         card.innerHTML = `
-          <div class="tb-team-card-info">
+          <button class="tb-slot-remove-btn tb-team-card-delete-btn" title="Delete team">&minus;</button>
+          <div class="tb-team-card-topbar">
             <div class="tb-team-card-name">${escapeHtml(team.name)}</div>
             <div class="tb-team-card-badges">
               <span class="tb-badge">${team.mode==='competitive'?(team.format==='doubles'?'Doubles':'Singles'):'Playthrough'}</span>
               <span class="tb-badge tb-badge-game">${tbGameIconImgHtml(team.game, gameLabel)}</span>
             </div>
           </div>
-          <div class="tb-team-card-right">
-            <div class="tb-team-card-sprites"></div>
-            <div class="tb-team-card-meta">${filledCount}/6 Pokémon</div>
-          </div>
+          <div class="tb-team-card-sprites"></div>
         `;
+        card.querySelector('.tb-team-card-delete-btn').addEventListener('click', (e)=>{
+          e.stopPropagation();
+          if(confirm(`Delete "${team.name}"? This can't be undone.`)){
+            deleteTeam(team.id);
+            renderTeamBuilderHub();
+          }
+        });
         const spriteRow = card.querySelector('.tb-team-card-sprites');
         team.party.forEach(member=>{
           const slot = document.createElement('div');
@@ -5395,6 +5418,10 @@
             img.src = getEvoSpriteUrl(member.speciesId, member.shiny);
             img.alt = member.speciesName || '';
             slot.appendChild(img);
+            const name = document.createElement('div');
+            name.className = 'tb-team-card-sprite-name';
+            name.textContent = member.nickname || member.speciesName || '';
+            slot.appendChild(name);
             if(member.shiny){
               const spark = document.createElement('span');
               spark.className = 'tb-sprite-shiny-badge';
@@ -5430,15 +5457,21 @@
     document.getElementById('tb-back-to-hub-btn')?.addEventListener('click', tbShowHub);
 
     // ── Hub filter pills: Format / Game / Sort — each opens a shared-pattern bottom sheet ──
+    // Updates a trigger's tan/teal border state plus its numeric "#" badge (recycled from the
+    // Pokémon/Ability/Move sections' own mobile-trigger-count idiom) in one place.
+    function tbUpdateHubTriggerCount(pillId, countId, count){
+      document.getElementById(pillId)?.classList.toggle('has-selection', count>0);
+      const badge = document.getElementById(countId);
+      if(badge){ badge.textContent = count; badge.style.display = count>0 ? 'inline-flex' : 'none'; }
+    }
     document.getElementById('tb-hub-clear-filters-btn')?.addEventListener('click', ()=>{
       tbHubActiveFormatKeys.clear();
       tbHubActiveGames.clear();
       tbHubSortMode = 'updated';
       tbHubSortAscending = false;
-      document.getElementById('tb-hub-format-pill')?.classList.remove('has-selection');
-      document.getElementById('tb-hub-game-pill')?.classList.remove('has-selection');
-      const sortPill = document.getElementById('tb-hub-sort-pill');
-      if(sortPill) sortPill.innerHTML = 'Sort: Last updated<span class="tb-pill-chevron">↓</span>';
+      tbUpdateHubTriggerCount('tb-hub-format-pill','tb-hub-format-count',0);
+      tbUpdateHubTriggerCount('tb-hub-game-pill','tb-hub-game-count',0);
+      tbApplySortPillLabel();
       renderTeamBuilderHub();
     });
 
@@ -5487,7 +5520,7 @@
             renderTeamCanvas();
           } else {
             if(tbHubActiveFormatKeys.has(key)) tbHubActiveFormatKeys.delete(key); else tbHubActiveFormatKeys.add(key);
-            document.getElementById('tb-hub-format-pill')?.classList.toggle('has-selection', tbHubActiveFormatKeys.size>0);
+            tbUpdateHubTriggerCount('tb-hub-format-pill','tb-hub-format-count', tbHubActiveFormatKeys.size);
             renderFormatSheet();
             renderTeamBuilderHub();
           }
@@ -5515,7 +5548,7 @@
           pill.innerHTML = tbGameIconImgHtml(game.id, game.name);
           pill.addEventListener('click', ()=>{
             if(tbHubActiveGames.has(game.id)) tbHubActiveGames.delete(game.id); else tbHubActiveGames.add(game.id);
-            document.getElementById('tb-hub-game-pill')?.classList.toggle('has-selection', tbHubActiveGames.size>0);
+            tbUpdateHubTriggerCount('tb-hub-game-pill','tb-hub-game-count', tbHubActiveGames.size);
             renderHubGameSheet();
             renderTeamBuilderHub();
           });
@@ -5529,38 +5562,29 @@
     setupMobileSheet('tb-hub-game-pill','tb-hub-game-sheet','tb-hub-game-sheet-backdrop','tb-hub-game-sheet-close');
     document.getElementById('tb-hub-game-pill')?.addEventListener('click', renderHubGameSheet);
 
-    function tbSortLabel(mode){
-      return mode==='alpha' ? 'Alphabetical' : mode==='count' ? 'Pokémon count' : 'Last updated';
-    }
+    // Sort sheet — rebuilt to match the Pokémon section's own sort sheet exactly: a plain
+    // <select> of sort keys plus one separate direction-toggle button, instead of a pill-list.
+    // The pill trigger itself just shows the direction arrow + "Sort" (mirrors
+    // .mobile-sort-trigger's "↑ Sort" markup), same as the golden-standard reference.
     function renderHubSortSheet(){
-      document.querySelectorAll('#tb-hub-sort-options .tb-game-pill').forEach(btn=>{
-        btn.classList.toggle('selected', btn.dataset.sort === tbHubSortMode);
-      });
-      document.getElementById('tb-hub-sort-desc-btn')?.classList.toggle('selected', !tbHubSortAscending);
-      document.getElementById('tb-hub-sort-asc-btn')?.classList.toggle('selected', tbHubSortAscending);
+      const sel = document.getElementById('tb-hub-sort-select');
+      if(sel) sel.value = tbHubSortMode;
+      const dirBtn = document.getElementById('tb-hub-sort-dir-btn');
+      if(dirBtn) dirBtn.textContent = tbHubSortAscending ? '↑' : '↓';
     }
     function tbApplySortPillLabel(){
-      const pill = document.getElementById('tb-hub-sort-pill');
-      if(pill) pill.innerHTML = `Sort: ${tbSortLabel(tbHubSortMode)}<span class="tb-pill-chevron">${tbHubSortAscending?'↑':'↓'}</span>`;
+      const icon = document.getElementById('tb-hub-sort-dir-icon');
+      if(icon) icon.textContent = tbHubSortAscending ? '↑' : '↓';
+      renderHubSortSheet();
     }
-    document.getElementById('tb-hub-sort-options')?.addEventListener('click', e=>{
-      const btn = e.target.closest('[data-sort]');
-      if(!btn) return;
-      tbHubSortMode = btn.dataset.sort;
+    document.getElementById('tb-hub-sort-select')?.addEventListener('change', ()=>{
+      tbHubSortMode = document.getElementById('tb-hub-sort-select').value;
       tbApplySortPillLabel();
-      renderHubSortSheet();
       renderTeamBuilderHub();
     });
-    document.getElementById('tb-hub-sort-desc-btn')?.addEventListener('click', ()=>{
-      tbHubSortAscending = false;
+    document.getElementById('tb-hub-sort-dir-btn')?.addEventListener('click', ()=>{
+      tbHubSortAscending = !tbHubSortAscending;
       tbApplySortPillLabel();
-      renderHubSortSheet();
-      renderTeamBuilderHub();
-    });
-    document.getElementById('tb-hub-sort-asc-btn')?.addEventListener('click', ()=>{
-      tbHubSortAscending = true;
-      tbApplySortPillLabel();
-      renderHubSortSheet();
       renderTeamBuilderHub();
     });
     setupMobileSheet('tb-hub-sort-pill','tb-hub-sort-sheet','tb-hub-sort-sheet-backdrop','tb-hub-sort-sheet-close');
