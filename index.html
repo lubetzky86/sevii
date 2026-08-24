@@ -1720,6 +1720,13 @@
     .tb-hub-filter-trigger.has-selection { border-color: #43656e; background: #eef4f3; }
     .tb-pill-trigger-count { display: none; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #43656e; color: white; font-size: 9px; font-weight: 800; align-items: center; justify-content: center; }
     .tb-hub-sort-trigger span:first-child { font-size: 12px; }
+    /* Sort sheet body — same select-plus-square-direction-button row the Pokémon/Ability/Move
+       sections use on mobile (#grid-sort-wrapper .sort-row etc., gated behind @media max-width
+       600px there). Applied here as a permanent, non-media rule since the Hub's sort sheet
+       always behaves like that mobile sheet, at every viewport width. */
+    #tb-hub-sort-sheet-body .sort-row { display: flex; align-items: stretch; gap: 8px; }
+    #tb-hub-sort-sheet-body select { height: 44px; font-size: 14px; width: auto; flex: 1; min-width: 0; border-radius: 8px; border: 1px solid #ddd; padding: 4px 10px; background: white; color: #333; cursor: pointer; }
+    #tb-hub-sort-sheet-body .grid-sort-dir { width: 44px; height: 44px; flex: 0 0 44px; border-radius: 10px; font-size: 16px; }
     .tb-pill-trigger { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 18px; border: 1.5px solid #c8bfaf; background: transparent; font-size: 12px; font-weight: 700; color: #43656e; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
     .tb-pill-trigger:hover { border-color: #43656e; background: rgba(67,101,110,0.06); }
     .tb-pill-trigger.has-selection { border-color: #43656e; background: rgba(67,101,110,0.1); }
@@ -3753,11 +3760,10 @@
       <div class="tb-game-sheet-backdrop" id="tb-hub-sort-sheet-backdrop"></div>
       <div class="tb-game-sheet" id="tb-hub-sort-sheet">
         <div class="tb-game-sheet-header">
-          <span class="tb-game-sheet-title">Sort</span>
+          <span class="tb-game-sheet-title">Sort By</span>
           <button class="tb-game-sheet-close" id="tb-hub-sort-sheet-close">✕</button>
         </div>
         <div class="tb-game-sheet-body" id="tb-hub-sort-sheet-body">
-          <label for="tb-hub-sort-select">Sort by</label>
           <div class="sort-row">
             <select id="tb-hub-sort-select">
               <option value="updated">Last updated</option>
