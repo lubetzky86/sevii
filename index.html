@@ -350,22 +350,23 @@
     }
     .lore-signature-feat-text { font-size: 12.5px; color: #222; line-height: 1.6; font-style: italic; font-weight: 600; }
 
-    /* ── LORE ACCORDIONS v2 — independent, any can be open ───────────── */
-    .lore-acc-v2 { border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
+    /* ── LORE ACCORDIONS v2 — independent, any can be open ─────────────
+       Restyled to the app's one golden-standard accordion look (round: Diego, 2026-08-24 —
+       elevated .obtain-egg-accordion-item's plain 13px/600 sentence-case recipe to the app-wide
+       standard). Was Archivo Black 9px/900 uppercase theme-colored; now plain 13px/600 #333. */
+    .lore-acc-v2 { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); background: white; }
     .lore-acc-v2-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 14px; background: white; cursor: pointer;
-      user-select: none; transition: background 0.12s;
+      padding: 10px 14px; background: white; cursor: pointer;
+      user-select: none; transition: background 0.15s;
     }
-    .lore-acc-v2-header:hover { background: #fafafa; }
+    .lore-acc-v2-header:hover { background: rgba(0,0,0,0.03); }
     .lore-acc-v2-title {
-      font-family: 'Archivo Black', sans-serif; font-size: 9px; font-weight: 900;
-      text-transform: uppercase; letter-spacing: 0.8px;
-      color: var(--lore-theme-color, #555);
+      font-size: 13px; font-weight: 600; color: #333;
     }
-    .lore-acc-v2-arrow { font-size: 10px; color: var(--lore-theme-color, #888); transition: transform 0.2s; }
+    .lore-acc-v2-arrow { font-size: 11px; color: #aaa; transition: transform 0.2s; }
     .lore-acc-v2.open .lore-acc-v2-arrow { transform: rotate(180deg); }
-    .lore-acc-v2-body { display: none; padding: 4px 14px 14px; background: white; }
+    .lore-acc-v2-body { display: none; padding: 4px 14px 14px; background: white; border-top: 1px solid rgba(0,0,0,0.06); }
     .lore-acc-v2.open .lore-acc-v2-body { display: block; }
 
     /* Two-column layout inside arsenal accordion — each side is now its own tinted card so the
@@ -864,15 +865,17 @@
     .lore-thesis-text { font-size: 13px; color: rgba(255,255,255,0.94); line-height: 1.7; }
     .lore-thesis-toggle { display: none; }
 
-    /* ── Accordion shared ── */
-    .lore-acc { border-radius: 12px; overflow: hidden; background: white; flex-shrink: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-    .lore-acc-header { display: flex; align-items: center; gap: 10px; padding: 13px 14px; cursor: pointer; user-select: none; transition: background 0.15s; }
-    .lore-acc-header:hover { background: rgba(0,0,0,0.025); }
+    /* ── Accordion shared — restyled to the app's golden-standard accordion look (round: Diego,
+       2026-08-24, elevating .obtain-egg-accordion-item's recipe app-wide). Was Archivo Black
+       13px/900 uppercase theme-colored; now plain 13px/600 #333, matching golden exactly. ── */
+    .lore-acc { border-radius: 12px; overflow: hidden; background: white; flex-shrink: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .lore-acc-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; user-select: none; transition: background 0.15s; }
+    .lore-acc-header:hover { background: rgba(0,0,0,0.03); }
     .lore-acc-header-left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
-    .lore-acc-title { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: var(--lore-theme-color, #444); }
-    .lore-acc-arrow { font-size: 9px; color: #bbb; transition: transform 0.2s; flex-shrink: 0; margin-left: auto; }
+    .lore-acc-title { font-size: 13px; font-weight: 600; color: #333; }
+    .lore-acc-arrow { font-size: 11px; color: #aaa; transition: transform 0.2s; flex-shrink: 0; margin-left: auto; }
     .lore-acc.open .lore-acc-arrow { transform: rotate(180deg); }
-    .lore-acc-body { display: none; border-top: 1px solid rgba(0,0,0,0.055); padding: 14px; }
+    .lore-acc-body { display: none; border-top: 1px solid rgba(0,0,0,0.06); padding: 14px; }
     .lore-acc.open .lore-acc-body { display: block; }
 
     /* ── Field Report ── */
@@ -1147,9 +1150,11 @@
     .matchup-accordion { display: flex; flex-direction: column; gap: 8px; height: 100%; }
     .matchup-section { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); background: white; flex-shrink: 0; }
     .matchup-section-header { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; cursor: pointer; user-select: none; transition: background 0.15s; }
-    .matchup-section-header:hover { background: rgba(0,0,0,0.02); }
+    .matchup-section-header:hover { background: rgba(0,0,0,0.03); }
     .matchup-section-header-left { display: flex; align-items: center; gap: 8px; }
-    .matchup-section-title { font-family: 'Archivo Black', sans-serif; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: var(--matchup-theme-color, #555); }
+    /* Round: Diego, 2026-08-24 — title restyled to the app's golden-standard accordion look
+       (plain 13px/600 #333), replacing the old Archivo Black uppercase theme-colored treatment. */
+    .matchup-section-title { font-size: 13px; font-weight: 600; color: #333; }
     .matchup-section-type-pill { width: 32px; height: 32px; object-fit: contain; filter: drop-shadow(0 0 3px rgba(0,0,0,0.12)); }
     .matchup-section-arrow { font-size: 10px; color: #aaa; transition: transform 0.2s; flex-shrink: 0; }
     .matchup-section.open .matchup-section-arrow { transform: rotate(180deg); }
@@ -1238,7 +1243,7 @@
     .obtain-hunt-accordion { display: flex; flex-direction: column; gap: 8px; }
     .obtain-hunt-section { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); background: white; flex-shrink: 0; }
     .obtain-hunt-header { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; cursor: pointer; user-select: none; font-size: 13px; font-weight: 600; color: #333; transition: background 0.15s; border-left: 3px solid transparent; }
-    .obtain-hunt-header:hover { background: rgba(0,0,0,0.02); }
+    .obtain-hunt-header:hover { background: rgba(0,0,0,0.03); }
     .obtain-hunt-header-left { display: flex; align-items: center; gap: 10px; }
     .obtain-hunt-icon { width: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
     .obtain-hunt-label { font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -1309,8 +1314,9 @@
 
     .dex-section { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); background: white; flex-shrink: 0; }
     .dex-section-header { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; cursor: pointer; user-select: none; transition: background 0.15s; }
-    .dex-section-header:hover { background: rgba(0,0,0,0.02); }
-    .dex-section-title { font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: var(--dex-theme-color, #555); }
+    .dex-section-header:hover { background: rgba(0,0,0,0.03); }
+    /* Round: Diego, 2026-08-24 — title restyled to the app's golden-standard accordion look. */
+    .dex-section-title { font-size: 13px; font-weight: 600; color: #333; }
     .dex-section-header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .dex-section-region-badge { height: 26px; width: auto; object-fit: contain; border-radius: 6px; }
     .dex-section-arrow { font-size: 10px; color: #aaa; transition: transform 0.2s; flex-shrink: 0; }
@@ -1366,7 +1372,7 @@
     /* Accordion sections */
     .moveset-section { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); background: white; flex-shrink: 0; }
     .moveset-section-header { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; cursor: pointer; user-select: none; font-size: 13px; color: #333; transition: background 0.15s; }
-    .moveset-section-header:hover { background: rgba(0,0,0,0.02); }
+    .moveset-section-header:hover { background: rgba(0,0,0,0.03); }
     .moveset-section-label { font-weight: 400; }
     .moveset-section-label strong { font-weight: 700; }
     .moveset-section-arrow { font-size: 10px; color: #aaa; transition: transform 0.2s; }
@@ -2045,17 +2051,29 @@
        Studio overlay (z-index 210). Own classes so Studio styling stays fully isolated. ── */
     .tb-studio-sheet-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.35); z-index: 310; display: none; }
     .tb-studio-sheet-backdrop.open { display: block; }
-    .tb-studio-sheet { position: fixed; left: 0; right: 0; bottom: -100%; max-height: 65vh; overflow-y: auto; background: white; border-radius: 16px 16px 0 0; z-index: 320; transition: bottom 0.25s ease; box-shadow: 0 -4px 20px rgba(0,0,0,0.2); }
-    .tb-studio-sheet.open { bottom: 0; }
+    /* Round: Diego, 2026-08-24 — mechanics matched to the app's golden-standard bottom sheet
+       (.mobile-sheet-header's container rule): animates transform (not `bottom`), and is now the
+       ONE padded/scrollable box holding header+body together, instead of a separate bordered/
+       sticky header sitting above a separately-padded body. See .tb-studio-sheet-header/-body
+       below — neither carries its own padding any more, the parent provides all of it. */
+    .tb-studio-sheet {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 320;
+      display: flex; flex-direction: column; background: white; border-radius: 16px 16px 0 0;
+      max-height: 65vh; overflow-y: auto;
+      padding: 14px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+      transform: translateY(100%); transition: transform 0.25s ease;
+      box-shadow: 0 -6px 24px rgba(0,0,0,0.2);
+    }
+    .tb-studio-sheet.open { transform: translateY(0); }
     /* z-index + a forced compositing layer (transform/will-change) so this sticky header always
        paints above ANY sheet-body content, including positioned elements like .tb-advice-pill
        (z-index:1) — without this, elements with an explicit z-index can outrank a sticky header
        that never set one (defaults to auto), and on some mobile browsers sticky content can
        visibly bleed above the header during scroll/overscroll. Shared by all 6 picker sheets. */
-    .tb-studio-sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #eee; position: sticky; top: 0; background: white; z-index: 5; transform: translateZ(0); }
-    .tb-studio-sheet-title { font-family: 'Archivo Black', sans-serif; font-weight: 900; font-size: 13px; text-transform: uppercase; color: #333; }
+    .tb-studio-sheet-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0; }
+    .tb-studio-sheet-title { font-family: 'Archivo Black', sans-serif; font-weight: 900; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: #333; }
     .tb-studio-sheet-close { width: 30px; height: 30px; border-radius: 50%; background: #f0efe9; border: none; cursor: pointer; font-size: 13px; color: #555; }
-    .tb-studio-sheet-body { padding: 8px 16px calc(16px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; }
+    .tb-studio-sheet-body { display: flex; flex-direction: column; }
     .tb-studio-sheet-empty { padding: 16px 0; font-size: 12px; color: #999; font-style: italic; text-align: center; }
 
     .tb-studio-opt-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 4px; border-bottom: 1px solid #f0f0f0; cursor: pointer; background: none; border-left: none; border-right: none; border-top: none; width: 100%; text-align: left; font: inherit; }
@@ -2132,16 +2150,21 @@
     /* Matches the app's one standard accordion look (see .tb-coverage-accordion-header): teal
        #43656e text, no color shift between collapsed/expanded — only structural changes
        (background/border tint) differentiate open vs closed, consistent app-wide. */
-    .tb-studio-nature-cat { border-radius: 12px; overflow: visible; background: white; border: 1px solid rgba(0,0,0,0.08); transition: background 0.15s, border-color 0.15s; }
-    .tb-studio-nature-cat.collapsed { background: #f7f7f5; border-color: #e8e4dd; }
-    .tb-studio-nature-cat-header { display: flex; align-items: center; gap: 8px; padding: 14px 16px; cursor: pointer; user-select: none; }
-    .tb-studio-nature-cat-name { display: flex; align-items: center; gap: 6px; font-family: 'Archivo Black', sans-serif; font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; color: #43656e; }
+    /* Round: Diego, 2026-08-24 — restyled to the app's actual golden-standard accordion look
+       (.obtain-egg-accordion-item's plain 13px/600 #333 recipe), replacing the old Archivo-Black-
+       uppercase-teal header + collapsed/expanded background tint, neither of which exists on any
+       main-app accordion original. `.collapsed`'s CSS rule is intentionally gone — the class is
+       still toggled in JS (harmless, no visual effect) rather than touching the toggle logic. */
+    .tb-studio-nature-cat { border-radius: 12px; overflow: visible; background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .tb-studio-nature-cat-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; cursor: pointer; user-select: none; transition: background 0.15s; }
+    .tb-studio-nature-cat-header:hover { background: rgba(0,0,0,0.03); }
+    .tb-studio-nature-cat-name { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #333; }
     .tb-studio-nature-cat-boost-icon { font-size: 11px; color: #43656e; }
     .tb-studio-nature-cat-spacer { flex: 1; }
     .tb-studio-nature-cat-header .tb-advice-pill { position: static; transform: none; }
-    .tb-studio-nature-cat-arrow { font-size: 11px; color: #b8ad9a; transition: transform 0.2s; }
-    .tb-studio-nature-cat.open .tb-studio-nature-cat-arrow { transform: rotate(180deg); color: #43656e; }
-    .tb-studio-nature-cat-body { display: none; flex-direction: column; gap: 12px; padding: 4px 16px 16px; }
+    .tb-studio-nature-cat-arrow { font-size: 11px; color: #aaa; transition: transform 0.2s; }
+    .tb-studio-nature-cat.open .tb-studio-nature-cat-arrow { transform: rotate(180deg); }
+    .tb-studio-nature-cat-body { display: none; flex-direction: column; gap: 12px; padding: 4px 14px 16px; border-top: 1px solid rgba(0,0,0,0.06); }
     .tb-studio-nature-cat.open .tb-studio-nature-cat-body { display: flex; }
     .tb-studio-nature-row { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; text-align: left; background: white; border: 1px solid #ccc; border-radius: 12px; padding: 12px 16px; cursor: pointer; font: inherit; box-shadow: 0 1px 4px rgba(0,0,0,0.07); transition: box-shadow 0.15s, transform 0.1s; }
     .tb-studio-nature-row:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.13); transform: translateY(-1px); }
@@ -2165,14 +2188,16 @@
        #b8ad9a chevron turning teal+180deg when open), each holding Ability-card-style rows
        (name + live-fetched description) with an added icon slot on the right that Ability's
        card didn't need. Reuses .tb-advice-frame/.tb-advice-pill as-is; no new colors introduced. */
-    .tb-studio-item-cat { border-radius: 12px; overflow: visible; background: white; border: 1px solid rgba(0,0,0,0.08); transition: background 0.15s, border-color 0.15s; margin-bottom: 10px; }
-    .tb-studio-item-cat.collapsed { background: #f7f7f5; border-color: #e8e4dd; }
-    .tb-studio-item-cat-header { display: flex; align-items: center; gap: 8px; width: 100%; padding: 14px 16px; background: none; border: none; cursor: pointer; font: inherit; text-align: left; user-select: none; }
-    .tb-studio-item-cat-title { flex: 1; font-family: 'Archivo Black', sans-serif; font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; color: #43656e; }
+    /* Round: Diego, 2026-08-24 — restyled to the app's golden-standard accordion look, same
+       recipe/reasoning as .tb-studio-nature-cat* above. */
+    .tb-studio-item-cat { border-radius: 12px; overflow: visible; background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.07); margin-bottom: 10px; }
+    .tb-studio-item-cat-header { display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 14px; background: none; border: none; cursor: pointer; font: inherit; text-align: left; user-select: none; transition: background 0.15s; }
+    .tb-studio-item-cat-header:hover { background: rgba(0,0,0,0.03); }
+    .tb-studio-item-cat-title { flex: 1; font-size: 13px; font-weight: 600; color: #333; }
     .tb-studio-item-cat-header .tb-advice-pill { position: static; transform: none; flex-shrink: 0; }
-    .tb-studio-item-cat-chevron { font-size: 11px; color: #b8ad9a; transition: transform 0.2s; }
-    .tb-studio-item-cat.open .tb-studio-item-cat-chevron { transform: rotate(180deg); color: #43656e; }
-    .tb-studio-item-cat-body { display: none; flex-direction: column; gap: 12px; padding: 4px 16px 16px; }
+    .tb-studio-item-cat-chevron { font-size: 11px; color: #aaa; transition: transform 0.2s; }
+    .tb-studio-item-cat.open .tb-studio-item-cat-chevron { transform: rotate(180deg); }
+    .tb-studio-item-cat-body { display: none; flex-direction: column; gap: 12px; padding: 4px 14px 16px; border-top: 1px solid rgba(0,0,0,0.06); }
     .tb-studio-item-cat.open .tb-studio-item-cat-body { display: flex; }
     .tb-studio-item-card { position: relative; display: flex; align-items: center; gap: 14px; text-align: left; width: 100%; background: white; border: 1px solid #ccc; border-radius: 12px; padding: 16px 18px; cursor: pointer; font: inherit; box-shadow: 0 1px 4px rgba(0,0,0,0.07); transition: box-shadow 0.15s, transform 0.1s; }
     .tb-studio-item-card:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.13); transform: translateY(-1px); }
@@ -2246,11 +2271,11 @@
     .tb-studio-sheet.tb-evsivs-sheet { max-height: 80vh; }
     .tb-evsivs-confirm-wrap { margin-top: 18px; display: flex; justify-content: center; }
     @media (max-width: 600px) { .tb-evsivs-confirm-wrap { margin-top: 14px; } }
-    .tb-move-sheet-body { padding: 8px 0 16px; display: flex; flex-direction: column; gap: 10px; }
+    .tb-move-sheet-body { display: flex; flex-direction: column; gap: 10px; }
     .tb-move-sheet-empty { padding: 16px; font-size: 12px; color: #999; font-style: italic; text-align: center; }
-    .tb-move-section { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); background: white; flex-shrink: 0; margin: 0 16px; }
+    .tb-move-section { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); background: white; flex-shrink: 0; }
     .tb-move-section-header { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; cursor: pointer; user-select: none; font-size: 13px; color: #333; transition: background 0.15s; }
-    .tb-move-section-header:hover { background: rgba(0,0,0,0.02); }
+    .tb-move-section-header:hover { background: rgba(0,0,0,0.03); }
     .tb-move-section-label strong { font-weight: 700; }
     .tb-move-section-header .tb-advice-pill { position: static; transform: none; margin-left: auto; margin-right: 8px; flex-shrink: 0; }
     .tb-move-section-arrow { font-size: 10px; color: #aaa; transition: transform 0.2s; }
@@ -2344,15 +2369,16 @@
     .tb-dexpick-pill { padding: 7px 12px; border-radius: 20px; border: 1px solid #d4ccbc; background: white; font-size: 12px; font-weight: 700; cursor: pointer; color: #555; }
     .tb-dexpick-pill.selected { background: #43656e; color: white; border-color: #43656e; }
 
-    /* Coverage accordions — copies the Obtain modal's egg-group accordion pattern exactly
-       (.obtain-egg-accordion-*), just tb-prefixed and scoped under the party grid. */
+    /* Coverage accordions — round: Diego, 2026-08-24: restyled to the app's actual golden-
+       standard accordion look (.obtain-egg-accordion-item's plain 13px/600 #333 recipe) instead
+       of the Archivo-Black-uppercase-teal treatment it had drifted to, plus dropped the extra
+       border + deeper open-state shadow that no main-app accordion original carries. */
     .tb-coverage-accordion { display: flex; flex-direction: column; gap: 8px; max-width: 640px; margin: 4px auto 0; width: 100%; }
-    .tb-coverage-accordion-item { border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); background: white; border: 1px solid rgba(0,0,0,0.04); transition: box-shadow 0.15s; }
-    .tb-coverage-accordion-item.open { box-shadow: 0 3px 12px rgba(0,0,0,0.1); }
-    .tb-coverage-accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; cursor: pointer; user-select: none; font-family: 'Archivo Black', sans-serif; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; color: #43656e; transition: background 0.15s; }
-    .tb-coverage-accordion-header:hover { background: rgba(67,101,110,0.05); }
-    .tb-coverage-accordion-arrow { font-size: 11px; color: #b8ad9a; transition: transform 0.2s; }
-    .tb-coverage-accordion-item.open .tb-coverage-accordion-arrow { transform: rotate(180deg); color: #43656e; }
+    .tb-coverage-accordion-item { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); background: white; transition: background 0.15s; }
+    .tb-coverage-accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; cursor: pointer; user-select: none; font-size: 13px; font-weight: 600; color: #333; transition: background 0.15s; }
+    .tb-coverage-accordion-header:hover { background: rgba(0,0,0,0.03); }
+    .tb-coverage-accordion-arrow { font-size: 11px; color: #aaa; transition: transform 0.2s; }
+    .tb-coverage-accordion-item.open .tb-coverage-accordion-arrow { transform: rotate(180deg); }
     .tb-coverage-accordion-body { display: none; padding: 4px 18px 16px; border-top: 1px solid rgba(0,0,0,0.06); font-size: 12px; color: #999; font-style: italic; line-height: 1.5; }
     .tb-coverage-accordion-item.open .tb-coverage-accordion-body { display: block; }
     /* Grid-mode body — cancels the placeholder's italic/gray "coming soon" styling once real
@@ -6575,6 +6601,7 @@
       const totalRow = document.getElementById('tb-studio-total-row');
       if(totalRow) totalRow.innerHTML = `<span class="tb-studio-total-label">TOTAL</span><span class="tb-studio-total-spacer"></span><span class="tb-studio-total-num">${displayTotal}</span>`;
     }
+
 
     // Alias — every pre-existing call site (written back when Base Stats and Final Stats were two
     // separate blocks) calls this name to mean "the displayed stats just changed, re-render them."
