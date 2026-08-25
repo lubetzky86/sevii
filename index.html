@@ -11031,6 +11031,11 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
     const GAME_LIST=[{gen:1,games:[{id:'red',name:'Red'},{id:'blue',name:'Blue'},{id:'yellow',name:'Yellow'}]},{gen:2,games:[{id:'gold',name:'Gold'},{id:'silver',name:'Silver'},{id:'crystal',name:'Crystal'}]},{gen:3,games:[{id:'ruby',name:'Ruby'},{id:'sapphire',name:'Sapphire'},{id:'emerald',name:'Emerald'},{id:'firered',name:'FireRed'},{id:'leafgreen',name:'LeafGreen'}]},{gen:4,games:[{id:'diamond',name:'Diamond'},{id:'pearl',name:'Pearl'},{id:'platinum',name:'Platinum'},{id:'heartgold',name:'HeartGold'},{id:'soulsilver',name:'SoulSilver'}]},{gen:5,games:[{id:'black',name:'Black'},{id:'white',name:'White'},{id:'black-2',name:'Black 2'},{id:'white-2',name:'White 2'}]},{gen:6,games:[{id:'x',name:'X'},{id:'y',name:'Y'},{id:'omega-ruby',name:'Omega Ruby'},{id:'alpha-sapphire',name:'Alpha Sapphire'}]},{gen:7,games:[{id:'sun',name:'Sun'},{id:'moon',name:'Moon'},{id:'ultra-sun',name:'Ultra Sun'},{id:'ultra-moon',name:'Ultra Moon'},{id:'lets-go-pikachu',name:"Let's Go Pikachu"},{id:'lets-go-eevee',name:"Let's Go Eevee"}]},{gen:8,games:[{id:'sword',name:'Sword'},{id:'shield',name:'Shield'},{id:'brilliant-diamond',name:'Brilliant Diamond'},{id:'shining-pearl',name:'Shining Pearl'},{id:'legends-arceus',name:'Legends: Arceus'}]},{gen:9,games:[{id:'scarlet',name:'Scarlet'},{id:'violet',name:'Violet'},{id:'legends-za',name:'Legends: Z-A'}]}];
     const GAME_ROW_SIZES={1:[3],2:[3],3:[3,2],4:[3,2],5:[2,2],6:[2,2],7:[2,2,2],8:[2,2,1],9:[2,1]};
     let obtainActiveTab='catching',obtainSelectedGame=null,obtainEncounterData=null,obtainSpeciesData=null,obtainModalShiny=false,obtainValidGames=new Set(),obtainEvoChain=null;
+    // Per-game 'confirmed' | 'transfer-only' classification for the currently-open Pokémon, built
+    // by openObtainModal() alongside obtainValidGames — read by renderCatchingContent()'s soft-UI
+    // fallback (see the 2026-08-25 audit round) to pick the right message when a valid game still
+    // has no renderable obtain method.
+    let obtainGameClassification={};
     let breedingData=null;
     async function loadBreedingData(){if(breedingData)return breedingData;try{const r=await fetch('data/breeding.json');breedingData=await r.json();}catch(e){console.warn('breeding.json not loaded, using PokéAPI fallback');}return breedingData;}
     loadBreedingData();
@@ -11156,14 +11161,58 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       // literally nothing, so no known-working case regresses to "no games available."
       const codedVGs=resolveCodedVersionGroups(selectedPokemon,obtainEncounterData);
       const aig=new Set();
+      // Per-game Signal 1/2 breakdown, kept separately from the merged codedVGs Set above — needed
+      // below to tell "PokéAPI genuinely has no data for this game" apart from "has some data, just
+      // not location data," which is exactly the distinction the soft-UI states need at render time.
+      const gameHasEncounterSignal={},gameHasMoveSignal={};
       GAME_LIST.forEach(({games})=>games.forEach(game=>{
         const vg=GAME_TO_VERSION_GROUP[game.id];
+        gameHasMoveSignal[game.id]=!!(selectedPokemon.moves||[]).some(m=>(m.version_group_details||[]).some(vd=>vd.version_group?.name===vg));
+        gameHasEncounterSignal[game.id]=!!(obtainEncounterData||[]).some(e=>e.version_details.some(v=>GAME_TO_VERSION_GROUP[v.version?.name]===vg));
         if(vg&&codedVGs.has(vg)) aig.add(game.id);
       }));
       if(aig.size===0){
         const bgi=selectedPokemon.game_indices?.length?selectedPokemon.game_indices:(obtainSpeciesData?.game_indices||[]);
         bgi.forEach(gi=>aig.add(gi.version.name));
       }
+      // ── Signal 3: Curated Compatibility & Presence Override Layer ──────────────────────────
+      // PokéAPI notoriously drops encounter/move data for species in modern titles (confirmed for
+      // Golem in Legends: Arceus — its moves DO list a legends-arceus level-up move, but its
+      // /encounters response has zero legends-arceus entries at all, a real, verified data gap).
+      // For the modern games GAME_CURATED_DEX already tracks a real regional-dex roster for (used
+      // previously only by the Team Builder's Dex Picker) — if this species is a confirmed member
+      // of that game's own dex, the game is forced valid regardless of what Signals 1/2 found, and
+      // classified 'confirmed' rather than left to fall through to a dead-end empty state. If the
+      // roster load fails, this signal fails OPEN (does nothing) rather than hiding a game that
+      // Signals 1/2 already proved valid.
+      const curatedGames=Object.keys(GAME_CURATED_DEX).filter(id=>GAME_LIST.some(g=>g.games.some(gg=>gg.id===id)));
+      const speciesSlug=selectedPokemon.species?.name||selectedPokemon.name.split('-')[0];
+      const curatedMembership={};
+      await Promise.all(curatedGames.map(async gameId=>{
+        try{
+          const curated=GAME_CURATED_DEX[gameId];
+          if(curated.type==='idrange'){
+            const m=selectedPokemon.species?.url?.match(/\/(\d+)\/$/);
+            const sid=m?parseInt(m[1]):selectedPokemon.id;
+            curatedMembership[gameId]=sid>=curated.min&&sid<=curated.max;
+          }else{
+            const roster=await loadGameDexRoster(gameId);
+            curatedMembership[gameId]=roster?roster.has(speciesSlug):null; // null = roster fetch failed, no verdict either way
+          }
+        }catch(e){curatedMembership[gameId]=null;}
+      }));
+      curatedGames.forEach(gameId=>{ if(curatedMembership[gameId]===true) aig.add(gameId); });
+      // obtainGameClassification: 'confirmed' (real location/moveset data, or a curated-roster hit)
+      // vs 'transfer-only' (curated data exists for this game and explicitly excludes the species,
+      // with no encounter data of its own either — i.e. it can only get here via HOME/transfer, not
+      // as a native catch). Read by renderCatchingContent()'s soft-UI fallback below.
+      obtainGameClassification={};
+      aig.forEach(gameId=>{
+        const vtc=getVersionsForGame(gameId);
+        const hasEnc=vtc.some(v=>gameHasEncounterSignal[v]);
+        const member=curatedMembership[gameId];
+        obtainGameClassification[gameId]=(member===false&&!hasEnc)?'transfer-only':'confirmed';
+      });
       const isMega=isMegaForm(selectedPokemon.name),isGmax=isGmaxForm(selectedPokemon.name);
       GAME_LIST.forEach(({games})=>{games.forEach(game=>{const vtc=getVersionsForGame(game.id);const inDex=vtc.some(v=>aig.has(v));if(!inDex)return;if(isMega&&!MEGA_GAMES.has(game.id))return;if(isGmax&&!GMAX_GAMES.has(game.id))return;if(preevoGameVersions!==null){const hw=(obtainEncounterData||[]).some(e=>e.version_details.some(v=>vtc.includes(v.version.name)));const hs2=!!getSpecialObtain(selectedPokemon.name,game.id);if(!hw&&!hs2){const pi=vtc.some(v=>preevoGameVersions.has(v));if(!pi)return;}}obtainValidGames.add(game.id);});});
       buildObtainGames();renderObtainContent();
@@ -11336,7 +11385,22 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       }
 
       if(!methodSections.length){
-        const ph=document.createElement('div');ph.className='obtain-placeholder';ph.textContent=`No available information to obtain ${toTitleCase(selectedPokemon.name)} in this game.`;panel.appendChild(ph);return;
+        // Soft UI fallback (2026-08-25 audit round) — obtainSelectedGame is only ever selectable in
+        // the first place because Signal 1 (encounters), Signal 2 (moves), or Signal 3 (curated
+        // regional-dex roster) confirmed this Pokémon belongs to it; landing here just means none of
+        // the concrete method sections above (wild encounter, evolve, special, mega/gmax) had
+        // anything to render — e.g. Golem in Legends: Arceus, which has real level-up moveset data
+        // for that version group but a genuinely empty /encounters response in PokéAPI. That's a
+        // real, meaningful difference from "not available here at all," so it gets its own message
+        // instead of collapsing into the same generic dead-end text as an actually-invalid game.
+        const gname=GAME_LIST.flatMap(g=>g.games).find(g=>g.id===obtainSelectedGame)?.name||toTitleCase(obtainSelectedGame||'');
+        const pname=toTitleCase(selectedPokemon.name.replace(/-/g,' '));
+        const classification=obtainGameClassification[obtainSelectedGame]||'confirmed';
+        const ph=document.createElement('div');ph.className='obtain-placeholder';
+        ph.textContent = classification==='transfer-only'
+          ? `Not native to ${gname}. Obtainable via transfer from other games / Pokémon HOME.`
+          : `${pname} is confirmed to be obtainable in ${gname} (Detailed locations currently unavailable).`;
+        panel.appendChild(ph);return;
       }
 
       // Build accordion sections — one open at a time
@@ -11379,7 +11443,9 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
 
       // ── 3 pills: Egg Group(s), Gender %, Hatch Time ──
       const pills=document.createElement('div');pills.className='obtain-info-pills';
-      const egSlots=ine?[{text:'Cannot breed'}]:egObjects.length===0?[{text:'—'}]:egObjects.map(g=>({text:toTitleCase(g.name.replace(/-/g,' '))}));
+      // normalizeEggGroupLabel(), not a raw toTitleCase — see its definition for why ("ground" -> "Field" etc).
+      // This pill was the one egg-group display spot the 2026-08-25 sanitization round missed.
+      const egSlots=ine?[{text:'Cannot breed'}]:egObjects.length===0?[{text:'—'}]:egObjects.map(g=>({text:normalizeEggGroupLabel(g.name)}));
       pills.appendChild(makePill('Egg Group(s)',egSlots));
       pills.appendChild(makeGenderPill(gr));
       pills.appendChild(makeHatchPill(steps,ine));
