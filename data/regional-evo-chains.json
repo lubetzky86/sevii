@@ -126,6 +126,25 @@
     ]
   },
     {
+    "chain_id": "scyther-line",
+    "links": [
+      {
+        "pokemon": "scyther",
+        "evolves_into": "scizor",
+        "method": "TRADE",
+        "method_detail": "Trade + Metal Coat",
+        "notes": null
+      },
+      {
+        "pokemon": "scyther",
+        "evolves_into": "kleavor",
+        "method": "ITEM",
+        "method_detail": "Black Augurite",
+        "notes": null
+      }
+    ]
+  },
+    {
     "chain_id": "alolan-meowth-line",
     "links": [
       {
@@ -445,6 +464,30 @@
         "evolves_into": null,
         "method": "NONE",
         "method_detail": null,
+        "notes": null
+      }
+    ]
+  },
+      {
+    "chain_id": "wooper-line",
+    "links": [
+      {
+        "pokemon": "wooper",
+        "evolves_into": "quagsire",
+        "method": "LEVEL",
+        "method_detail": "20",
+        "notes": null
+      }
+    ]
+  },
+    {
+    "chain_id": "wooper-paldea-line",
+    "links": [
+      {
+        "pokemon": "wooper-paldea",
+        "evolves_into": "clodsire",
+        "method": "LEVEL",
+        "method_detail": "20",
         "notes": null
       }
     ]
