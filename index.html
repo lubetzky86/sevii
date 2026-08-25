@@ -11172,10 +11172,29 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       }
       try{const[sd,ed]=await Promise.all([fetch(speciesUrl).then(r=>r.json()),fetch(`https://pokeapi.co/api/v2/pokemon/${encId}/encounters`).then(r=>r.json())]);obtainSpeciesData=sd;obtainEncounterData=ed;}catch(e){obtainSpeciesData=null;obtainEncounterData=[];}
       if(obtainSpeciesData?.evolution_chain?.url){try{const r=await fetch(obtainSpeciesData.evolution_chain.url);obtainEvoChain=await r.json();}catch(e){obtainEvoChain=null;}}
-      let preevoGameVersions=null;const ef=obtainSpeciesData?.evolves_from_species;
-      if(ef?.url){try{const psd=await fetch(ef.url).then(r=>r.json());const ppid=psd?.id;if(ppid){const ppd=await fetch(`https://pokeapi.co/api/v2/pokemon/${ppid}`).then(r=>r.json());preevoGameVersions=new Set(ppd.game_indices?.map(gi=>gi.version.name)||[]);}}catch(e){preevoGameVersions=null;}}
       const curatedGames=Object.keys(GAME_CURATED_DEX).filter(id=>GAME_LIST.some(g=>g.games.some(gg=>gg.id===id)));
       const speciesSlug=selectedPokemon.species?.name||selectedPokemon.name.split('-')[0];
+      // Regional-dex INVERSION guard: a curated regional-dex roster (Signal 3) is species-indexed —
+      // if species #77 (Ponyta) appears in the Galar dex, that entry represents ponyta-galar, the
+      // variant actually native there, NOT the Kanto base form. The round-5 fix stopped the VARIANT
+      // from inheriting the base species' availability; this is the mirror-image bug reported live:
+      // the BASE form inheriting a promotion that was only ever earned by ITS OWN regional variant
+      // (confirmed: base "ponyta" is species #77, which the Galar dex roster legitimately contains
+      // — but that's Galarian Ponyta's entry, not Kanto Ponyta's). For each curated 'pokedex'-type
+      // game with a known region suffix, if this species has a variety carrying that suffix, the
+      // BASE (non-suffixed) form is barred from Signal 3 promotion for THAT game specifically — it
+      // still gets a fair shot at Tier 1 (its own real encounters) or Tier 3/4 (its own real moves
+      // data) for that game, just not an unearned Tier 2 from a roster entry that was really about
+      // its variant. Scoped to only the games whose curated data is region-roster-based; BDSP's
+      // idrange check has no such ambiguity (it's a pure national-dex-id range, not a per-region
+      // roster) and Diego's report was specifically about Sword/Shield (a regular Ponyta with a
+      // Galarian variant showing as native there), so this guard is keyed off the Galar/Hisui/
+      // Paldea suffix list, not applied blindly everywhere.
+      const GAME_REGION_SUFFIX={sword:'-galar',shield:'-galar','legends-arceus':'-hisui',scarlet:'-paldea',violet:'-paldea'};
+      const speciesVarietySuffixes=new Set((obtainSpeciesData?.varieties||[]).map(v=>{
+        const dash=v.pokemon?.name?.indexOf('-');
+        return dash>-1?v.pokemon.name.slice(dash):null;
+      }).filter(Boolean));
       // A regional/alternate-form variant (pseudo-id > 10000 — Galarian Ponyta, Alolan Golem, etc.)
       // is a DISTINCT in-game creature from its base species, not merely a cosmetic reskin. PokéAPI's
       // regional-dex rosters and the BDSP id-range rule are both species-level data — a roster only
@@ -11202,6 +11221,8 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
               const m=selectedPokemon.species?.url?.match(/\/(\d+)\/$/);
               const sid=m?parseInt(m[1]):selectedPokemon.id;
               curatedMembership[gameId]=sid>=curated.min&&sid<=curated.max;
+            }else if(GAME_REGION_SUFFIX[gameId]&&speciesVarietySuffixes.has(GAME_REGION_SUFFIX[gameId])){
+              curatedMembership[gameId]=false; // regional-dex inversion guard — see comment above
             }else{
               const roster=await loadGameDexRoster(gameId);
               curatedMembership[gameId]=roster?roster.has(speciesSlug):null; // null = roster fetch failed — no verdict, resolver treats this like "no curated data"
@@ -11223,13 +11244,38 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
         const vtc=getVersionsForGame(game.id);
         gameOwnHasEncounters[game.id]=!!(obtainEncounterData||[]).some(e=>e.version_details.some(vd=>vtc.includes(vd.version?.name)));
       }));
+      // Mega Evolution / Gigantamax are separate ENGINE MECHANICS, not just cosmetic reskins — a
+      // form being catchable/transferable in a game's *encounter or move data* says nothing about
+      // whether that game's engine even supports Mega Evolution or Gigantamaxing at all. Hard-locked
+      // per Diego's spec: Gigantamax exists ONLY in Sword/Shield; Mega Evolution exists ONLY in Gen
+      // 6 (X/Y, OR/AS), Gen 7 (Sun/Moon/USUM/Let's Go), and Legends: Z-A (+ Mega Dimension DLC) —
+      // deliberately excluding BDSP and Scarlet/Violet, which have neither mechanic, even though a
+      // Mega form's BASE species may have real moves/encounter data there (e.g. base Charizard is
+      // perfectly obtainable in Scarlet/Violet — that says nothing about Mega Charizard X existing
+      // there, since S/V's engine has no Mega Evolution mechanic to plug it into). Applied here,
+      // directly on the shared per-game tier map, rather than as a separate filter layered onto only
+      // one modal's own game-list-building code — that split (Location applying this hard lock,
+      // Moveset not) is exactly why Gigantamax Charizard could show Scarlet/Violet in the Moveset
+      // modal while correctly excluded from the Location modal for the same Pokémon.
+      const isMega=isMegaForm(selectedPokemon.name),isGmax=isGmaxForm(selectedPokemon.name);
+      const engineLocked=game=>(isMega&&!MEGA_GAMES.has(game.id))||(isGmax&&!GMAX_GAMES.has(game.id));
       obtainGameTiers={};
       const aig=new Set();
       GAME_LIST.forEach(({games})=>games.forEach(game=>{
         const vg=GAME_TO_VERSION_GROUP[game.id];
         if(!vg)return;
+        if(engineLocked(game)){obtainGameTiers[game.id]={tier:5,valid:false,native:false,message:null};return;}
         const siblingGames=games.filter(g=>GAME_TO_VERSION_GROUP[g.id]===vg);
-        const anySiblingHasEncounters=siblingGames.some(g=>gameOwnHasEncounters[g.id]);
+        // Sibling-aware demotion only makes sense for a curated roster genuinely tied to per-game
+        // exclusives (Sword vs. Shield's separate Galar-dex-plus-encounter reality) — it must NOT
+        // apply to a symmetric remake pair like Brilliant Diamond/Shining Pearl, whose 'idrange'
+        // curated check is a flat national-dex-id rule that's true for BOTH members identically by
+        // construction. Demoting Shining Pearl's curatedNative just because Brilliant Diamond
+        // happened to have its own encounter row logged in PokéAPI was exactly the bug reported —
+        // Shining Pearl silently dropping out of the Moveset filter whenever its sibling had data.
+        const curated=GAME_CURATED_DEX[game.id];
+        const siblingDemotionApplies=curated?.type==='pokedex';
+        const anySiblingHasEncounters=siblingDemotionApplies&&siblingGames.some(g=>gameOwnHasEncounters[g.id]);
         const result=resolveGameAvailability(selectedPokemon,vg,{
           encounters:obtainEncounterData,
           versionNames:getVersionsForGame(game.id),
@@ -11243,10 +11289,21 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       // can see (e.g. very old/incomplete PokéAPI records) doesn't regress to "no games at all."
       if(aig.size===0){
         const bgi=selectedPokemon.game_indices?.length?selectedPokemon.game_indices:(obtainSpeciesData?.game_indices||[]);
-        bgi.forEach(gi=>{aig.add(gi.version.name);obtainGameTiers[gi.version.name]={tier:1,valid:true,native:true,message:null};});
+        bgi.forEach(gi=>{if(!engineLocked({id:gi.version.name})){aig.add(gi.version.name);obtainGameTiers[gi.version.name]={tier:1,valid:true,native:true,message:null};}});
       }
-      const isMega=isMegaForm(selectedPokemon.name),isGmax=isGmaxForm(selectedPokemon.name);
-      GAME_LIST.forEach(({games})=>{games.forEach(game=>{const vtc=getVersionsForGame(game.id);const inDex=vtc.some(v=>aig.has(v));if(!inDex)return;if(isMega&&!MEGA_GAMES.has(game.id))return;if(isGmax&&!GMAX_GAMES.has(game.id))return;if(preevoGameVersions!==null){const hw=(obtainEncounterData||[]).some(e=>e.version_details.some(v=>vtc.includes(v.version.name)));const hs2=!!getSpecialObtain(selectedPokemon.name,game.id);if(!hw&&!hs2){const pi=vtc.some(v=>preevoGameVersions.has(v));if(!pi)return;}}obtainValidGames.add(game.id);});});
+      // NOTE: the previous "preevo-chain" veto (requiring a pre-evolution's own species-level
+      // game_indices to list this game before allowing an otherwise-valid game through) has been
+      // removed. It used the same kind of stale, frequently-empty PokéAPI field (game_indices on
+      // the PRE-EVOLUTION's species) that this entire multi-round thread has been eliminating
+      // everywhere else — confirmed live: Graveler's own game_indices has no entries at all for
+      // brilliant-diamond, shining-pearl, sword, or shield, which meant this leftover veto was
+      // silently dropping Golem from the Location modal's game list for exactly the games the
+      // 3-signal resolver had just correctly proven valid (this is why Golem showed BDSP/Legends:
+      // Arceus in the Moveset modal, which never consulted this veto, but not in Location, which
+      // did). The resolver's own Signals 1-3 already establish real per-game validity for the
+      // EVOLVED form directly — a separate, unreliable check on its pre-evolution's old field added
+      // nothing but false negatives.
+      GAME_LIST.forEach(({games})=>{games.forEach(game=>{if(obtainGameTiers[game.id]?.valid)obtainValidGames.add(game.id);});});
       obtainGameTiersPokemon=selectedPokemon.name;
     }
 
