@@ -125,6 +125,30 @@
       }
     ]
   },
+    {
+    "chain_id": "alolan-meowth-line",
+    "links": [
+      {
+        "pokemon": "meowth-alola",
+        "evolves_into": "persian-alola",
+        "method": "LEVEL",
+        "method_detail": "28",
+        "notes": null
+      }
+    ]
+  },
+      {
+    "chain_id": "galarian-meowth-line",
+    "links": [
+      {
+        "pokemon": "meowth-galar",
+        "evolves_into": "perrserker",
+        "method": "LEVEL",
+        "method_detail": "28",
+        "notes": null
+      }
+    ]
+  },
   {
     "chain_id": "koffing-line",
     "links": [
