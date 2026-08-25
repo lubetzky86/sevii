@@ -11138,6 +11138,27 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       document.getElementById('obtain-tab-catching').className='obtain-tab active';document.getElementById('obtain-tab-breeding').className='obtain-tab inactive';
       const gp=document.getElementById('obtain-games-panel');if(gp)gp.classList.remove('has-selection');
       document.getElementById('obtain-modal-backdrop').classList.add('visible');
+      await computeObtainGameTiers();
+      buildObtainGames();renderObtainContent();
+    }
+
+    // Tracks which Pokémon (by variety name) obtainGameTiers/obtainValidGames were last computed
+    // for, so a caller other than openObtainModal (namely openMovesetModal) can tell whether the
+    // cached tiers are still valid for the currently-selected Pokémon or need recomputing.
+    let obtainGameTiersPokemon=null;
+
+    // ── 4-Tier Canon-First Resolution Engine (2026-08-25) ──────────────────────────────────
+    // Fetches species/encounter/evolution data for selectedPokemon and classifies every game via
+    // the canonical resolveGameAvailability() (defined near GAME_TO_VERSION_GROUP) — see its own
+    // comment for the full tier table. Populates the module-level obtainSpeciesData,
+    // obtainEncounterData, obtainEvoChain, obtainGameTiers, and obtainValidGames. Originally inlined
+    // into openObtainModal() only; extracted so openMovesetModal() can reuse the exact same
+    // per-game tiers instead of maintaining a second, un-migrated gating path (the source of the
+    // "Brilliant Diamond"/"Legends: Arceus" wrongly-selectable-for-Galarian-Ponyta bug reported
+    // against the live site — the Moveset modal's game picker was filtering purely on
+    // GAME_TO_VERSION_GROUP existence + generation, with zero awareness of tiers/exclusions).
+    async function computeObtainGameTiers(){
+      obtainValidGames=new Set();
       const speciesUrl=selectedPokemon.species?.url||`https://pokeapi.co/api/v2/pokemon-species/${selectedPokemon.id}`;
       // Encounters must be fetched using THIS variety's own pokemon id, not the species id — a
       // regional/alt form's wild encounter table is per-variety (e.g. ponyta-galar id 10162 has
@@ -11153,12 +11174,6 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       if(obtainSpeciesData?.evolution_chain?.url){try{const r=await fetch(obtainSpeciesData.evolution_chain.url);obtainEvoChain=await r.json();}catch(e){obtainEvoChain=null;}}
       let preevoGameVersions=null;const ef=obtainSpeciesData?.evolves_from_species;
       if(ef?.url){try{const psd=await fetch(ef.url).then(r=>r.json());const ppid=psd?.id;if(ppid){const ppd=await fetch(`https://pokeapi.co/api/v2/pokemon/${ppid}`).then(r=>r.json());preevoGameVersions=new Set(ppd.game_indices?.map(gi=>gi.version.name)||[]);}}catch(e){preevoGameVersions=null;}}
-      // ── 4-Tier Canon-First Resolution Engine (2026-08-25) ──────────────────────────────────
-      // Every game is classified per-version-group via the canonical resolveGameAvailability()
-      // (defined near GAME_TO_VERSION_GROUP) — see its own comment for the full tier table. This
-      // replaces the ad-hoc aig/classification logic from the previous two rounds with one
-      // deterministic function so the Obtain modal, and anything else that needs "is this Pokémon
-      // available here, and how," always agrees.
       const curatedGames=Object.keys(GAME_CURATED_DEX).filter(id=>GAME_LIST.some(g=>g.games.some(gg=>gg.id===id)));
       const speciesSlug=selectedPokemon.species?.name||selectedPokemon.name.split('-')[0];
       const curatedMembership={};
@@ -11211,7 +11226,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       }
       const isMega=isMegaForm(selectedPokemon.name),isGmax=isGmaxForm(selectedPokemon.name);
       GAME_LIST.forEach(({games})=>{games.forEach(game=>{const vtc=getVersionsForGame(game.id);const inDex=vtc.some(v=>aig.has(v));if(!inDex)return;if(isMega&&!MEGA_GAMES.has(game.id))return;if(isGmax&&!GMAX_GAMES.has(game.id))return;if(preevoGameVersions!==null){const hw=(obtainEncounterData||[]).some(e=>e.version_details.some(v=>vtc.includes(v.version.name)));const hs2=!!getSpecialObtain(selectedPokemon.name,game.id);if(!hw&&!hs2){const pi=vtc.some(v=>preevoGameVersions.has(v));if(!pi)return;}}obtainValidGames.add(game.id);});});
-      buildObtainGames();renderObtainContent();
+      obtainGameTiersPokemon=selectedPokemon.name;
     }
 
     function buildObtainGames(){
@@ -11768,6 +11783,14 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       // id-range getIntroGen, because a regional/alt form's pseudo-id (10000+) is meaningless
       // for this lookup — e.g. ponyta-galar (id 10162) would wrongly resolve to Gen 9 via id
       // range alone, hiding its real Sword/Shield (Gen 8) moveset from the game picker entirely.
+      // Reuse the same 4-Tier Canon-First Resolution Engine results the Obtain modal computes —
+      // only re-fetch/re-resolve if the tiers currently cached were computed for a different
+      // Pokémon (or never computed at all, e.g. Moveset opened directly from the Dex modal without
+      // Obtain having been opened first this session).
+      if(obtainGameTiersPokemon!==selectedPokemon.name){
+        document.getElementById('moveset-modal-body').innerHTML='<div class="moveset-placeholder">Loading moves…</div>';
+        await computeObtainGameTiers();
+      }
       const introGen=getIntroGenForVariant(selectedPokemon);
       const movesetGames=buildMovesetGames(introGen);
       // Default: most recent game available
@@ -11801,7 +11824,16 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       panel.innerHTML='';
       const included=[];
       GAME_LIST.filter(({gen})=>gen>=introGen).forEach(({gen,games})=>{
-        const rowGames=games.filter(g=>GAME_TO_VERSION_GROUP[g.id]);
+        // Exclude any game the 4-Tier resolver returned Tier 5 (fully non-obtainable) for — e.g.
+        // Galarian Ponyta must never show Brilliant Diamond or Legends: Arceus here, matching the
+        // Obtain modal's game list exactly. A game the resolver hasn't classified at all (tiers
+        // object empty, e.g. computeObtainGameTiers failed outright) is left in rather than hidden,
+        // so a genuine fetch failure degrades to "show everything" instead of "show nothing."
+        const rowGames=games.filter(g=>{
+          if(!GAME_TO_VERSION_GROUP[g.id])return false;
+          const tier=obtainGameTiers[g.id];
+          return !tier || tier.valid!==false;
+        });
         if(rowGames.length===0)return;
         rowGames.forEach(g=>included.push(g));
         const block=document.createElement('div');block.className='obtain-gen-block';
@@ -11850,7 +11882,15 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
         }
       }
       if(!moves||moves.length===0){
-        body.innerHTML=`<div class="moveset-placeholder">No move data available for this generation in our data source. Please select a different generation.</div>`;
+        // Tier-aware fallback: a Tier 2/4 game ("confirmed native/transferable, but info is
+        // unavailable for the moment") gets the same soft-UI message the Obtain modal shows,
+        // instead of the old generic "No move data available... select a different generation"
+        // dead end, which read as a data-source failure even for legitimately-native games.
+        const tier=obtainGameTiers[movesetSelectedGame];
+        const pname=getDisplayName(selectedPokemon.name);
+        body.innerHTML=tier?.message
+          ? `<div class="moveset-placeholder">${pname} ${tier.message}</div>`
+          : `<div class="moveset-placeholder">No move data available for this generation in our data source. Please select a different generation.</div>`;
         return;
       }
       renderMovesetSections(body,moves);
