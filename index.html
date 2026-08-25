@@ -11176,20 +11176,41 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       if(ef?.url){try{const psd=await fetch(ef.url).then(r=>r.json());const ppid=psd?.id;if(ppid){const ppd=await fetch(`https://pokeapi.co/api/v2/pokemon/${ppid}`).then(r=>r.json());preevoGameVersions=new Set(ppd.game_indices?.map(gi=>gi.version.name)||[]);}}catch(e){preevoGameVersions=null;}}
       const curatedGames=Object.keys(GAME_CURATED_DEX).filter(id=>GAME_LIST.some(g=>g.games.some(gg=>gg.id===id)));
       const speciesSlug=selectedPokemon.species?.name||selectedPokemon.name.split('-')[0];
+      // A regional/alternate-form variant (pseudo-id > 10000 — Galarian Ponyta, Alolan Golem, etc.)
+      // is a DISTINCT in-game creature from its base species, not merely a cosmetic reskin. PokéAPI's
+      // regional-dex rosters and the BDSP id-range rule are both species-level data — a roster only
+      // ever lists "ponyta" (never "ponyta-galar"), and the id-range check can only ever resolve to
+      // the base species' national dex number (77 for any Ponyta variant). Applying either check to
+      // a variant therefore can't help but silently promote it using its BASE FORM's availability —
+      // which is exactly the bug reported live: Galarian Ponyta inheriting Brilliant Diamond (because
+      // species #77 ≤ 493) and Legends: Arceus (because base Ponyta's species slug is Hisui-dex-
+      // eligible), neither of which has anything to do with whether the GALARIAN variant itself is
+      // in that game. Mega/Gigantamax forms are the one legitimate exception: mega-evolving or
+      // gigantamaxing requires catching the base species first, so inheriting the base species'
+      // curated availability there is correct, not a bug — only true regional/alt-form variants are
+      // excluded from Signal 3 here. Such a variant relies solely on Signal 1 (its own /encounters,
+      // already fetched above using its own variety id) and Signal 2 (its own moves data) — if
+      // neither fires for a given game, it correctly resolves to Tier 5, never inheriting a curated
+      // "yes" from a species-level check that was never actually about that specific form.
+      const isRegionalVariant=selectedPokemon.id>10000&&!isMegaForm(selectedPokemon.name)&&!isGmaxForm(selectedPokemon.name);
       const curatedMembership={};
-      await Promise.all(curatedGames.map(async gameId=>{
-        try{
-          const curated=GAME_CURATED_DEX[gameId];
-          if(curated.type==='idrange'){
-            const m=selectedPokemon.species?.url?.match(/\/(\d+)\/$/);
-            const sid=m?parseInt(m[1]):selectedPokemon.id;
-            curatedMembership[gameId]=sid>=curated.min&&sid<=curated.max;
-          }else{
-            const roster=await loadGameDexRoster(gameId);
-            curatedMembership[gameId]=roster?roster.has(speciesSlug):null; // null = roster fetch failed — no verdict, resolver treats this like "no curated data"
-          }
-        }catch(e){curatedMembership[gameId]=null;}
-      }));
+      if(!isRegionalVariant){
+        await Promise.all(curatedGames.map(async gameId=>{
+          try{
+            const curated=GAME_CURATED_DEX[gameId];
+            if(curated.type==='idrange'){
+              const m=selectedPokemon.species?.url?.match(/\/(\d+)\/$/);
+              const sid=m?parseInt(m[1]):selectedPokemon.id;
+              curatedMembership[gameId]=sid>=curated.min&&sid<=curated.max;
+            }else{
+              const roster=await loadGameDexRoster(gameId);
+              curatedMembership[gameId]=roster?roster.has(speciesSlug):null; // null = roster fetch failed — no verdict, resolver treats this like "no curated data"
+            }
+          }catch(e){curatedMembership[gameId]=null;}
+        }));
+      }else{
+        curatedGames.forEach(gameId=>{curatedMembership[gameId]=false;});
+      }
       // Per-game "does THIS specific game (not its version-group siblings) have any encounter rows
       // of its own" — needed before the main loop so Signal 3 can tell a genuine version-exclusive
       // (e.g. Ponyta-Galar: Shield has Glimwood Tangle, Sword has nothing) apart from a real
