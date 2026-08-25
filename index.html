@@ -9706,9 +9706,13 @@
     }
 
     async function renderInfoCard(pokemon,species){
-      const category=species.genera.find(g=>g.language.name==='en')?.genus||'—';
+      // Regional/alt-form variety overrides (see VARIANT_OVERRIDES) take priority over the raw
+      // species-level color/genus, which is shared across every variety and often wrong for one
+      // of them — e.g. Galarian Ponyta pulling base Ponyta's "yellow"/"Fire Horse Pokémon".
+      const visualOverride=getVariantVisualOverride(pokemon.name);
+      const category=visualOverride?.genus || species.genera.find(g=>g.language.name==='en')?.genus||'—';
       document.getElementById('info-pokemon-species').textContent=`THE ${category.toUpperCase()}`;
-      applyPokemonTheme(species.color?.name||'white');
+      applyPokemonTheme(visualOverride?.color || species.color?.name || 'white');
 
       // Dex entry — for Mega/Gmax prefer entries from games where they appear
       const enEntries = species.flavor_text_entries.filter(e=>e.language.name==='en');
@@ -9723,13 +9727,13 @@
           || [...enEntries].reverse().find(e=>true);
       } else if(pokemon.id>10000){
         // Regional/alt forms: PokéAPI stores flavor_text_entries at the SPECIES level, shared
-        // across every variety (Galarian Rapidash and base Rapidash are both "species: rapidash"),
-        // so without filtering, a game where only the OTHER variety actually appeared (e.g. base
-        // Rapidash's own Legends: Arceus entry) leaks onto this variety's dex text too.
-        // pokemon.game_indices, by contrast, IS per-variety and accurate — it's this exact form's
-        // own list of games it appears in — so use it to keep only entries this form really has.
-        const ownVersions=new Set((pokemon.game_indices||[]).map(gi=>gi.version.name));
-        const ownEntries=ownVersions.size?enEntries.filter(e=>ownVersions.has(e.version?.name)):enEntries;
+        // across every variety (Galarian Ponyta and base Ponyta are both "species: ponyta"), so
+        // without filtering, entries from games where only the OTHER variety actually appeared
+        // (e.g. base Ponyta's Red/Blue entry) leak onto this variety's dex text too. Filtered via
+        // the coded-presence resolver (moves-based), NOT pokemon.game_indices — game_indices is
+        // empty for many regional forms (confirmed for ponyta-galar) so a game_indices-based
+        // filter silently no-ops for exactly the Pokémon that need it most.
+        const ownEntries=filterFlavorEntriesToVariant(enEntries,pokemon);
         fe = [...ownEntries].reverse().find(e=>true) || [...enEntries].reverse().find(e=>true);
       } else {
         fe = [...enEntries].reverse().find(e=>true);
@@ -10935,13 +10939,10 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       let entries=(currentSpeciesData.flavor_text_entries||[]).filter(e=>e.language.name==='en');
       // Regional/alt forms share their species record with the base form in PokéAPI (species-level
       // flavor text isn't per-variety), so without this filter a game where only the OTHER variety
-      // appeared (e.g. base Rapidash's Legends: Arceus entry showing up under Galarian Rapidash)
-      // would leak in here too. selectedPokemon.game_indices is this exact form's own accurate
-      // list of games it appears in — use it to keep only entries this form really has.
-      if(selectedPokemon && selectedPokemon.id>10000 && !isMegaForm(selectedPokemon.name) && !isGmaxForm(selectedPokemon.name)){
-        const ownVersions=new Set((selectedPokemon.game_indices||[]).map(gi=>gi.version.name));
-        if(ownVersions.size) entries=entries.filter(e=>ownVersions.has(e.version?.name));
-      }
+      // appeared (e.g. base Ponyta's Red entry showing up under Galarian Ponyta) would leak in here
+      // too. Filtered via the moves-based coded-presence resolver, not game_indices — see
+      // filterFlavorEntriesToVariant()'s comment for why game_indices can't be trusted here.
+      if(selectedPokemon) entries=filterFlavorEntriesToVariant(entries,selectedPokemon);
       // A version can appear more than once (regional Pokédex slots) — keep the first entry seen.
       const byVersion={};
       entries.forEach(e=>{ if(!byVersion[e.version.name]) byVersion[e.version.name]=e; });
@@ -11037,6 +11038,23 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
     function genderRatioText(r){if(r===-1)return'Genderless';const f=(r/8)*100,m=100-f;return`${m%1===0?m:m.toFixed(1)}% \u2642 / ${f%1===0?f:f.toFixed(1)}% \u2640`;}
     function hatchTimeText(s){return`${s.toLocaleString()} steps (~${Math.round(s/255)} cycles)`;}
     function toTitleCase(s){return s.replace(/\b\w/g,c=>c.toUpperCase());}
+    // PokéAPI's egg-group slugs don't all map cleanly to their official English display names via
+    // plain title-casing — most notably "ground", which is PokéAPI's actual slug for the group
+    // Bulbapedia and the games call "Field" (confirmed for Ponyta's species record: egg_groups
+    // contains "ground", but Ponyta is in the Field egg group in-game). A naive toTitleCase pass
+    // silently renders this as the wrong, made-up group name "Ground". This map is the explicit,
+    // authoritative override for every slug that doesn't title-case correctly on its own.
+    const EGG_GROUP_NORMALIZE={
+      'ground':'Field',
+      'indeterminate':'Amorphous',
+      'water1':'Water 1','water2':'Water 2','water3':'Water 3',
+      'plant':'Grass',
+      'humanlike':'Human-Like','human-like':'Human-Like',
+      'no-eggs':'Undiscovered'
+    };
+    function normalizeEggGroupLabel(apiName){
+      return EGG_GROUP_NORMALIZE[apiName] || toTitleCase(apiName.replace(/-/g,' '));
+    }
     const SPECIAL_OBTAIN={'bulbasaur':{red:'Starter Pokémon — chosen at the start of the game',blue:'Starter Pokémon — chosen at the start of the game',yellow:'Starter Pokémon — chosen at the start of the game',firered:'Starter Pokémon — chosen at the start of the game',leafgreen:'Starter Pokémon — chosen at the start of the game',heartgold:'Starter Pokémon — chosen at the start of the game',soulsilver:'Starter Pokémon — chosen at the start of the game'},'charmander':{red:'Starter Pokémon — chosen at the start of the game',blue:'Starter Pokémon — chosen at the start of the game',yellow:'Starter Pokémon — chosen at the start of the game',firered:'Starter Pokémon — chosen at the start of the game',leafgreen:'Starter Pokémon — chosen at the start of the game',x:'Gift — received from a trainer in Lumiose City after defeating the first Gym',y:'Gift — received from a trainer in Lumiose City after defeating the first Gym'},'squirtle':{red:'Starter Pokémon — chosen at the start of the game',blue:'Starter Pokémon — chosen at the start of the game',yellow:'Gift — received from Officer Jenny in Vermilion City',firered:'Starter Pokémon — chosen at the start of the game',leafgreen:'Starter Pokémon — chosen at the start of the game'},'omanyte':{all:'Fossil revival — revive from the Helix Fossil'},'kabuto':{all:'Fossil revival — revive from the Dome Fossil'},'aerodactyl':{all:'Fossil revival — revive from the Old Amber'},'hitmonlee':{red:'Gift — received from the Dojo Master in Saffron City (choose one)',blue:'Gift — received from the Dojo Master in Saffron City (choose one)',yellow:'Gift — received from the Dojo Master in Saffron City (choose one)',firered:'Gift — received from the Dojo Master in Saffron City (choose one)',leafgreen:'Gift — received from the Dojo Master in Saffron City (choose one)'},'hitmonchan':{red:'Gift — received from the Dojo Master in Saffron City (choose one)',blue:'Gift — received from the Dojo Master in Saffron City (choose one)',yellow:'Gift — received from the Dojo Master in Saffron City (choose one)',firered:'Gift — received from the Dojo Master in Saffron City (choose one)',leafgreen:'Gift — received from the Dojo Master in Saffron City (choose one)'},'eevee':{red:'Gift — received from the Pokémon Mansion in Celadon City',blue:'Gift — received from the Pokémon Mansion in Celadon City',yellow:'Gift — received from the Pokémon Mansion in Celadon City',firered:'Gift — received from the Pokémon Mansion in Celadon City',leafgreen:'Gift — received from the Pokémon Mansion in Celadon City'},'porygon':{red:'Purchase — bought with coins at the Celadon Game Corner',blue:'Purchase — bought with coins at the Celadon Game Corner',yellow:'Purchase — bought with coins at the Celadon Game Corner',firered:'Purchase — bought with coins at the Celadon Game Corner',leafgreen:'Purchase — bought with coins at the Celadon Game Corner'},'lapras':{red:'Gift — received from an employee in Silph Co.',blue:'Gift — received from an employee in Silph Co.',yellow:'Gift — received from an employee in Silph Co.',firered:'Gift — received from an employee in Silph Co.',leafgreen:'Gift — received from an employee in Silph Co.'},'scyther':{red:'Purchase — bought with coins at the Celadon Game Corner',yellow:'Purchase — bought with coins at the Celadon Game Corner',firered:'Purchase — bought with coins at the Celadon Game Corner'},'pinsir':{blue:'Purchase — bought with coins at the Celadon Game Corner',yellow:'Purchase — bought with coins at the Celadon Game Corner',leafgreen:'Purchase — bought with coins at the Celadon Game Corner'}};
     const DLC_VERSION_MAP={sword:['sword','the-isle-of-armor','the-crown-tundra'],shield:['shield','the-isle-of-armor','the-crown-tundra'],scarlet:['scarlet','the-teal-mask','the-indigo-disk'],violet:['violet','the-teal-mask','the-indigo-disk'],'legends-za':['legends-za','mega-dimension']};
     function getVersionsForGame(id){return DLC_VERSION_MAP[id]||[id];}
@@ -11115,12 +11133,38 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       const gp=document.getElementById('obtain-games-panel');if(gp)gp.classList.remove('has-selection');
       document.getElementById('obtain-modal-backdrop').classList.add('visible');
       const speciesUrl=selectedPokemon.species?.url||`https://pokeapi.co/api/v2/pokemon-species/${selectedPokemon.id}`;
-      let encId=selectedPokemon.id;if(selectedPokemon.id>10000&&selectedPokemon.species?.url){const m=selectedPokemon.species.url.match(/\/(\d+)\/$/);if(m)encId=parseInt(m[1]);}
+      // Encounters must be fetched using THIS variety's own pokemon id, not the species id — a
+      // regional/alt form's wild encounter table is per-variety (e.g. ponyta-galar id 10162 has
+      // its own /encounters response listing Glimwood Tangle etc.), fetching the species id instead
+      // (77, base Ponyta) would silently return the base form's Kanto-region encounters instead.
+      // The species-id fallback is only correct for Mega/Gmax forms, which have no wild encounters
+      // of their own and inherit the base form's for "how do I obtain the base Pokémon" purposes.
+      let encId=selectedPokemon.id;
+      if((isMegaForm(selectedPokemon.name)||isGmaxForm(selectedPokemon.name))&&selectedPokemon.species?.url){
+        const m=selectedPokemon.species.url.match(/\/(\d+)\/$/);if(m)encId=parseInt(m[1]);
+      }
       try{const[sd,ed]=await Promise.all([fetch(speciesUrl).then(r=>r.json()),fetch(`https://pokeapi.co/api/v2/pokemon/${encId}/encounters`).then(r=>r.json())]);obtainSpeciesData=sd;obtainEncounterData=ed;}catch(e){obtainSpeciesData=null;obtainEncounterData=[];}
       if(obtainSpeciesData?.evolution_chain?.url){try{const r=await fetch(obtainSpeciesData.evolution_chain.url);obtainEvoChain=await r.json();}catch(e){obtainEvoChain=null;}}
       let preevoGameVersions=null;const ef=obtainSpeciesData?.evolves_from_species;
       if(ef?.url){try{const psd=await fetch(ef.url).then(r=>r.json());const ppid=psd?.id;if(ppid){const ppd=await fetch(`https://pokeapi.co/api/v2/pokemon/${ppid}`).then(r=>r.json());preevoGameVersions=new Set(ppd.game_indices?.map(gi=>gi.version.name)||[]);}}catch(e){preevoGameVersions=null;}}
-      const bgi=selectedPokemon.game_indices?.length?selectedPokemon.game_indices:(obtainSpeciesData?.game_indices||[]);const aig=new Set(bgi.map(gi=>gi.version.name));const isMega=isMegaForm(selectedPokemon.name),isGmax=isGmaxForm(selectedPokemon.name);
+      // Game availability now comes from the coded-presence resolver (moves data + the encounters
+      // we just fetched into obtainEncounterData), not from game_indices — which is empty for many
+      // regional/alt forms (e.g. ponyta-galar) even though they're fully coded into a game. aig is
+      // built as a Set of game ids (not version_group names) so the vtc.some(v=>aig.has(v)) check
+      // below — which also handles DLC version expansion via getVersionsForGame — keeps working
+      // unchanged. Falls back to the old species-level game_indices only if the resolver finds
+      // literally nothing, so no known-working case regresses to "no games available."
+      const codedVGs=resolveCodedVersionGroups(selectedPokemon,obtainEncounterData);
+      const aig=new Set();
+      GAME_LIST.forEach(({games})=>games.forEach(game=>{
+        const vg=GAME_TO_VERSION_GROUP[game.id];
+        if(vg&&codedVGs.has(vg)) aig.add(game.id);
+      }));
+      if(aig.size===0){
+        const bgi=selectedPokemon.game_indices?.length?selectedPokemon.game_indices:(obtainSpeciesData?.game_indices||[]);
+        bgi.forEach(gi=>aig.add(gi.version.name));
+      }
+      const isMega=isMegaForm(selectedPokemon.name),isGmax=isGmaxForm(selectedPokemon.name);
       GAME_LIST.forEach(({games})=>{games.forEach(game=>{const vtc=getVersionsForGame(game.id);const inDex=vtc.some(v=>aig.has(v));if(!inDex)return;if(isMega&&!MEGA_GAMES.has(game.id))return;if(isGmax&&!GMAX_GAMES.has(game.id))return;if(preevoGameVersions!==null){const hw=(obtainEncounterData||[]).some(e=>e.version_details.some(v=>vtc.includes(v.version.name)));const hs2=!!getSpecialObtain(selectedPokemon.name,game.id);if(!hw&&!hs2){const pi=vtc.some(v=>preevoGameVersions.has(v));if(!pi)return;}}obtainValidGames.add(game.id);});});
       buildObtainGames();renderObtainContent();
     }
@@ -11351,7 +11395,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       const accordion=document.createElement('div');accordion.className='obtain-egg-accordion';panel.appendChild(accordion);
 
       function buildAccordionItem(groupApiName){
-        const groupLabel=toTitleCase(groupApiName.replace(/-/g,' '));
+        const groupLabel=normalizeEggGroupLabel(groupApiName);
         const item=document.createElement('div');item.className='obtain-egg-accordion-item';
         const header=document.createElement('div');header.className='obtain-egg-accordion-header';
         header.innerHTML=`<span>Pokémon in the <strong>${groupLabel}</strong> egg group</span><span class="obtain-egg-accordion-arrow">▼</span>`;
@@ -11471,11 +11515,102 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       // and filtered out of the moveset game picker below.
     };
 
-    // Which gen a Pokémon was introduced (by id ranges)
+    // ── Variant Color/Genus Overrides ───────────────────────────────────
+    // species.color and species.genera are locked at the SPECIES level in PokéAPI — every variety
+    // of a species (base + every regional/alt form) shares one color and one set of genus text,
+    // even when the games themselves treat a variant as visually and taxonomically distinct.
+    // Confirmed for Ponyta: species.color is "yellow" and genus is "Fire Horse Pokémon" (correct
+    // for base Ponyta), but Galarian Ponyta is officially Pink with the genus "Unique Horn Pokémon"
+    // — using the species-level values on the Galar variant is simply wrong, not just imprecise.
+    // This is a manually-curated override dictionary (see the companion Excel template for the
+    // editable source-of-truth version) — start small and verified rather than guess broadly across
+    // every regional form, since a wrong override is worse than no override. Extend it by adding
+    // rows to the spreadsheet, then copying the confirmed values in here; getVariantVisualOverride()
+    // is the single injection point every color/genus read goes through.
+    const VARIANT_OVERRIDES={
+      'ponyta-galar':{color:'pink',genus:'Unique Horn Pokémon'},
+      'rapidash-galar':{color:'white',genus:'Unique Horn Pokémon'}
+    };
+    function getVariantVisualOverride(pokemonName){
+      return VARIANT_OVERRIDES[pokemonName]||null;
+    }
+
+    // ── Coded-Presence Resolver ─────────────────────────────────────────
+    // pokemon.game_indices — the field the app used to rely on everywhere for "which games is
+    // this Pokémon in" — is frequently EMPTY for regional/alt-form varieties. Confirmed empirically
+    // for ponyta-galar (id 10162): game_indices === [] even though it has full Sword/Shield moveset
+    // AND encounter data. Treating an empty game_indices as "not available anywhere" is exactly what
+    // broke game availability, locations, and movesets for these forms app-wide.
+    //
+    // The two fields that ARE always populated per-variety, per-version when a Pokémon variant is
+    // genuinely coded into a game, are: (1) its own moves[].version_group_details (proves it has
+    // in-game data for that version group — level-up/TM/egg movesets etc.), and (2) its own wild
+    // encounter table, /pokemon/{id}/encounters (proves it can physically be found there — covers
+    // Pokémon with no moves of their own listed for a version, or static-encounter-only presence).
+    // A version group counts as "coded" if EITHER signal has an entry for it — species generation
+    // tags and game_indices are never used as the source of truth here.
+    function resolveCodedVersionGroups(pokemonData, encountersData){
+      const vgSet=new Set();
+      (pokemonData?.moves||[]).forEach(m=>{
+        (m.version_group_details||[]).forEach(vd=>{
+          if(vd.version_group?.name) vgSet.add(vd.version_group.name);
+        });
+      });
+      (encountersData||[]).forEach(enc=>{
+        (enc.version_details||[]).forEach(vd=>{
+          const vName=vd.version?.name;
+          const vg=GAME_TO_VERSION_GROUP[vName]; // version name -> version group (same map used by the Moveset modal)
+          if(vg) vgSet.add(vg);
+        });
+      });
+      return vgSet;
+    }
+
+    // Which version groups this Pokémon variety's OWN dex flavor text should be scoped to, for
+    // regional/alt forms (id>10000) that share a species record — and therefore a shared, unfiltered
+    // flavor_text_entries array — with their base form. Mega/Gmax forms are handled separately by
+    // their callers (they use fixed MEGA_GAMES/GMAX_GAMES lists, not this moves-based resolver, since
+    // they typically have no level-up moveset of their own to resolve from). Returns null for base
+    // forms (id<=10000) so callers know to leave flavor text unfiltered.
+    function getVariantCodedVersionGroups(pokemon){
+      if(!pokemon || pokemon.id<=10000) return null;
+      if(isMegaForm(pokemon.name)||isGmaxForm(pokemon.name)) return null;
+      const vgSet=resolveCodedVersionGroups(pokemon,null); // moves-only — no extra fetch needed for dex-text scoping
+      return vgSet.size?vgSet:null;
+    }
+
+    // Filters a species' flavor_text_entries array down to just the entries for versions this
+    // specific variety actually appeared in — see item 1 of the 2026-08-25 data-pipeline fixes.
+    // Falls back to returning entries unfiltered if we have no reliable signal to filter by (base
+    // forms, or a variant with no move data at all), rather than risk showing an empty dex tab.
+    function filterFlavorEntriesToVariant(entries, pokemon){
+      const vgSet=getVariantCodedVersionGroups(pokemon);
+      if(!vgSet) return entries;
+      return entries.filter(e=>{
+        const vg=GAME_TO_VERSION_GROUP[e.version?.name];
+        return vg ? vgSet.has(vg) : true; // no vg mapping for this version (e.g. legends-za) — keep it rather than drop silently
+      });
+    }
+
+    // Which gen a Pokémon was introduced (by id ranges) — only valid for BASE forms (id<=10000).
+    // A regional/alt form's pseudo-id (10000+) has no relationship to its real intro generation
+    // (e.g. ponyta-galar is id 10162, which falls past the Gen 8 id range entirely and would
+    // wrongly resolve to Gen 9 if run through this id-range logic) — use getIntroGenForVariant()
+    // for anything that might be a form.
     function getIntroGen(id){
       if(id<=151)return 1;if(id<=251)return 2;if(id<=386)return 3;
       if(id<=493)return 4;if(id<=649)return 5;if(id<=721)return 6;
       if(id<=809)return 7;if(id<=905)return 8;return 9;
+    }
+    function getIntroGenForVariant(pokemon){
+      if(!pokemon||pokemon.id<=10000) return getIntroGen(pokemon?.id||1);
+      const vgSet=resolveCodedVersionGroups(pokemon,null);
+      let minGen=9;
+      GAME_LIST.forEach(({gen,games})=>games.forEach(g=>{
+        const vg=GAME_TO_VERSION_GROUP[g.id];
+        if(vg&&vgSet.has(vg)&&gen<minGen)minGen=gen;
+      }));
+      return minGen;
     }
 
     let movesetActiveVg=null;
@@ -11502,8 +11637,11 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       });
 
       // Build game picker (same bottom-sheet pattern as Obtain) — only games from
-      // generations >= this Pokémon's intro gen.
-      const introGen=getIntroGen(selectedPokemon.id||1);
+      // generations >= this Pokémon's intro gen. Uses getIntroGenForVariant, not the raw
+      // id-range getIntroGen, because a regional/alt form's pseudo-id (10000+) is meaningless
+      // for this lookup — e.g. ponyta-galar (id 10162) would wrongly resolve to Gen 9 via id
+      // range alone, hiding its real Sword/Shield (Gen 8) moveset from the game picker entirely.
+      const introGen=getIntroGenForVariant(selectedPokemon);
       const movesetGames=buildMovesetGames(introGen);
       // Default: most recent game available
       const lastGame=movesetGames[movesetGames.length-1];
@@ -12125,7 +12263,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
 
       // Header
       document.getElementById('lore-modal-name').textContent = getDisplayName(selectedPokemon.name).toUpperCase();
-      const genus = currentSpeciesData?.genera?.find(g => g.language.name === 'en')?.genus || '';
+      const genus = getVariantVisualOverride(selectedPokemon.name)?.genus || currentSpeciesData?.genera?.find(g => g.language.name === 'en')?.genus || '';
       document.getElementById('lore-modal-species').textContent = genus ? `The ${genus}` : '';
 
       // Shiny state
@@ -12424,7 +12562,11 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       body.innerHTML = '';
       if (!currentSpeciesData) return;
 
-      const enEntries = currentSpeciesData.flavor_text_entries.filter(e => e.language.name === 'en');
+      // Same species-level leak as the Info card / Dex modal (see filterFlavorEntriesToVariant) —
+      // this accordion was the one dex-text surface that hadn't been filtered yet, so a regional
+      // variant like Galarian Ponyta was showing the base form's Kanto-era entries here too.
+      let enEntries = currentSpeciesData.flavor_text_entries.filter(e => e.language.name === 'en');
+      if(selectedPokemon) enEntries=filterFlavorEntriesToVariant(enEntries,selectedPokemon);
       const usedTexts = new Set();
       const unique = [];
       enEntries.forEach(e => {
