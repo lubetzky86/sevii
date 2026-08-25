@@ -957,5 +957,17 @@
         "notes": null
       }
     ]
+  },
+    {
+    "chain_id": "sneasel-hisui-line",
+    "links": [
+      {
+        "pokemon": "sneasel-hisui",
+        "evolves_into": "sneasler",
+        "method": "ITEM",
+        "method_detail": "Level up holding Razor Claw during daytime",
+        "notes": null
+      }
+    ]
   }
 ]

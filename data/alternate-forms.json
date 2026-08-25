@@ -2700,6 +2700,15 @@
     "display_name": "Hisuian Goodra"
   },
   {
+    "base": "sneasel",
+    "form": "sneasel-hisui",
+    "label": "Hisuian Sneasel",
+    "form_type": "REGIONAL",
+    "region": "HISUI",
+    "notes": null,
+    "display_name": "Hisuian Sneasel"
+  },
+  {
     "base": "pumpkaboo",
     "form": "pumpkaboo-small",
     "label": "Small",
