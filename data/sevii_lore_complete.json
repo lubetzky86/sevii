@@ -53422,6 +53422,66 @@
       }
     ]
   },
+  "mr-mime-galar": {
+    "slug": "mr-mime-galar",
+    "name": "Galarian Mr. Mime",
+    "classifications": [
+      {
+        "category": "Regional Variant",
+        "justification": "Adapting to the deep, freezing snowpacks of northern Galar, these performers shifted their tap-dancing routines onto ice sheets, generating invisible barriers of crystallized frost."
+      }
+    ],
+    "behavioral_badges": [
+      {
+        "badge_id": "SOLITARY_NOMAD",
+        "field_citation": "Unlike Kanto Mr. Mime, which often seeks applause and human validation, Galarian Mr. Mime is intensely introverted and serious about its craft. Interrupting its dance routine or failing to appreciate its performance is viewed as a grave insult, immediately provoking hostility."
+      }
+    ],
+    "overview": {
+      "field_thesis": "Galarian Mr. Mime is an Ice/Psychic-type regional variant of the Kanto Mr. Mime family, evolving from Galarian Mime Jr. Rather than focusing on theatrical pantomime, this variant is biologically and culturally adapted to the freezing climate of northern Galar, drawing heavy inspiration from traditional tap dancers, street buskers, and ice skaters.",
+      "key_observations": [
+        "It possesses a distinct, humanoid torso covered in a dense, frost-resistant layer of icy skin that mimics layers of winter clothing.",
+        "Its feet are perpetually encased in thick blocks of crystallized ice that function identically to tap shoes. These ice blocks never melt, even in warmer indoor environments, due to internal cryogenic preservation.",
+        "Found primarily along frost-bitten mountain passes, sub-zero tundra edges, and snow-covered roadways in northern Galar where public foot traffic provides an audience."
+      ]
+    },
+    "powers_and_tools": {
+      "physical_arsenal": {
+        "primary_assets": [
+          "Cold-resistant skin",
+          "Tap shoes made out of crystallized blocks of ice",
+          "Unmatched tap dancing skills"
+        ],
+        "field_utility": "Their invisible barriers frequently trap unwary travelers or wild Pokémon in sudden dead ends along mountain trails, altering local migration and foraging pathways.",
+        "combat_application": "Excels at psychological warfare and zone control. It traps aggressive physical attackers behind unbreakable ice walls before dismantling them with specialized Psychic-type maneuvers."
+      },
+      "special_capabilities": {
+        "innate_powers": [
+          "Invisible Barrier Generation",
+          "Cryokinetic Manipulation",
+          "Psychic Resonance"
+        ],
+        "environmental_impact": "Because of its constant generation of sub-zero psychic fields, areas heavily populated by Galarian Mr. Mime often experience localized drops in temperature. Their invisible barriers frequently trap unwary travelers or wild Pokémon in sudden dead ends along mountain trails, altering local migration and foraging pathways.",
+        "signature_feat": "In combat it excels at psychological warfare and zone control. It traps aggressive physical attackers behind unbreakable ice walls before dismantling them with specialized Psychic-type maneuvers."
+      }
+    },
+    "field_hazard_advisory": {
+      "hazard_tier": "Tier 2: Moderate Threat",
+      "traveler_warning": "While not inherently predatory, its invisible walls have caused numerous vehicular accidents on icy roads and severe hypothermia in lost hikers trapped behind its barriers."
+    },
+    "species_relations": [
+      {
+        "species_slug": "snom",
+        "relation_type": "Prey",
+        "field_context": "It hunts this small and cold-resistant insect Pokémon that inhabits Galar's upper alpine zones, using its invisible barriers to herd and corner strayed Snoms."
+      },
+      {
+        "species_slug": "linoone-galar",
+        "relation_type": "Territorial Rival",
+        "field_context": "It shares a fierce rivalry with Galarian Linoone, as the chaotic, aggressive rushing of Linoone frequently disrupts the serene, orderly tap-dancing routines of Mr. Mime, leading to violent turf skirmishes."
+      }
+    ]
+  },
   "mr-rime": {
     "slug": "mr-rime",
     "name": "Mr. Rime",
@@ -63543,8 +63603,8 @@
     "name": "Rattata",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "To compete with urban Yungoos populations introduced to control rodent overpopulation, this Pokémon shifted to a nocturnal lifestyle, developing an acute sense of smell to locate high-calorie foods in cities."
       }
     ],
     "behavioral_badges": [
@@ -63606,8 +63666,8 @@
     "name": "Raticate",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "To compete with urban Yungoos populations introduced to control rodent overpopulation, this Pokémon shifted to a nocturnal lifestyle, developing an acute sense of smell to locate high-calorie foods in cities."
       }
     ],
     "behavioral_badges": [
@@ -63669,8 +63729,8 @@
     "name": "Raichu (Alolan Form)",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "By consuming a steady diet of sweet, fluffy Alolan pancakes, these psychic-adapted Pokémon developed telekinetic control over electricity, allowing them to ride their own tails like surfboards."
       }
     ],
     "behavioral_badges": [
@@ -63732,8 +63792,8 @@
     "name": "Sandshrew",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Driven from their arid native deserts by volcanic activity, these populations migrated to snowy mountain peaks, shedding their soft skin for a heavy coat of ice-encrusted steel armor."
       }
     ],
     "behavioral_badges": [
@@ -63795,8 +63855,8 @@
     "name": "Sandslash",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Driven from their arid native deserts by volcanic activity, these populations migrated to snowy mountain peaks, shedding their soft skin for a heavy coat of ice-encrusted steel armor."
       }
     ],
     "behavioral_badges": [
@@ -63858,8 +63918,8 @@
     "name": "Alolan Vulpix",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Forced to inhabit high, snowbound mountain slopes to avoid other Pokémon, they developed sub-zero breath capable of freezing anything solid and adapted a pristine white coat for camouflage."
       }
     ],
     "behavioral_badges": [
@@ -63921,8 +63981,8 @@
     "name": "Ninetales",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Forced to inhabit high, snowbound mountain slopes to avoid other Pokémon, they developed sub-zero breath capable of freezing anything solid and adapted a pristine white coat for camouflage."
       }
     ],
     "behavioral_badges": [
@@ -63984,8 +64044,8 @@
     "name": "Diglett",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Thriving in volcanic regions, these subterranean dwellers sprouted metallic whiskers made of hardened volcanic glass to sense vibrations and protect themselves from intense heat."
       }
     ],
     "behavioral_badges": [
@@ -64047,8 +64107,8 @@
     "name": "Dugtrio",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Thriving in volcanic regions, these subterranean dwellers sprouted metallic whiskers made of hardened volcanic glass to sense vibrations and protect themselves from intense heat."
       }
     ],
     "behavioral_badges": [
@@ -64110,8 +64170,8 @@
     "name": "Meowth",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Bred as pampered, highly selective pets by the royal family of Alola, these feline variants developed a cunning, egotistical disposition and a sleek, grey-blue coat."
       }
     ],
     "behavioral_badges": [
@@ -64173,8 +64233,8 @@
     "name": "Persian",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Bred as pampered, highly selective pets by the royal family of Alola, these feline variants developed a cunning, egotistical disposition and a sleek, grey-blue coat."
       }
     ],
     "behavioral_badges": [
@@ -64241,8 +64301,8 @@
     "name": "Geodude",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Surviving on iron-rich volcanic terrain, their bodies absorbed heavy minerals and magnetic iron sand, transforming them into rock-electric organisms prone to discharging static electricity."
       }
     ],
     "behavioral_badges": [
@@ -64304,8 +64364,8 @@
     "name": "Graveler",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Surviving on iron-rich volcanic terrain, their bodies absorbed heavy minerals and magnetic iron sand, transforming them into rock-electric organisms prone to discharging static electricity."
       }
     ],
     "behavioral_badges": [
@@ -64367,8 +64427,8 @@
     "name": "Golem",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Surviving on iron-rich volcanic terrain, their bodies absorbed heavy minerals and magnetic iron sand, transforming them into rock-electric organisms prone to discharging static electricity."
       }
     ],
     "behavioral_badges": [
@@ -64430,8 +64490,8 @@
     "name": "Grimer",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Brought into Alola's cities to clean up garbage waste, their digestive tracts mutated after feeding on synthetic refuse, resulting in vibrant coloration and toxic organic compounds."
       }
     ],
     "behavioral_badges": [
@@ -64493,8 +64553,8 @@
     "name": "Muk",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Brought into Alola's cities to clean up garbage waste, their digestive tracts mutated after feeding on synthetic refuse, resulting in vibrant coloration and toxic organic compounds."
       }
     ],
     "behavioral_badges": [
@@ -64556,8 +64616,8 @@
     "name": "Exeggutor",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Basking in Alola's year-round tropical sunlight without natural predators, these palms experienced unchecked vertical growth, sprouting a fourth head on their tails."
       }
     ],
     "behavioral_badges": [
@@ -64619,8 +64679,8 @@
     "name": "Marowak",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "To defend themselves against the abundant natural predators swarming Alola, these grieving spirits adopted defensive fire dances, igniting their bones with spiritual flames."
       }
     ],
     "behavioral_badges": [
@@ -64682,8 +64742,8 @@
     "name": "Meowth",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Raised by a brutal, seafaring people, these feline variants hardened their fur into iron-like strands and grew thick, Viking-like beard growths out of sheer rugged necessity."
       }
     ],
     "behavioral_badges": [
@@ -64740,8 +64800,8 @@
     "name": "Galarian Ponyta",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Exposed for generations to the peculiar ambient energy of Galar's Luminous Forest, these equines absorbed fairy-type life force, granting them pastel manes and psychic capabilities."
       }
     ],
     "behavioral_badges": [
@@ -64799,8 +64859,8 @@
     "name": "Galarian Rapidash",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Exposed for generations to the peculiar ambient energy of Galar's Luminous Forest, these equines absorbed fairy-type life force, granting them pastel manes and psychic capabilities."
       }
     ],
     "behavioral_badges": [
@@ -64862,8 +64922,8 @@
     "name": "Slowpoke",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Feeding on the spicy Galarica twigs native to their shorelines, these sluggish variants accumulated chemical spice compounds in their bodies, altering their temperament and neurological type."
       }
     ],
     "behavioral_badges": [
@@ -64925,8 +64985,8 @@
     "name": "Slowbro",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Feeding on the spicy Galarica twigs native to their shorelines, these sluggish variants accumulated chemical spice compounds in their bodies, altering their temperament and neurological type."
       }
     ],
     "behavioral_badges": [
@@ -64988,8 +65048,8 @@
     "name": "Galarian Farfetch'd",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Battling through harsh regional winds and resource scarcity, these ducks grew significantly stronger and heavier, training tirelessly with massive leek stalks as broadswords."
       }
     ],
     "behavioral_badges": [
@@ -65051,8 +65111,8 @@
     "name": "Weezing",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Living in heavily industrialized cities filled with toxic air, these urban organisms evolved to consume polluted smog and release purified air through top-hat-like smokestacks."
       }
     ],
     "behavioral_badges": [
@@ -65114,8 +65174,12 @@
     "name": "Articuno",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Unlike its Kanto counterpart, this legendary migratory bird was shaped by the harsh, isolated ecosystems of the Crown Tundra, altering its elemental typings entirely through unique territorial habits and diet."
+      },
+      {
+        "category": "Sub-Legendary",
+        "justification": "Celebrated for its ability to freeze foes using chilling psychic beams fired from its gaze, a feat that sets it apart from its Kanto counterpart's ice-manipulating wings."
       }
     ],
     "behavioral_badges": [
@@ -65177,8 +65241,12 @@
     "name": "Zapdos",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Unlike its Kanto counterpart, this legendary migratory bird was shaped by the harsh, isolated ecosystems of the Crown Tundra, altering its elemental typings entirely through unique territorial habits and diet."
+      },
+      {
+        "category": "Sub-Legendary",
+        "justification": "Stands out for its legendary leg strength, allowing it to sprint across mountain ranges at blinding speeds to deliver devastating kicking strikes rather than utilizing electric shocks."
       }
     ],
     "behavioral_badges": [
@@ -65244,8 +65312,12 @@
     "name": "Galarian Moltres",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Unlike its Kanto counterpart, this legendary migratory bird was shaped by the harsh, isolated ecosystems of the Crown Tundra, altering its elemental typings entirely through unique territorial habits and diet."
+      },
+      {
+        "category": "Sub-Legendary",
+        "justification": "Emits an aura of pure, sinister malevolence disguised as fiery energy that can overwhelm the willpower of any opponent unfortunate enough to cross its path."
       }
     ],
     "behavioral_badges": [
@@ -65312,8 +65384,8 @@
     "name": "Slowking",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Feeding on the spicy Galarica twigs native to their shorelines, these sluggish variants accumulated chemical spice compounds in their bodies, altering their temperament and neurological type."
       }
     ],
     "behavioral_badges": [
@@ -65375,8 +65447,8 @@
     "name": "Corsola",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Submerged in prehistoric seas choked by sudden environmental changes, these coral colonies bleached entirely, turning into wandering spectral beings composed of accumulated spiritual energy."
       }
     ],
     "behavioral_badges": [
@@ -65438,8 +65510,8 @@
     "name": "Zigzagoon",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Driven by fierce territorial instincts in Galar's dense undergrowth, these scavengers developed punk-like coloration, sharp agility, and a relentless urge to pick fights."
       }
     ],
     "behavioral_badges": [
@@ -65501,8 +65573,8 @@
     "name": "Linoone",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Driven by fierce territorial instincts in Galar's dense undergrowth, these scavengers developed punk-like coloration, sharp agility, and a relentless urge to pick fights."
       }
     ],
     "behavioral_badges": [
@@ -65560,8 +65632,8 @@
     "name": "Darumaka",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Stranded on glacial peaks during ancient climate shifts, these hyperactive fire-types adapted by freezing their internal flames into massive blocks of ice that double as heavy battering rams."
       }
     ],
     "behavioral_badges": [
@@ -65619,8 +65691,8 @@
     "name": "Darmanitan",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Stranded on glacial peaks during ancient climate shifts, these hyperactive fire-types adapted by freezing their internal flames into massive blocks of ice that double as heavy battering rams."
       }
     ],
     "behavioral_badges": [
@@ -65682,8 +65754,8 @@
     "name": "Yamask",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Cursed by ancient clay artifacts unearthed in ancient ruins, these spirits bonded with mud-carved burial slabs that absorb heavy negative emotions and battle trauma."
       }
     ],
     "behavioral_badges": [
@@ -65745,8 +65817,8 @@
     "name": "Stunfisk",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Living in iron-rich marshlands contaminated by industrial runoff, these flatfish evolved a hardened steel trap mouth shaped like a bear trap to snap at heavy prey."
       }
     ],
     "behavioral_badges": [
@@ -65808,8 +65880,8 @@
     "name": "Growlithe",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Guarding a rugged, subarctic frontier, these ancestral canines grew thick, heat-retaining fur coats and developed protective horns of volcanic rock on their heads."
       }
     ],
     "behavioral_badges": [
@@ -65871,8 +65943,8 @@
     "name": "Hisuian Arcanine",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Guarding a rugged, subarctic frontier, these ancestral canines grew thick, heat-retaining fur coats and developed protective horns of volcanic rock on their heads."
       }
     ],
     "behavioral_badges": [
@@ -65934,8 +66006,8 @@
     "name": "Voltorb",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Fashioned out of traditional wood and secret medicinal components to resemble ancient Poké Balls, these sentient constructs developed a symbiotic relationship with regional plant life."
       }
     ],
     "behavioral_badges": [
@@ -65997,8 +66069,8 @@
     "name": "Hisuian Electrode",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Fashioned out of traditional wood and secret medicinal components to resemble ancient Poké Balls, these sentient constructs developed a symbiotic relationship with regional plant life."
       }
     ],
     "behavioral_badges": [
@@ -66062,6 +66134,10 @@
       {
         "category": "Starter Pokémon",
         "justification": "Classified as a Starter Pokémon based on documented regional field observations."
+      },
+      {
+        "category": "Regional Variant",
+        "justification": "Feeding on the spiritual energy tied to Mount Coronet, these gentle fire-types unlocked a dormant ghostly aura, turning their flames into spectral, purple wisps of phantom fire."
       }
     ],
     "behavioral_badges": [
@@ -66123,8 +66199,8 @@
     "name": "Hisuian Qwilfish",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Navigating the freezing, violent, and current-heavy coastal waters of ancient Sinnoh, these balloon fish developed spiked, dark-toned defensive carapaces to resist aggressive predators."
       }
     ],
     "behavioral_badges": [
@@ -66182,8 +66258,8 @@
     "name": "Hisuian Sneasel",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Exiled from snowy mountain passes by territorial competitors, these agile climbers moved to dense forests, developing venomous claws and sharp martial arts capabilities."
       }
     ],
     "behavioral_badges": [
@@ -66247,6 +66323,10 @@
       {
         "category": "Starter Pokémon",
         "justification": "Classified as a Starter Pokémon based on documented regional field observations."
+      },
+      {
+        "category": "Regional Variant",
+        "justification": "Subjected to harsh, unyielding survival pressures in the wild, these once-noble sea mammals adopted ruthless, underhanded tactics, wielding razor shells with cold combat efficiency."
       }
     ],
     "behavioral_badges": [
@@ -66313,8 +66393,8 @@
     "name": "Lilligant",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Growing in frigid, high-altitude mountain environments where nectar is scarce, these plants developed long, powerful legs resembling dancer's stilts to traverse deep snowdrifts."
       }
     ],
     "behavioral_badges": [
@@ -66376,8 +66456,8 @@
     "name": "Zorua",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Having perished after migrating to a harsh, unforgiving winter environment, these vengeful fox spirits resurrected as ghost-types capable of channeling lingering malice through illusion."
       }
     ],
     "behavioral_badges": [
@@ -66439,8 +66519,8 @@
     "name": "Zoroark",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Having perished after migrating to a harsh, unforgiving winter environment, these vengeful fox spirits resurrected as ghost-types capable of channeling lingering malice through illusion."
       }
     ],
     "behavioral_badges": [
@@ -66506,8 +66586,8 @@
     "name": "Hisuian Braviary",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Feeding on massive schools of migrating fish in high-altitude winds, these raptors developed deep psychic resonance, allowing them to channel shockwaves through haunting battle cries."
       }
     ],
     "behavioral_badges": [
@@ -66571,6 +66651,10 @@
       {
         "category": "Pseudo-legendary",
         "justification": "Classified as a Pseudo-legendary based on documented regional field observations."
+      },
+      {
+        "category": "Regional Variant",
+        "justification": "Seeking protection from the heavy, mineral-laden rainfall and swamp acidity of ancient Sinnoh, these gastropods fused their skin with heavy, rust-resistant steel shells."
       }
     ],
     "behavioral_badges": [
@@ -66630,6 +66714,10 @@
       {
         "category": "Pseudo-legendary",
         "justification": "Classified as a Pseudo-legendary based on documented regional field observations."
+      },
+      {
+        "category": "Regional Variant",
+        "justification": "Seeking protection from the heavy, mineral-laden rainfall and swamp acidity of ancient Sinnoh, these gastropods fused their skin with heavy, rust-resistant steel shells."
       }
     ],
     "behavioral_badges": [
@@ -66691,8 +66779,8 @@
     "name": "Avalugg",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "To endure the crushing pressure of freezing, glacier-carved topography, these ancient titans grew flat, armor-plated heads made of iron-hardened ice and compressed stone."
       }
     ],
     "behavioral_badges": [
@@ -66756,6 +66844,10 @@
       {
         "category": "Starter Pokémon",
         "justification": "Classified as a Starter Pokémon based on documented regional field observations."
+      },
+      {
+        "category": "Regional Variant",
+        "justification": "Thriving in dense, mountainous bamboo forests rather than tropical canopies, these archers abandoned flight for raw physical strength, using heavy martial arts strikes and leaf blades."
       }
     ],
     "behavioral_badges": [
@@ -66817,8 +66909,8 @@
     "name": "Tauros",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Splitting into distinct herds driven by fierce territorial competition across the Iberian-inspired landscape, these wild bulls developed specialized elemental glands that infuse their charging horns with fire or water traits alongside their primary fighting adaptations."
       }
     ],
     "behavioral_badges": [
@@ -66880,8 +66972,8 @@
     "name": "Tauros (Paldean Blaze Breed)",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Splitting into distinct herds driven by fierce territorial competition across the Iberian-inspired landscape, these wild bulls developed specialized elemental glands that infuse their charging horns with fire or water traits alongside their primary fighting adaptations."
       }
     ],
     "behavioral_badges": [
@@ -66943,8 +67035,8 @@
     "name": "Tauros",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Splitting into distinct herds driven by fierce territorial competition across the Iberian-inspired landscape, these wild bulls developed specialized elemental glands that infuse their charging horns with fire or water traits alongside their primary fighting adaptations."
       }
     ],
     "behavioral_badges": [
@@ -67006,8 +67098,8 @@
     "name": "Paldean Wooper",
     "classifications": [
       {
-        "category": "Standard Species",
-        "justification": "Classified as a Standard Species based on documented regional field observations."
+        "category": "Regional Variant",
+        "justification": "Outcompeted in aquatic habitats by native species long ago, these amphibians migrated to dry, muddy lands, developing a heavy, toxic mucous film and specialized gill gills shaped like poisonous spikes."
       }
     ],
     "behavioral_badges": [
