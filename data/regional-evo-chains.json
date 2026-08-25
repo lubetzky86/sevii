@@ -144,6 +144,18 @@
       }
     ]
   },
+      {
+    "chain_id": "meowth-line",
+    "links": [
+      {
+        "pokemon": "meowth",
+        "evolves_into": "persian",
+        "method": "LEVEL",
+        "method_detail": "Lvl 28",
+        "notes": null
+      }
+    ]
+  },
     {
     "chain_id": "alolan-meowth-line",
     "links": [
@@ -151,7 +163,7 @@
         "pokemon": "meowth-alola",
         "evolves_into": "persian-alola",
         "method": "LEVEL",
-        "method_detail": "28",
+        "method_detail": "Lvl 28",
         "notes": null
       }
     ]
@@ -163,7 +175,7 @@
         "pokemon": "meowth-galar",
         "evolves_into": "perrserker",
         "method": "LEVEL",
-        "method_detail": "28",
+        "method_detail": "Lvl 28",
         "notes": null
       }
     ]
@@ -175,14 +187,14 @@
         "pokemon": "koffing",
         "evolves_into": "weezing",
         "method": "LEVEL",
-        "method_detail": "35",
+        "method_detail": "Lvl 35",
         "notes": null
       },
       {
         "pokemon": "koffing",
         "evolves_into": "weezing-galar",
         "method": "LEVEL",
-        "method_detail": "35 in Galar",
+        "method_detail": "Lvl 35 in Galar",
         "notes": null
       }
     ]
@@ -208,7 +220,7 @@
         "pokemon": "mr-mime-galar",
         "evolves_into": "mr-rime",
         "method": "LEVEL",
-        "method_detail": "42",
+        "method_detail": "Lvl 42",
         "notes": null
       }
     ]
@@ -220,21 +232,21 @@
         "pokemon": "cyndaquil",
         "evolves_into": "quilava",
         "method": "LEVEL",
-        "method_detail": "14",
+        "method_detail": "Lvl 14",
         "notes": null
       },
       {
         "pokemon": "quilava",
         "evolves_into": "typhlosion",
         "method": "LEVEL",
-        "method_detail": "36",
+        "method_detail": "Lvl 36",
         "notes": null
       },
       {
         "pokemon": "quilava",
         "evolves_into": "typhlosion-hisui",
         "method": "LEVEL",
-        "method_detail": "36 in Hisui",
+        "method_detail": "Lvl 36 in Hisui",
         "notes": null
       }
     ]
@@ -296,7 +308,7 @@
         "pokemon": "corsola-galar",
         "evolves_into": "cursola",
         "method": "LEVEL",
-        "method_detail": "38",
+        "method_detail": "Lvl 38",
         "notes": null
       }
     ]
@@ -313,6 +325,30 @@
       }
     ]
   },
+      {
+    "chain_id": "vulpix-line",
+    "links": [
+      {
+        "pokemon": "vulpix",
+        "evolves_into": "ninetales",
+        "method": "ITEM",
+        "method_detail": "Fire Stone",
+        "notes": null
+      }
+    ]
+  },
+    {
+    "chain_id": "vulpix-alola-line",
+    "links": [
+      {
+        "pokemon": "vulpix-alola",
+        "evolves_into": "ninetales-alola",
+        "method": "ITEM",
+        "method_detail": "Ice Stone",
+        "notes": null
+      }
+    ]
+  },
   {
     "chain_id": "zigzagoon-line",
     "links": [
@@ -320,7 +356,7 @@
         "pokemon": "zigzagoon",
         "evolves_into": "linoone",
         "method": "LEVEL",
-        "method_detail": "20",
+        "method_detail": "Lvl 20",
         "notes": null
       }
     ]
@@ -332,14 +368,14 @@
         "pokemon": "zigzagoon-galar",
         "evolves_into": "linoone-galar",
         "method": "LEVEL",
-        "method_detail": "20",
+        "method_detail": "Lvl 20",
         "notes": null
       },
       {
         "pokemon": "linoone-galar",
         "evolves_into": "obstagoon",
         "method": "LEVEL",
-        "method_detail": "35 at nightime",
+        "method_detail": "Lvl 35 at nightime",
         "notes": null
       }
     ]
@@ -475,7 +511,7 @@
         "pokemon": "wooper",
         "evolves_into": "quagsire",
         "method": "LEVEL",
-        "method_detail": "20",
+        "method_detail": "Lvl 20",
         "notes": null
       }
     ]
@@ -487,7 +523,7 @@
         "pokemon": "wooper-paldea",
         "evolves_into": "clodsire",
         "method": "LEVEL",
-        "method_detail": "20",
+        "method_detail": "Lvl 20",
         "notes": null
       }
     ]
@@ -499,21 +535,21 @@
         "pokemon": "oshawott",
         "evolves_into": "dewott",
         "method": "LEVEL",
-        "method_detail": "17",
+        "method_detail": "Lvl 17",
         "notes": null
       },
       {
         "pokemon": "dewott",
         "evolves_into": "samurott",
         "method": "LEVEL",
-        "method_detail": "36",
+        "method_detail": "Lvl 36",
         "notes": null
       },
       {
         "pokemon": "dewott",
         "evolves_into": "samurott-hisui",
         "method": "LEVEL",
-        "method_detail": "36 in Hisui",
+        "method_detail": "Lvl 36 in Hisui",
         "notes": null
       }
     ]
@@ -587,21 +623,21 @@
         "pokemon": "rowlet",
         "evolves_into": "dartrix",
         "method": "LEVEL",
-        "method_detail": "17",
+        "method_detail": "Lvl 17",
         "notes": null
       },
       {
         "pokemon": "dartrix",
         "evolves_into": "decidueye",
         "method": "LEVEL",
-        "method_detail": "34",
+        "method_detail": "Lvl 34",
         "notes": null
       },
       {
         "pokemon": "dartrix",
         "evolves_into": "decidueye-hisui",
         "method": "LEVEL",
-        "method_detail": "34 in Hisui",
+        "method_detail": "Lvl 34 in Hisui",
         "notes": null
       }
     ]
@@ -994,7 +1030,7 @@
         "pokemon": "darumaka",
         "evolves_into": "darmanitan-standard",
         "method": "LEVEL",
-        "method_detail": "35",
+        "method_detail": "Lvl 35",
         "notes": null
       },
       {
@@ -1013,7 +1049,7 @@
         "pokemon": "darumaka-galar",
         "evolves_into": "darmanitan-galar-standard",
         "method": "LEVEL",
-        "method_detail": "35",
+        "method_detail": "Lvl 35",
         "notes": null
       },
       {
