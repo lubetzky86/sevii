@@ -11031,11 +11031,12 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
     const GAME_LIST=[{gen:1,games:[{id:'red',name:'Red'},{id:'blue',name:'Blue'},{id:'yellow',name:'Yellow'}]},{gen:2,games:[{id:'gold',name:'Gold'},{id:'silver',name:'Silver'},{id:'crystal',name:'Crystal'}]},{gen:3,games:[{id:'ruby',name:'Ruby'},{id:'sapphire',name:'Sapphire'},{id:'emerald',name:'Emerald'},{id:'firered',name:'FireRed'},{id:'leafgreen',name:'LeafGreen'}]},{gen:4,games:[{id:'diamond',name:'Diamond'},{id:'pearl',name:'Pearl'},{id:'platinum',name:'Platinum'},{id:'heartgold',name:'HeartGold'},{id:'soulsilver',name:'SoulSilver'}]},{gen:5,games:[{id:'black',name:'Black'},{id:'white',name:'White'},{id:'black-2',name:'Black 2'},{id:'white-2',name:'White 2'}]},{gen:6,games:[{id:'x',name:'X'},{id:'y',name:'Y'},{id:'omega-ruby',name:'Omega Ruby'},{id:'alpha-sapphire',name:'Alpha Sapphire'}]},{gen:7,games:[{id:'sun',name:'Sun'},{id:'moon',name:'Moon'},{id:'ultra-sun',name:'Ultra Sun'},{id:'ultra-moon',name:'Ultra Moon'},{id:'lets-go-pikachu',name:"Let's Go Pikachu"},{id:'lets-go-eevee',name:"Let's Go Eevee"}]},{gen:8,games:[{id:'sword',name:'Sword'},{id:'shield',name:'Shield'},{id:'brilliant-diamond',name:'Brilliant Diamond'},{id:'shining-pearl',name:'Shining Pearl'},{id:'legends-arceus',name:'Legends: Arceus'}]},{gen:9,games:[{id:'scarlet',name:'Scarlet'},{id:'violet',name:'Violet'},{id:'legends-za',name:'Legends: Z-A'}]}];
     const GAME_ROW_SIZES={1:[3],2:[3],3:[3,2],4:[3,2],5:[2,2],6:[2,2],7:[2,2,2],8:[2,2,1],9:[2,1]};
     let obtainActiveTab='catching',obtainSelectedGame=null,obtainEncounterData=null,obtainSpeciesData=null,obtainModalShiny=false,obtainValidGames=new Set(),obtainEvoChain=null;
-    // Per-game 'confirmed' | 'transfer-only' classification for the currently-open Pokémon, built
-    // by openObtainModal() alongside obtainValidGames — read by renderCatchingContent()'s soft-UI
-    // fallback (see the 2026-08-25 audit round) to pick the right message when a valid game still
-    // has no renderable obtain method.
-    let obtainGameClassification={};
+    // Per-game {tier, valid, native, message} result from resolveGameAvailability(), built by
+    // openObtainModal() alongside obtainValidGames — read by renderCatchingContent()'s soft-UI
+    // fallback (see the 2026-08-25 4-Tier Canon-First Resolution Engine) to pick the right message,
+    // and by the Wild Encounter method section to know whether to show real locations (Tier 1) or
+    // the transfer-from-HOME line (Tier 3) even when methodSections isn't otherwise empty.
+    let obtainGameTiers={};
     let breedingData=null;
     async function loadBreedingData(){if(breedingData)return breedingData;try{const r=await fetch('data/breeding.json');breedingData=await r.json();}catch(e){console.warn('breeding.json not loaded, using PokéAPI fallback');}return breedingData;}
     loadBreedingData();
@@ -11152,39 +11153,12 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       if(obtainSpeciesData?.evolution_chain?.url){try{const r=await fetch(obtainSpeciesData.evolution_chain.url);obtainEvoChain=await r.json();}catch(e){obtainEvoChain=null;}}
       let preevoGameVersions=null;const ef=obtainSpeciesData?.evolves_from_species;
       if(ef?.url){try{const psd=await fetch(ef.url).then(r=>r.json());const ppid=psd?.id;if(ppid){const ppd=await fetch(`https://pokeapi.co/api/v2/pokemon/${ppid}`).then(r=>r.json());preevoGameVersions=new Set(ppd.game_indices?.map(gi=>gi.version.name)||[]);}}catch(e){preevoGameVersions=null;}}
-      // Game availability now comes from the coded-presence resolver (moves data + the encounters
-      // we just fetched into obtainEncounterData), not from game_indices — which is empty for many
-      // regional/alt forms (e.g. ponyta-galar) even though they're fully coded into a game. aig is
-      // built as a Set of game ids (not version_group names) so the vtc.some(v=>aig.has(v)) check
-      // below — which also handles DLC version expansion via getVersionsForGame — keeps working
-      // unchanged. Falls back to the old species-level game_indices only if the resolver finds
-      // literally nothing, so no known-working case regresses to "no games available."
-      const codedVGs=resolveCodedVersionGroups(selectedPokemon,obtainEncounterData);
-      const aig=new Set();
-      // Per-game Signal 1/2 breakdown, kept separately from the merged codedVGs Set above — needed
-      // below to tell "PokéAPI genuinely has no data for this game" apart from "has some data, just
-      // not location data," which is exactly the distinction the soft-UI states need at render time.
-      const gameHasEncounterSignal={},gameHasMoveSignal={};
-      GAME_LIST.forEach(({games})=>games.forEach(game=>{
-        const vg=GAME_TO_VERSION_GROUP[game.id];
-        gameHasMoveSignal[game.id]=!!(selectedPokemon.moves||[]).some(m=>(m.version_group_details||[]).some(vd=>vd.version_group?.name===vg));
-        gameHasEncounterSignal[game.id]=!!(obtainEncounterData||[]).some(e=>e.version_details.some(v=>GAME_TO_VERSION_GROUP[v.version?.name]===vg));
-        if(vg&&codedVGs.has(vg)) aig.add(game.id);
-      }));
-      if(aig.size===0){
-        const bgi=selectedPokemon.game_indices?.length?selectedPokemon.game_indices:(obtainSpeciesData?.game_indices||[]);
-        bgi.forEach(gi=>aig.add(gi.version.name));
-      }
-      // ── Signal 3: Curated Compatibility & Presence Override Layer ──────────────────────────
-      // PokéAPI notoriously drops encounter/move data for species in modern titles (confirmed for
-      // Golem in Legends: Arceus — its moves DO list a legends-arceus level-up move, but its
-      // /encounters response has zero legends-arceus entries at all, a real, verified data gap).
-      // For the modern games GAME_CURATED_DEX already tracks a real regional-dex roster for (used
-      // previously only by the Team Builder's Dex Picker) — if this species is a confirmed member
-      // of that game's own dex, the game is forced valid regardless of what Signals 1/2 found, and
-      // classified 'confirmed' rather than left to fall through to a dead-end empty state. If the
-      // roster load fails, this signal fails OPEN (does nothing) rather than hiding a game that
-      // Signals 1/2 already proved valid.
+      // ── 4-Tier Canon-First Resolution Engine (2026-08-25) ──────────────────────────────────
+      // Every game is classified per-version-group via the canonical resolveGameAvailability()
+      // (defined near GAME_TO_VERSION_GROUP) — see its own comment for the full tier table. This
+      // replaces the ad-hoc aig/classification logic from the previous two rounds with one
+      // deterministic function so the Obtain modal, and anything else that needs "is this Pokémon
+      // available here, and how," always agrees.
       const curatedGames=Object.keys(GAME_CURATED_DEX).filter(id=>GAME_LIST.some(g=>g.games.some(gg=>gg.id===id)));
       const speciesSlug=selectedPokemon.species?.name||selectedPokemon.name.split('-')[0];
       const curatedMembership={};
@@ -11197,22 +11171,44 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
             curatedMembership[gameId]=sid>=curated.min&&sid<=curated.max;
           }else{
             const roster=await loadGameDexRoster(gameId);
-            curatedMembership[gameId]=roster?roster.has(speciesSlug):null; // null = roster fetch failed, no verdict either way
+            curatedMembership[gameId]=roster?roster.has(speciesSlug):null; // null = roster fetch failed — no verdict, resolver treats this like "no curated data"
           }
         }catch(e){curatedMembership[gameId]=null;}
       }));
-      curatedGames.forEach(gameId=>{ if(curatedMembership[gameId]===true) aig.add(gameId); });
-      // obtainGameClassification: 'confirmed' (real location/moveset data, or a curated-roster hit)
-      // vs 'transfer-only' (curated data exists for this game and explicitly excludes the species,
-      // with no encounter data of its own either — i.e. it can only get here via HOME/transfer, not
-      // as a native catch). Read by renderCatchingContent()'s soft-UI fallback below.
-      obtainGameClassification={};
-      aig.forEach(gameId=>{
-        const vtc=getVersionsForGame(gameId);
-        const hasEnc=vtc.some(v=>gameHasEncounterSignal[v]);
-        const member=curatedMembership[gameId];
-        obtainGameClassification[gameId]=(member===false&&!hasEnc)?'transfer-only':'confirmed';
-      });
+      // Per-game "does THIS specific game (not its version-group siblings) have any encounter rows
+      // of its own" — needed before the main loop so Signal 3 can tell a genuine version-exclusive
+      // (e.g. Ponyta-Galar: Shield has Glimwood Tangle, Sword has nothing) apart from a real
+      // PokéAPI gap (e.g. Golem/Legends: Arceus: no sibling game exists, nothing has any data). Only
+      // promote curated membership into native-tier status for a game when NO game sharing its
+      // version group has any encounter data either — if a sibling does, the empty one is almost
+      // certainly a true exclusive, not a gap, and should resolve as transferable (Tier 3) instead.
+      const gameOwnHasEncounters={};
+      GAME_LIST.forEach(({games})=>games.forEach(game=>{
+        const vtc=getVersionsForGame(game.id);
+        gameOwnHasEncounters[game.id]=!!(obtainEncounterData||[]).some(e=>e.version_details.some(vd=>vtc.includes(vd.version?.name)));
+      }));
+      obtainGameTiers={};
+      const aig=new Set();
+      GAME_LIST.forEach(({games})=>games.forEach(game=>{
+        const vg=GAME_TO_VERSION_GROUP[game.id];
+        if(!vg)return;
+        const siblingGames=games.filter(g=>GAME_TO_VERSION_GROUP[g.id]===vg);
+        const anySiblingHasEncounters=siblingGames.some(g=>gameOwnHasEncounters[g.id]);
+        const result=resolveGameAvailability(selectedPokemon,vg,{
+          encounters:obtainEncounterData,
+          versionNames:getVersionsForGame(game.id),
+          curatedNative:curatedMembership[game.id]===true && !anySiblingHasEncounters
+        });
+        obtainGameTiers[game.id]=result;
+        if(result.valid) aig.add(game.id);
+      }));
+      // Fallback only if the resolver found literally nothing anywhere (all games Tier 5) — the
+      // old species-level game_indices path, kept as a last resort so a case none of the 3 signals
+      // can see (e.g. very old/incomplete PokéAPI records) doesn't regress to "no games at all."
+      if(aig.size===0){
+        const bgi=selectedPokemon.game_indices?.length?selectedPokemon.game_indices:(obtainSpeciesData?.game_indices||[]);
+        bgi.forEach(gi=>{aig.add(gi.version.name);obtainGameTiers[gi.version.name]={tier:1,valid:true,native:true,message:null};});
+      }
       const isMega=isMegaForm(selectedPokemon.name),isGmax=isGmaxForm(selectedPokemon.name);
       GAME_LIST.forEach(({games})=>{games.forEach(game=>{const vtc=getVersionsForGame(game.id);const inDex=vtc.some(v=>aig.has(v));if(!inDex)return;if(isMega&&!MEGA_GAMES.has(game.id))return;if(isGmax&&!GMAX_GAMES.has(game.id))return;if(preevoGameVersions!==null){const hw=(obtainEncounterData||[]).some(e=>e.version_details.some(v=>vtc.includes(v.version.name)));const hs2=!!getSpecialObtain(selectedPokemon.name,game.id);if(!hw&&!hs2){const pi=vtc.some(v=>preevoGameVersions.has(v));if(!pi)return;}}obtainValidGames.add(game.id);});});
       buildObtainGames();renderObtainContent();
@@ -11334,11 +11330,23 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
           const d=document.createElement('div');d.textContent=txt;d.style.cssText='font-size:13px;color:#1a1a1a;line-height:1.5;';return d;
         }});
       }
+      // Tier from the 4-Tier Canon-First Resolution Engine (resolveGameAvailability) for the
+      // currently selected game — drives whether the Wild Encounter card shows real locations
+      // (Tier 1), the Tier 3 transfer-from-HOME line, or is skipped in favor of the Tier 2/4 soft
+      // state handled by the empty-methodSections fallback further down.
+      const gameTier=obtainGameTiers[obtainSelectedGame]||{tier:1,valid:true,native:true,message:null};
       if(ge.length>0){
         methodSections.push({type:'catch',label:'Wild Encounter',color:'#d85a30',icon:METHOD_ICONS.catch,body:()=>{
           const list=document.createElement('div');list.className='catch-location-list';
           ge.forEach(enc=>{const vd=enc.version_details.find(v=>vtc.includes(v.version.name));const methods=[...new Set(vd.encounter_details.map(d=>toTitleCase(d.method.name.replace(/-/g,' '))))];const isDLC=vd.version.name!==obtainSelectedGame;const row=document.createElement('div');row.className='catch-location-row';row.innerHTML=`<span class="catch-location-name">${toTitleCase(enc.location_area.name.replace(/-/g,' '))}${isDLC?' <span style="font-size:8px;color:#2a9db5;font-weight:700;">(DLC)</span>':''}</span><span class="catch-location-method">${methods.join(', ')}</span>`;list.appendChild(row);});
           return list;
+        }});
+      }else if(gameTier.tier===3){
+        // Transferable & data available (Tier 3): no native encounter table, but real moveset data
+        // exists for this game — render the transfer-from-HOME line in place of a location list,
+        // per the resolver's spec, rather than silently omitting the Wild Encounter card.
+        methodSections.push({type:'unknown',label:'Obtain Method',color:'#378add',icon:METHOD_ICONS.trade,body:()=>{
+          const d=document.createElement('div');d.textContent=gameTier.message;d.style.cssText='font-size:13px;color:#1a1a1a;line-height:1.5;';return d;
         }});
       }
       if(ef&&!sp){
@@ -11385,21 +11393,16 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       }
 
       if(!methodSections.length){
-        // Soft UI fallback (2026-08-25 audit round) — obtainSelectedGame is only ever selectable in
-        // the first place because Signal 1 (encounters), Signal 2 (moves), or Signal 3 (curated
-        // regional-dex roster) confirmed this Pokémon belongs to it; landing here just means none of
-        // the concrete method sections above (wild encounter, evolve, special, mega/gmax) had
-        // anything to render — e.g. Golem in Legends: Arceus, which has real level-up moveset data
-        // for that version group but a genuinely empty /encounters response in PokéAPI. That's a
-        // real, meaningful difference from "not available here at all," so it gets its own message
-        // instead of collapsing into the same generic dead-end text as an actually-invalid game.
-        const gname=GAME_LIST.flatMap(g=>g.games).find(g=>g.id===obtainSelectedGame)?.name||toTitleCase(obtainSelectedGame||'');
+        // Tier 2 / Tier 4 soft UI fallback — obtainSelectedGame is only ever selectable because
+        // resolveGameAvailability() already returned Tier 1-4 for it; landing here just means none
+        // of the concrete method sections above (wild encounter/transfer line, evolve, special,
+        // mega/gmax) had anything to render for this specific combination — e.g. a native Pokémon
+        // whose location data PokéAPI hasn't backfilled, with no evolve/special method to fall back
+        // on either. Uses the resolver's own message text (gameTier.message) rather than re-deriving
+        // it, so this fallback and the Tier 3 Wild-Encounter-card branch above never drift out of sync.
         const pname=toTitleCase(selectedPokemon.name.replace(/-/g,' '));
-        const classification=obtainGameClassification[obtainSelectedGame]||'confirmed';
         const ph=document.createElement('div');ph.className='obtain-placeholder';
-        ph.textContent = classification==='transfer-only'
-          ? `Not native to ${gname}. Obtainable via transfer from other games / Pokémon HOME.`
-          : `${pname} is confirmed to be obtainable in ${gname} (Detailed locations currently unavailable).`;
+        ph.textContent = gameTier.message ? `${pname} ${gameTier.message}` : `No available information to obtain ${pname} in this game.`;
         panel.appendChild(ph);return;
       }
 
@@ -11630,6 +11633,64 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
         });
       });
       return vgSet;
+    }
+
+    // ── 4-Tier Canon-First Resolution Engine (2026-08-25) ─────────────────────────────────────
+    // The single canonical per-(form, game) availability check. Every other place that used to ask
+    // "is this Pokémon available in this game" ad hoc now goes through this function.
+    //
+    // IMPORTANT granularity note, found while verifying against Galarian Ponyta specifically:
+    // moveset data (Signal 2) is genuinely shared across an entire version GROUP in PokéAPI (Sword
+    // and Shield report identical version_group_details), but wild encounters (Signal 1) are real
+    // per-INDIVIDUAL-GAME data — Ponyta-Galar's own /encounters only lists Shield locations
+    // (Glimwood Tangle), not Sword, because it's a genuine Shield-exclusive, not a PokéAPI gap. A
+    // resolver keyed only on version group would wrongly treat Sword as "native" just because its
+    // sibling Shield has encounter data. So this function takes both `versionGroup` (for the moves
+    // check, correctly shared) and `versionNames` — this specific game's own DLC-expanded version
+    // name list from getVersionsForGame() — for the encounters check, which is correctly NOT shared
+    // with its version-group siblings.
+    //
+    // Deterministic, mutually exclusive tiers:
+    //   Tier 1 — Native, data available: Signal 1 (own /encounters) has real rows for THIS game.
+    //   Tier 2 — Native, data missing: native (Signal 1 empty for this game, but Signal 3 curated
+    //            roster confirms species membership) with no location data to show for this game —
+    //            e.g. a real PokéAPI data gap (confirmed for Golem in Legends: Arceus).
+    //   Tier 3 — Transferable, data available: Signal 1 empty for this game, not curated-native, but
+    //            Signal 2 (own moves[].version_group_details) has real entries for this version
+    //            group — the Pokémon has a real, playable moveset for this game, so it's reachable
+    //            via HOME/trade even though it can't be caught there natively (confirmed for
+    //            Galarian Ponyta in Sword specifically, once Signal 1 is checked per-game).
+    //   Tier 4 — Transferable, data missing: Signal 2 exists for this version group in principle but
+    //            yields no usable move rows (a rarer, largely theoretical case with real PokéAPI
+    //            data, kept for completeness).
+    //   Tier 5 — Excluded: none of the 3 signals fire. The game must not appear in any filter at all.
+    // Signal 3 (curatedNative) can only ever promote a result INTO the native tiers (1/2) — it never
+    // demotes or excludes a game Signals 1/2 already proved valid, and it never manufactures a
+    // Tier 3/4 (transferable) result on its own, since "cataloged in this game's own regional dex"
+    // means native by definition, not merely transferable. Because curated rosters are tracked per
+    // GAME (sword and shield each resolve their own membership call in openObtainModal, even though
+    // both currently read the same underlying Galar-dex fetch), a future per-version-exclusive
+    // curated dataset would slot in here without changing this function's contract.
+    function resolveGameAvailability(pokemon, versionGroup, {encounters, versionNames, curatedNative}={}){
+      const vtc=versionNames||[]; // this game's own version name(s), DLC-expanded — NOT the whole version group
+      const hasEncounters=!!(encounters||[]).some(e=>(e.version_details||[]).some(vd=>vtc.includes(vd.version?.name)));
+      const hasMoveEntries=(pokemon?.moves||[]).some(m=>(m.version_group_details||[]).some(vd=>vd.version_group?.name===versionGroup));
+      // "valid move data" per Tier 3's spec — a version_group_details entry that actually names a
+      // learn method, not just an empty stub. Real PokéAPI entries always carry one, but this keeps
+      // Tier 3 vs Tier 4 a genuine data check rather than a synonym for hasMoveEntries.
+      const hasUsableMoveData=(pokemon?.moves||[]).some(m=>(m.version_group_details||[]).some(vd=>vd.version_group?.name===versionGroup&&vd.move_learn_method?.name));
+      const isNative=hasEncounters||!!curatedNative;
+      if(isNative){
+        return hasEncounters
+          ? {tier:1,valid:true,native:true,message:null}
+          : {tier:2,valid:true,native:true,message:`is confirmed native to this game, but info is unavailable for the moment.`};
+      }
+      if(hasMoveEntries){
+        return hasUsableMoveData
+          ? {tier:3,valid:true,native:false,message:`Obtainable by transferring it from the outside (Pokémon HOME / external software).`}
+          : {tier:4,valid:true,native:false,message:`is confirmed to be transferable into this game from the outside, but info is unavailable for the moment.`};
+      }
+      return {tier:5,valid:false,native:false,message:null};
     }
 
     // Which version groups this Pokémon variety's OWN dex flavor text should be scoped to, for
