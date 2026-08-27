@@ -380,6 +380,39 @@
       }
     ]
   },
+    {
+    "chain_id": "goomy-line",
+    "links": [
+      {
+        "pokemon": "goomy",
+        "evolves_into": "sliggoo",
+        "method": "LEVEL",
+        "method_detail": "Lvl 40",
+        "notes": null
+      },
+      {
+        "pokemon": "sliggoo",
+        "evolves_into": "goodra",
+        "method": "LEVEL",
+        "method_detail": "Lvl 50",
+        "notes": null
+      },
+      {
+        "pokemon": "goomy",
+        "evolves_into": "sliggoo-hisui",
+        "method": "LEVEL",
+        "method_detail": "Lvl 40",
+        "notes": null
+      },
+      {
+        "pokemon": "sliggoo-hisui",
+        "evolves_into": "goodra-hisui",
+        "method": "LEVEL",
+        "method_detail": "Lvl 50",
+        "notes": null
+      }
+    ]
+  },
   {
     "chain_id": "ralts-line",
     "links": [
@@ -600,6 +633,25 @@
         "evolves_into": "escavalier",
         "method": "TRADE",
         "method_detail": "Trade Karrablast with Shelmet",
+        "notes": null
+      }
+    ]
+  },
+  {
+    "chain_id": "bergmite-line",
+    "links": [
+      {
+        "pokemon": "bergmite",
+        "evolves_into": "avalugg",
+        "method": "LEVEL",
+        "method_detail": "Lvl 37",
+        "notes": null
+      },
+      {
+        "pokemon": "bergmite",
+        "evolves_into": "avalugg-hisui",
+        "method": "LEVEL",
+        "method_detail": "Lvl 37",
         "notes": null
       }
     ]
