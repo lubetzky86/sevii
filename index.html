@@ -8896,8 +8896,17 @@
 
     // Generation filter sheet — single-select pill row. Options are rebuilt dynamically (via
     // renderTbDexPickGenSheet, called from tbOpenDexPicker) from whichever generations are
-    // actually present in the currently-selected game's roster, plus an "All" option; with no
-    // game selected the full Gen 1-9 range is shown, same as before.
+    // actually present in the currently-selected game's roster; with no game selected the full
+    // Gen 1-9 range is shown, same as before.
+    //
+    // Round 11 correction: the main grid's REAL Generation sheet (#gen-filters, ~line 2988) has
+    // NO "All" pill at all — deselecting is done by clicking the already-active gen-pill again
+    // (see #gen-filters' own click handler, ~line 9172: `activeGen=(activeGen===gen)?'all':gen`).
+    // An earlier pass here invented a bespoke "All" pill/button that doesn't exist in the golden
+    // standard, styled with the app's small black `.pill-all` capsule stretched to the sheet's
+    // large 3-per-row tile size — producing the oversized black block Diego flagged. Removed
+    // entirely; this now mirrors the main grid's real gen-pill set and click-to-deselect
+    // behavior exactly, not an approximation of it.
     setupMobileSheet('tb-dexpick-gen-trigger','tb-dexpick-gen-sheet','tb-dexpick-gen-sheet-backdrop','tb-dexpick-gen-sheet-close');
     function renderTbDexPickGenSheet(){
       const body = document.getElementById('tb-dexpick-gen-sheet-body');
@@ -8908,34 +8917,24 @@
       // so show the unrestricted full range like before this fix.
       const allGenNums = ['1','2','3','4','5','6','7','8','9'];
       const options = tbDexPickAvailableGens === null
-        ? ['all', ...allGenNums]
-        : ['all', ...allGenNums.filter(g => tbDexPickAvailableGens.has(g))];
-      // Golden-standard fix: numbered generation pills now reuse the main grid's REAL
-      // per-generation icon images (icons/generations/N.png, same markup as the static
-      // #gen-filters strip) instead of plain "Gen N" text buttons. "All" has no icon anywhere
-      // in the app, so it stays a small text pill — everything WITH a real icon asset now uses
-      // that real asset.
+        ? allGenNums
+        : allGenNums.filter(g => tbDexPickAvailableGens.has(g));
+      // Numbered generation pills reuse the main grid's REAL per-generation icon images
+      // (icons/generations/N.png, same markup as the static #gen-filters strip).
       const GEN_ROMAN = {'1':'I','2':'II','3':'III','4':'IV','5':'V','6':'VI','7':'VII','8':'VIII','9':'IX'};
       options.forEach(gen=>{
-        const isAll = gen === 'all';
-        const pill = document.createElement(isAll ? 'button' : 'div');
-        // Golden-standard fix: numbered gens reuse the real .gen-pill class; "All" reuses the
-        // main app's own .pill-all class (the same one the Types sheet's "All"/category rows
-        // use elsewhere) instead of a bespoke text pill.
-        pill.className = (isAll ? 'pill-all' : 'gen-pill') + (gen===tbDexPickActiveGen ? ' active' : '');
-        if(isAll){
-          pill.textContent = 'All';
-        } else {
-          const img = document.createElement('img');
-          img.src = `icons/generations/${gen}.png`;
-          img.alt = `Gen ${GEN_ROMAN[gen]||gen}`;
-          pill.appendChild(img);
-        }
+        const pill = document.createElement('div');
+        pill.className = 'gen-pill' + (gen===tbDexPickActiveGen ? ' active' : '');
+        const img = document.createElement('img');
+        img.src = `icons/generations/${gen}.png`;
+        img.alt = `Gen ${GEN_ROMAN[gen]||gen}`;
+        pill.appendChild(img);
         pill.addEventListener('click', ()=>{
-          tbDexPickActiveGen = gen;
-          body.querySelectorAll('.gen-pill, .pill-all').forEach(p=>{p.classList.remove('active');});
-          pill.classList.add('active');
-          document.getElementById('tb-dexpick-gen-trigger').classList.toggle('has-selection', gen!=='all');
+          // Exact click-to-deselect behavior as the main grid's #gen-filters: clicking the
+          // already-active gen-pill again resets to 'all' rather than needing a separate button.
+          tbDexPickActiveGen = (tbDexPickActiveGen===gen) ? 'all' : gen;
+          body.querySelectorAll('.gen-pill').forEach(p=>{p.classList.toggle('active', p===pill && tbDexPickActiveGen===gen);});
+          document.getElementById('tb-dexpick-gen-trigger').classList.toggle('has-selection', tbDexPickActiveGen!=='all');
           renderTbDexPickGrid();
         });
         body.appendChild(pill);
@@ -10098,7 +10097,7 @@
         // (Diego, Basculin round): isFormOnly used to be computed before this set existed, so
         // names in it (e.g. basculin-white-striped) were routed to PATH 3b's standalone-card
         // treatment before PATH 2 ever got a chance to consult regionalEvoChains.
-        const REAL_CHAIN_FORMS=new Set(["aegislash-blade", "aegislash-shield", "basculegion", "basculegion-female", "basculin", "basculin-blue-striped", "basculin-white-striped", "dudunsparce", "dudunsparce-three-segment", "dudunsparce-two-segment", "gourgeist", "gourgeist-large", "gourgeist-small", "gourgeist-super", "lycanroc-dusk", "lycanroc-midday", "lycanroc-midnight", "maushold", "maushold-family-of-four", "maushold-family-of-three", "pumpkaboo", "pumpkaboo-large", "pumpkaboo-small", "pumpkaboo-super", "squawkabilly", "squawkabilly-blue-plumage", "squawkabilly-white-plumage", "squawkabilly-yellow-plumage", "tatsugiri", "tatsugiri-droopy", "tatsugiri-stretchy", "toxtricity-amped", "toxtricity-amped-gmax", "toxtricity-low-key", "urshifu-rapid-strike", "urshifu-rapid-strike-gmax", "urshifu-single-strike", "urshifu-single-strike-gmax", "wormadam", "wormadam-sandy", "wormadam-trash"]);
+        const REAL_CHAIN_FORMS=new Set(["aegislash-blade", "aegislash-shield", "basculegion-male", "basculegion-female", "basculin", "basculin-blue-striped", "basculin-white-striped", "dudunsparce", "dudunsparce-three-segment", "dudunsparce-two-segment", "gourgeist", "gourgeist-large", "gourgeist-small", "gourgeist-super", "lycanroc-dusk", "lycanroc-midday", "lycanroc-midnight", "maushold", "maushold-family-of-four", "maushold-family-of-three", "pumpkaboo", "pumpkaboo-large", "pumpkaboo-small", "pumpkaboo-super", "squawkabilly", "squawkabilly-blue-plumage", "squawkabilly-white-plumage", "squawkabilly-yellow-plumage", "tatsugiri", "tatsugiri-droopy", "tatsugiri-stretchy", "toxtricity-amped", "toxtricity-amped-gmax", "toxtricity-low-key", "urshifu-rapid-strike", "urshifu-rapid-strike-gmax", "urshifu-single-strike", "urshifu-single-strike-gmax", "wormadam", "wormadam-sandy", "wormadam-trash"]);
         // isFormOnly = true for Mega/Gmax (name-based) OR high-ID SPECIAL forms — UNLESS the
         // name is in REAL_CHAIN_FORMS, in which case it's guaranteed to be handled by a real
         // evolution-chain path (PATH 2) and must never be treated as form-only, regardless of
