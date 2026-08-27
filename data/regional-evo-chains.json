@@ -761,6 +761,18 @@
       }
     ]
   },
+    {
+    "chain_id": "yamask-line",
+    "links": [
+      {
+        "pokemon": "yamask",
+        "evolves_into": "cofagrigus",
+        "method": "LEVEL",
+        "method_detail": "Lvl 34",
+        "notes": null
+      }
+    ]
+  },
   {
     "chain_id": "yamask-galar-line",
     "links": [
