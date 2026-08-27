@@ -2384,7 +2384,9 @@
        isn't the app header. */
     .tb-dexpick-search-wrap.app-header-search { flex: 1; min-width: 140px; max-width: none; margin: 0; }
     .tb-dexpick-search-wrap.app-header-search input.tb-dexpick-search { border-radius: 20px; }
-    .tb-dexpick-toolbar select { padding: 7px 10px; border-radius: 8px; border: 1px solid #d4ccbc; font-size: 12px; background: white; }
+    /* select styling now comes from the real .grid-sort-wrapper select rule (line ~459) via the
+       .grid-sort-wrapper class added to the toolbar's sort-row markup — no picker-specific
+       override needed or wanted here (golden-standard fix, Fix 1). */
     /* Recycled from the main app's own filter-sheet trigger button (.mobile-filter-trigger) —
        was a stadium-shaped 20px-radius outline pill, unlike anything else in the app. Now matches
        exactly: Archivo Black uppercase, 8px radius, tan outline, teal on selection. */
@@ -2405,17 +2407,19 @@
     .tb-dexpick-sheet-body { padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); display: flex; flex-wrap: wrap; gap: 8px; }
     .tb-dexpick-pill { padding: 7px 12px; border-radius: 20px; border: 1px solid #d4ccbc; background: white; font-size: 12px; font-weight: 700; cursor: pointer; color: #555; }
     .tb-dexpick-pill.selected { background: #43656e; color: white; border-color: #43656e; }
-    /* Golden-standard fix: the Types sheet's pills reuse the real .type-pill badge-icon
-       component (same markup/assets as the main grid's #type-filters) — override the generic
-       tb-dexpick-pill text-pill box model back to .type-pill's own square icon-swatch sizing
-       for these specifically, so the two classes' declarations don't fight each other. */
-    #tb-dexpick-type-sheet-body .tb-dexpick-pill.type-pill { flex: 0 0 44px; width: 44px; height: 44px; padding: 4px; border-radius: 8px; background: transparent; }
-    #tb-dexpick-type-sheet-body .tb-dexpick-pill.type-pill.selected,
-    #tb-dexpick-type-sheet-body .tb-dexpick-pill.type-pill.active { background: transparent; border-color: #1a1a1a; }
-    /* Gen sheet pills reuse the real .gen-pill icon component the same way. */
-    #tb-dexpick-gen-sheet-body .tb-dexpick-pill.gen-pill { flex: 0 0 44px; width: 44px; height: 44px; padding: 4px; border-radius: 8px; background: transparent; }
-    #tb-dexpick-gen-sheet-body .tb-dexpick-pill.gen-pill.selected,
-    #tb-dexpick-gen-sheet-body .tb-dexpick-pill.gen-pill.active { background: transparent; border-color: #1a1a1a; }
+    /* Golden-standard fix (Diego, round 2): the picker's Types/Gen sheets are now a LITERAL
+       reuse of the main grid's own .type-pill / .gen-pill / .pill-all classes — no separate
+       .tb-dexpick-pill skin any more. The base look (size, border, hover, .active state) comes
+       straight from those classes' own rules (~line 202 and ~line 218). The only picker-specific
+       CSS left is the sizing override below, and it is copied VERBATIM from the main grid's own
+       mobile "open bottom sheet" state for #type-filter-row/#gen-filter-row (~line 2635/2638) —
+       same 3-per-row grid, same pill heights — because the picker's sheet IS that same bottom-
+       sheet pattern, just used on desktop too (its .tb-dexpick-sheet-body already carries the
+       matching display:flex;flex-wrap:wrap;gap:8px container layout, verbatim from the same
+       mobile rule at ~line 2630). */
+    #tb-dexpick-type-sheet-body .type-pill { flex: 0 0 calc(33.333% - 6px); width: auto; height: 84px; }
+    #tb-dexpick-gen-sheet-body .gen-pill,
+    #tb-dexpick-gen-sheet-body .pill-all { flex: 0 0 calc(33.333% - 6px); width: auto; height: 64px; }
 
     /* Coverage accordions — round: Diego, 2026-08-24: restyled to the app's actual golden-
        standard accordion look (.obtain-egg-accordion-item's plain 13px/600 #333 recipe) instead
@@ -3974,7 +3978,7 @@
             </div>
             <button class="tb-dexpick-filter-btn" id="tb-dexpick-type-trigger">Types</button>
             <button class="tb-dexpick-filter-btn" id="tb-dexpick-gen-trigger">Gen</button>
-            <div class="sort-row">
+            <div class="sort-row grid-sort-wrapper">
               <select id="tb-dexpick-sort-select">
                 <option value="number">Pokédex number</option>
                 <option value="alpha">Alphabetical</option>
@@ -8626,7 +8630,7 @@
       typeTrigger.classList.remove('has-selection');
       typeTrigger.textContent = 'Types';
       document.getElementById('tb-dexpick-gen-trigger').classList.remove('has-selection');
-      document.querySelectorAll('#tb-dexpick-type-sheet-body .tb-dexpick-pill').forEach(p=>{p.classList.remove('selected');p.classList.remove('active');});
+      document.querySelectorAll('#tb-dexpick-type-sheet-body .type-pill').forEach(p=>{p.classList.remove('active');});
       document.getElementById('tb-dexpick-backdrop').classList.add('visible');
       if(team && team.game){
         const grid = document.getElementById('tb-dexpick-grid');
@@ -8666,7 +8670,7 @@
       typeTrigger.classList.remove('has-selection');
       typeTrigger.textContent = 'Types';
       document.getElementById('tb-dexpick-gen-trigger').classList.remove('has-selection');
-      document.querySelectorAll('#tb-dexpick-type-sheet-body .tb-dexpick-pill').forEach(p=>{p.classList.remove('selected');p.classList.remove('active');});
+      document.querySelectorAll('#tb-dexpick-type-sheet-body .type-pill').forEach(p=>{p.classList.remove('active');});
       document.getElementById('tb-dexpick-backdrop').classList.add('visible');
       renderTbDexPickGenSheet();
       renderTbDexPickGrid();
@@ -8869,7 +8873,7 @@
       // markup were the bug.
       TYPE_ORDER.forEach(type=>{
         const pill = document.createElement('div');
-        pill.className = 'type-pill tb-dexpick-pill';
+        pill.className = 'type-pill';
         pill.dataset.type = type;
         pill.appendChild(makeBadgeImg(type, true));
         pill.addEventListener('click', ()=>{
@@ -8877,9 +8881,8 @@
           // selected type silently evicts the first-selected one rather than allowing 3+.
           if(tbDexPickActiveTypes.has(type)){ tbDexPickActiveTypes.delete(type); }
           else{ if(tbDexPickActiveTypes.size>=2){ const [o] = tbDexPickActiveTypes; tbDexPickActiveTypes.delete(o); } tbDexPickActiveTypes.add(type); }
-          body.querySelectorAll('.tb-dexpick-pill').forEach(p=>{
+          body.querySelectorAll('.type-pill').forEach(p=>{
             const isSel = tbDexPickActiveTypes.has(p.dataset.type);
-            p.classList.toggle('selected', isSel);
             p.classList.toggle('active', isSel);
           });
           const trigger = document.getElementById('tb-dexpick-type-trigger');
@@ -8916,7 +8919,10 @@
       options.forEach(gen=>{
         const isAll = gen === 'all';
         const pill = document.createElement(isAll ? 'button' : 'div');
-        pill.className = 'tb-dexpick-pill' + (isAll ? '' : ' gen-pill') + (gen===tbDexPickActiveGen ? ' selected active' : '');
+        // Golden-standard fix: numbered gens reuse the real .gen-pill class; "All" reuses the
+        // main app's own .pill-all class (the same one the Types sheet's "All"/category rows
+        // use elsewhere) instead of a bespoke text pill.
+        pill.className = (isAll ? 'pill-all' : 'gen-pill') + (gen===tbDexPickActiveGen ? ' active' : '');
         if(isAll){
           pill.textContent = 'All';
         } else {
@@ -8927,8 +8933,8 @@
         }
         pill.addEventListener('click', ()=>{
           tbDexPickActiveGen = gen;
-          body.querySelectorAll('.tb-dexpick-pill').forEach(p=>{p.classList.remove('selected');p.classList.remove('active');});
-          pill.classList.add('selected'); pill.classList.add('active');
+          body.querySelectorAll('.gen-pill, .pill-all').forEach(p=>{p.classList.remove('active');});
+          pill.classList.add('active');
           document.getElementById('tb-dexpick-gen-trigger').classList.toggle('has-selection', gen!=='all');
           renderTbDexPickGrid();
         });
@@ -10086,9 +10092,22 @@
       // Evo chain
       const evoChainEl=document.getElementById('info-evo-chain');evoChainEl.innerHTML='';
       try{
-        // isFormOnly = true for Mega/Gmax (name-based) OR high-ID SPECIAL forms
+        // REAL_CHAIN_FORMS (moved up from just before PATH 1, where it used to live, so it can
+        // gate isFormOnly below too): names that LOOK like form-only curiosities by id/form_type
+        // but actually have a real evolution chain (PATH 2) that must not be skipped. Bug fix
+        // (Diego, Basculin round): isFormOnly used to be computed before this set existed, so
+        // names in it (e.g. basculin-white-striped) were routed to PATH 3b's standalone-card
+        // treatment before PATH 2 ever got a chance to consult regionalEvoChains.
+        const REAL_CHAIN_FORMS=new Set(["aegislash-blade", "aegislash-shield", "basculegion", "basculegion-female", "basculin", "basculin-blue-striped", "basculin-white-striped", "dudunsparce", "dudunsparce-three-segment", "dudunsparce-two-segment", "gourgeist", "gourgeist-large", "gourgeist-small", "gourgeist-super", "lycanroc-dusk", "lycanroc-midday", "lycanroc-midnight", "maushold", "maushold-family-of-four", "maushold-family-of-three", "pumpkaboo", "pumpkaboo-large", "pumpkaboo-small", "pumpkaboo-super", "squawkabilly", "squawkabilly-blue-plumage", "squawkabilly-white-plumage", "squawkabilly-yellow-plumage", "tatsugiri", "tatsugiri-droopy", "tatsugiri-stretchy", "toxtricity-amped", "toxtricity-amped-gmax", "toxtricity-low-key", "urshifu-rapid-strike", "urshifu-rapid-strike-gmax", "urshifu-single-strike", "urshifu-single-strike-gmax", "wormadam", "wormadam-sandy", "wormadam-trash"]);
+        // isFormOnly = true for Mega/Gmax (name-based) OR high-ID SPECIAL forms — UNLESS the
+        // name is in REAL_CHAIN_FORMS, in which case it's guaranteed to be handled by a real
+        // evolution-chain path (PATH 2) and must never be treated as form-only, regardless of
+        // its id/form_type. (Mega/Gmax forms in REAL_CHAIN_FORMS, e.g. the *-gmax entries, are
+        // NOT short-circuited here — the isMegaForm/isGmaxForm check still applies to them
+        // independently via the `&&` below being on the id/form_type branch only, so they
+        // correctly stay isFormOnly=true and go through PATH 3a as before.)
         // High-ID forms (id>10000) are form variants stored separately in PokéAPI
-        const isFormOnly=(isMegaForm(pokemon.name)||isGmaxForm(pokemon.name)||(pokemon.id>10000&&!isMegaForm(pokemon.name)&&!isGmaxForm(pokemon.name)&&(alternateForms?._byForm?.[pokemon.name]?.form_type==='SPECIAL'||alternateForms?._byForm?.[pokemon.name]?.form_type==='ORIGIN')));
+        const isFormOnly=(isMegaForm(pokemon.name)||isGmaxForm(pokemon.name)||(!REAL_CHAIN_FORMS.has(pokemon.name)&&pokemon.id>10000&&!isMegaForm(pokemon.name)&&!isGmaxForm(pokemon.name)&&(alternateForms?._byForm?.[pokemon.name]?.form_type==='SPECIAL'||alternateForms?._byForm?.[pokemon.name]?.form_type==='ORIGIN')));
         const baseSpeciesName=species.name;
         const p=currentPalette||POKEMON_PALETTE.white;
 
@@ -10129,7 +10148,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
         // PATH 1: curated alt form (special/origin forms that have NO real evo chain)
         // Skip for: REGIONAL (handled by PATH 2/2.5), forms with real chains,
         // forms that ARE their own primary/anchor form, and isFormOnly (Mega/Gmax → PATH 3)
-        const REAL_CHAIN_FORMS=new Set(["aegislash-blade", "aegislash-shield", "basculegion", "basculegion-female", "basculin", "basculin-blue-striped", "basculin-white-striped", "dudunsparce", "dudunsparce-three-segment", "dudunsparce-two-segment", "gourgeist", "gourgeist-large", "gourgeist-small", "gourgeist-super", "lycanroc-dusk", "lycanroc-midday", "lycanroc-midnight", "maushold", "maushold-family-of-four", "maushold-family-of-three", "pumpkaboo", "pumpkaboo-large", "pumpkaboo-small", "pumpkaboo-super", "squawkabilly", "squawkabilly-blue-plumage", "squawkabilly-white-plumage", "squawkabilly-yellow-plumage", "tatsugiri", "tatsugiri-droopy", "tatsugiri-stretchy", "toxtricity-amped", "toxtricity-amped-gmax", "toxtricity-low-key", "urshifu-rapid-strike", "urshifu-rapid-strike-gmax", "urshifu-single-strike", "urshifu-single-strike-gmax", "wormadam", "wormadam-sandy", "wormadam-trash"]);
+        // (REAL_CHAIN_FORMS now declared earlier, above isFormOnly, so it can gate that too.)
         const SELF_IS_BASE_FORMS=new Set(["deoxys-attack", "deoxys-defense", "deoxys-normal", "deoxys-speed", "enamorus-incarnate", "landorus-incarnate", "meloetta-aria", "mimikyu-disguised", "minior", "oricorio-baile", "oricorio-pau", "oricorio-sensu", "shaymin-land", "squawkabilly", "tatsugiri", "thundurus-incarnate", "tornadus-incarnate", "zygarde-10", "zygarde-50"]);
         const altForm=alternateForms?._byForm?.[pokemon.name];
         const path1ShouldFire = altForm
