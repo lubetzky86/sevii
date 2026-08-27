@@ -1,23 +1,5 @@
 [
   {
-    "base": "pikachu",
-    "form": "pikachu-starter",
-    "label": "Starter Pikachu",
-    "form_type": "SPECIAL",
-    "region": null,
-    "notes": "Only in Let's go Pikachu",
-    "display_name": "Partner Pikachu"
-  },
-  {
-    "base": "eevee",
-    "form": "eevee-starter",
-    "label": "Starter Eevee",
-    "form_type": "SPECIAL",
-    "region": null,
-    "notes": "Only in Let's go Eevee",
-    "display_name": "Partner Eevee"
-  },
-  {
     "base": "tauros",
     "form": "tauros",
     "label": "Kantonian",
@@ -3978,7 +3960,7 @@
     "display_name": "Basculegion"
   },
   {
-    "base": "basculegion-female",
+    "base": "basculegion-male",
     "form": "basculegion-female",
     "label": "Female",
     "form_type": "GENDER",
