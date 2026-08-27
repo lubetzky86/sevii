@@ -1326,9 +1326,13 @@
 
     .dex-entry-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 18px; }
     .dex-entry-row:last-child { margin-bottom: 4px; }
-    .dex-entry-game { flex-shrink: 0; width: 74px; height: 30px; border-radius: 7px; overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+    /* Golden standard: custom-designed icons (icons/games, icons/generations, etc.) fill their
+       enclosure edge-to-edge with no border/shading boxing them in, and gain a subtle hover cue —
+       instead of being shrunk down inside a bordered, drop-shadowed pill. */
+    .dex-entry-game { flex-shrink: 0; width: 74px; height: 30px; display: flex; align-items: center; justify-content: center; transition: transform 0.15s ease; }
+    .dex-entry-game:hover { transform: scale(1.08); }
     .dex-entry-game img { width: 100%; height: 100%; object-fit: contain; }
-    .dex-entry-game-fallback { display: none; align-items: center; justify-content: center; width: 100%; height: 100%; background: #eee; font-size: 8px; font-weight: 700; color: #666; text-align: center; padding: 2px; line-height: 1.2; }
+    .dex-entry-game-fallback { display: none; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 8px; font-weight: 700; color: #666; text-align: center; padding: 2px; line-height: 1.2; }
     .dex-entry-text { flex: 1; min-width: 0; font-size: 13.5px; line-height: 1.55; color: #333; font-style: italic; }
     .dex-empty { text-align: center; padding: 24px; color: #aaa; font-size: 12px; }
 
@@ -4460,7 +4464,12 @@
 
           const nameEl = document.createElement('div');
           nameEl.className = 'ab-poke-card-name';
-          nameEl.textContent = toTitleCase(pname.replace(/-/g,' '));
+          // baseSpeciesNameForPokemon() + getDisplayName(), not a raw toTitleCase — PokéAPI's own
+          // "learned_by_pokemon" list can name a cosmetic/battle-internal form directly (Aura Wheel
+          // lists "morpeko-full-belly", not "morpeko"), which naive title-casing renders verbatim
+          // as "Morpeko Full Belly" instead of the app's normalized "Morpeko" — the same golden-
+          // standard simplification the main Pokémon grid already applies everywhere else.
+          nameEl.textContent = getDisplayName(baseSpeciesNameForPokemon(pname));
 
           pcard.appendChild(img);
           pcard.appendChild(nameEl);
@@ -4820,7 +4829,7 @@
           const pcard=document.createElement('div');pcard.className='ab-poke-card';
           const img=document.createElement('img');img.width=54;img.height=54;img.alt=entry.name;img.dataset.pokeid=pid;
           setSpriteSrc(img,pid,mvShiny);
-          const ne=document.createElement('div');ne.className='ab-poke-card-name';ne.textContent=toTitleCase(entry.name.replace(/-/g,' '));
+          const ne=document.createElement('div');ne.className='ab-poke-card-name';ne.textContent=getDisplayName(baseSpeciesNameForPokemon(entry.name)); // see comment on the Abilities panel's identical grid, above
           pcard.appendChild(img);pcard.appendChild(ne);
           pcard.addEventListener('click',()=>openPokeSubPanel(pid,'mv'));
           pg.appendChild(pcard);
@@ -5276,6 +5285,15 @@
       if(isMegaForm(name)||isGmaxForm(name)){
         const base=alternateForms?._byForm?.[name]?.base;
         const baseP=base && allPokemon.find(p=>p.name===base);
+        if(baseP) return baseP.id;
+      }
+      // ORIGIN/SPECIAL forms (Giratina-Origin, Shaymin-Sky, Rotom-Wash, Deoxys forms, etc.) also
+      // carry PokéAPI's internal >10000 form id — same golden standard as Mega/Gmax above: look up
+      // the curated base species in alternate-forms.json and show its real, low, dex number instead.
+      const entry=alternateForms?._byForm?.[name];
+      if(entry?.base){
+        const baseSlug=stripKnownFormSuffix(entry.base);
+        const baseP=allPokemon.find(p=>p.name===baseSlug)||allPokemon.find(p=>p.name===baseSlug.split('-')[0]);
         if(baseP) return baseP.id;
       }
       return fallbackId;
@@ -10435,7 +10453,17 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
     // species with a form/variant suffix (e.g. "deoxys-attack" -> "deoxys").
     function baseSpeciesNameForPokemon(name){
       const entry=alternateForms?._byForm?.[name];
-      if(entry?.base) return entry.base;
+      if(entry?.base){
+        // alternate-forms.json's "base" field is a GROUPING key (e.g. "morpeko-full-belly" for
+        // both Morpeko forms) used to collapse cards/dex numbers together — it is NOT guaranteed
+        // to already be a clean display-worthy species name, since the grouping key itself can
+        // carry a cosmetic/battle-internal suffix (Morpeko's "full-belly" form was picked as the
+        // group's representative). Strip any such suffix before returning it so callers that
+        // title-case this result for display never render "Morpeko Full Belly" instead of "Morpeko".
+        if(PARADOX_MULTIWORD_SPECIES.has(entry.base)) return entry.base;
+        const strippedBase=stripKnownFormSuffix(entry.base);
+        return strippedBase;
+      }
       if(PARADOX_MULTIWORD_SPECIES.has(name)) return name;
       const stripped=stripKnownFormSuffix(name);
       if(stripped!==name) return stripped;
@@ -11191,47 +11219,58 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       // Galarian variant showing as native there), so this guard is keyed off the Galar/Hisui/
       // Paldea suffix list, not applied blindly everywhere.
       const GAME_REGION_SUFFIX={sword:'-galar',shield:'-galar','legends-arceus':'-hisui',scarlet:'-paldea',violet:'-paldea'};
-      const speciesVarietySuffixes=new Set((obtainSpeciesData?.varieties||[]).map(v=>{
-        const dash=v.pokemon?.name?.indexOf('-');
-        return dash>-1?v.pokemon.name.slice(dash):null;
-      }).filter(Boolean));
-      // A regional/alternate-form variant (pseudo-id > 10000 — Galarian Ponyta, Alolan Golem, etc.)
-      // is a DISTINCT in-game creature from its base species, not merely a cosmetic reskin. PokéAPI's
-      // regional-dex rosters and the BDSP id-range rule are both species-level data — a roster only
-      // ever lists "ponyta" (never "ponyta-galar"), and the id-range check can only ever resolve to
-      // the base species' national dex number (77 for any Ponyta variant). Applying either check to
-      // a variant therefore can't help but silently promote it using its BASE FORM's availability —
-      // which is exactly the bug reported live: Galarian Ponyta inheriting Brilliant Diamond (because
-      // species #77 ≤ 493) and Legends: Arceus (because base Ponyta's species slug is Hisui-dex-
-      // eligible), neither of which has anything to do with whether the GALARIAN variant itself is
-      // in that game. Mega/Gigantamax forms are the one legitimate exception: mega-evolving or
-      // gigantamaxing requires catching the base species first, so inheriting the base species'
-      // curated availability there is correct, not a bug — only true regional/alt-form variants are
-      // excluded from Signal 3 here. Such a variant relies solely on Signal 1 (its own /encounters,
-      // already fetched above using its own variety id) and Signal 2 (its own moves data) — if
-      // neither fires for a given game, it correctly resolves to Tier 5, never inheriting a curated
-      // "yes" from a species-level check that was never actually about that specific form.
+      // Full variety names (not just their suffix substring), so a multi-part form name like
+      // "tauros-paldea-combat-breed" still matches a plain ".includes('-paldea')" check below —
+      // an exact-suffix Set (e.g. keyed on just "-paldea") would miss it, since its own suffix
+      // string is "-paldea-combat-breed", not "-paldea" alone.
+      const speciesVarietyNames=(obtainSpeciesData?.varieties||[]).map(v=>v.pokemon?.name).filter(Boolean);
+      const baseFormHasRegionVariety=suffix=>speciesVarietyNames.some(n=>n.includes(suffix));
+      // A regional/alternate-form variant (pseudo-id > 10000 — Galarian Ponyta, Alolan Golem, Paldean
+      // Wooper/Tauros, etc.) is a DISTINCT in-game creature from its base species, not merely a
+      // cosmetic reskin. PokéAPI's regional-dex rosters and the BDSP id-range rule are both
+      // species-level data — a roster only ever lists "ponyta" (never "ponyta-galar"), and the
+      // id-range check can only ever resolve to the base species' national dex number. Blindly
+      // trusting either for a variant would silently promote it using its BASE FORM's availability
+      // in a game the variant has nothing to do with (Galarian Ponyta inheriting Brilliant Diamond
+      // via species #77 ≤ 493 — the round-5 bug). BUT a regional variant's own HOME region dex is
+      // exactly the opposite situation: Paldean Wooper's species entry IS the real, correct signal
+      // for its native presence in Scarlet/Violet's Paldea dex — that roster hit isn't borrowed from
+      // an unrelated base form, it genuinely describes this variant (Paldean Wooper has no separate
+      // "base Wooper is also in Paldea" ambiguity the way regional-VS-base-form dex lookups usually
+      // do, since PokéAPI's species-indexed roster can't distinguish them by construction — the
+      // correct read depends on which region the CALLING game's dex actually is). So a variant is
+      // eligible for curated Signal 3 promotion ONLY for the one game (or pair) matching its OWN
+      // region suffix — Paldean Wooper/Tauros get real Signal 3 credit for Scarlet/Violet specifically,
+      // never for Sword/Shield's Galar dex or Legends: Arceus's Hisui dex, and the reverse for a
+      // Galarian/Hisuian form. The BDSP id-range rule is never eligible for any variant (no regional
+      // variant is BDSP-native), and Mega/Gigantamax forms keep inheriting their base species' full
+      // curated availability as before, since mega-evolving/gigantamaxing requires the base species
+      // to exist in that game in the first place.
       const isRegionalVariant=selectedPokemon.id>10000&&!isMegaForm(selectedPokemon.name)&&!isGmaxForm(selectedPokemon.name);
+      const ownRegionMatch=gameId=>!!GAME_REGION_SUFFIX[gameId]&&selectedPokemon.name.includes(GAME_REGION_SUFFIX[gameId]);
       const curatedMembership={};
-      if(!isRegionalVariant){
-        await Promise.all(curatedGames.map(async gameId=>{
-          try{
-            const curated=GAME_CURATED_DEX[gameId];
-            if(curated.type==='idrange'){
-              const m=selectedPokemon.species?.url?.match(/\/(\d+)\/$/);
-              const sid=m?parseInt(m[1]):selectedPokemon.id;
-              curatedMembership[gameId]=sid>=curated.min&&sid<=curated.max;
-            }else if(GAME_REGION_SUFFIX[gameId]&&speciesVarietySuffixes.has(GAME_REGION_SUFFIX[gameId])){
-              curatedMembership[gameId]=false; // regional-dex inversion guard — see comment above
-            }else{
-              const roster=await loadGameDexRoster(gameId);
-              curatedMembership[gameId]=roster?roster.has(speciesSlug):null; // null = roster fetch failed — no verdict, resolver treats this like "no curated data"
-            }
-          }catch(e){curatedMembership[gameId]=null;}
-        }));
-      }else{
-        curatedGames.forEach(gameId=>{curatedMembership[gameId]=false;});
-      }
+      await Promise.all(curatedGames.map(async gameId=>{
+        try{
+          const curated=GAME_CURATED_DEX[gameId];
+          if(isRegionalVariant){
+            if(curated.type==='idrange'){curatedMembership[gameId]=false;return;} // no variant is BDSP-native
+            if(!ownRegionMatch(gameId)){curatedMembership[gameId]=false;return;} // not this variant's own home region
+            const roster=await loadGameDexRoster(gameId);
+            curatedMembership[gameId]=roster?roster.has(speciesSlug):null;
+            return;
+          }
+          if(curated.type==='idrange'){
+            const m=selectedPokemon.species?.url?.match(/\/(\d+)\/$/);
+            const sid=m?parseInt(m[1]):selectedPokemon.id;
+            curatedMembership[gameId]=sid>=curated.min&&sid<=curated.max;
+          }else if(GAME_REGION_SUFFIX[gameId]&&baseFormHasRegionVariety(GAME_REGION_SUFFIX[gameId])){
+            curatedMembership[gameId]=false; // regional-dex inversion guard — base form, see comment above
+          }else{
+            const roster=await loadGameDexRoster(gameId);
+            curatedMembership[gameId]=roster?roster.has(speciesSlug):null; // null = roster fetch failed — no verdict, resolver treats this like "no curated data"
+          }
+        }catch(e){curatedMembership[gameId]=null;}
+      }));
       // Per-game "does THIS specific game (not its version-group siblings) have any encounter rows
       // of its own" — needed before the main loop so Signal 3 can tell a genuine version-exclusive
       // (e.g. Ponyta-Galar: Shield has Glimwood Tangle, Sword has nothing) apart from a real
@@ -11330,7 +11369,15 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       if(triggerLabel){
         if(ib){
           const pname=selectedPokemon?.name?getDisplayName(selectedPokemon.name):'This Pokémon';
-          triggerLabel.textContent=`${pname} is breedable in games where it is available, except for Gen 1 games.`;
+          // "Cannot breed" (egg_groups includes PokéAPI's "no-eggs" group — Ditto, most Legendaries/
+          // Mythicals, Baby Pokémon exceptions aside) is a totally different situation from "breedable
+          // everywhere except Gen 1" — the old unconditional copy told a genuinely un-breedable species
+          // (e.g. Mewtwo) that it CAN breed, just with one caveat, which is simply false. Reuses the
+          // exact same "no-eggs" check renderBreedingContent() uses for its own placeholder/pill text,
+          // via the shared isBreedIneligible() helper, so the two can never drift out of sync again.
+          triggerLabel.textContent=isBreedIneligible(selectedPokemon)
+            ?`${pname} can't breed in any game.`
+            :`${pname} is breedable in games where it is available, except for Gen 1 games.`;
         }else{
           triggerLabel.textContent=obtainSelectedGame?(GAME_LIST.flatMap(g=>g.games).find(g=>g.id===obtainSelectedGame)?.name||'Select a game'):'Select a game';
         }
@@ -11519,6 +11566,19 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
         accordion.appendChild(section);
       });
       panel.appendChild(accordion);
+    }
+
+    // Shared "can this Pokémon breed at all" check — PokéAPI/breedingData flag a species as
+    // ineligible via the "no-eggs" egg group (Ditto, most Legendaries/Mythicals, etc.). Extracted
+    // so buildObtainGames()'s Breed-tab trigger label and renderBreedingContent()'s own pill/
+    // placeholder text always agree — previously only the latter checked this, so the trigger
+    // label unconditionally told even a totally unbreedable Pokémon it "is breedable... except
+    // Gen 1," which is simply wrong for a species like Mewtwo.
+    function isBreedIneligible(pokemon){
+      const pkName=pokemon?.name?.toLowerCase();
+      const bd=breedingData&&pkName?breedingData[pkName]:null;
+      if(bd)return bd.egg_groups.includes('no-eggs');
+      return (obtainSpeciesData?.egg_groups||[]).some(g=>g.name==='no-eggs');
     }
 
     function renderBreedingContent(panel){
@@ -11916,23 +11976,36 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
         rowGames.forEach(g=>included.push(g));
         const block=document.createElement('div');block.className='obtain-gen-block';
         const label=document.createElement('div');label.className='obtain-gen-label';label.textContent='Generation '+gen;block.appendChild(label);
-        const row=document.createElement('div');row.className='obtain-game-row';
-        rowGames.forEach(game=>{
-          const btn=document.createElement('button');btn.className='obtain-game-btn';btn.dataset.gameId=game.id;btn.title=game.name;
-          const ie=document.createElement('div');ie.className='obtain-game-icon';ie.textContent=game.name;
-          const img=document.createElement('img');img.className='obtain-game-img';img.src=`icons/games/${game.id}.png`;img.alt=game.name;
-          img.onerror=()=>{img.replaceWith(ie);};
-          btn.appendChild(img);
-          btn.addEventListener('click',()=>{
-            setMovesetSelectedGame(game.id);
-            loadMovesetContent();
-            document.getElementById('moveset-games-column').classList.remove('open');
-            document.getElementById('moveset-games-backdrop').classList.remove('open');
-            document.getElementById('moveset-games-trigger').setAttribute('aria-expanded','false');
+        // Split into sub-rows using the same GAME_ROW_SIZES caps the Obtain modal's game picker
+        // uses (buildObtainGames, above) — without this, a generation with every game still valid
+        // (e.g. Gen 8's 5 titles) rendered as one long unbroken row and forced the bottom sheet to
+        // scroll horizontally, breaking the app-wide golden-standard sheet layout. `.slice` safely
+        // handles a row size larger than what's left in `rowGames` (a filtered generation just gets
+        // shorter rows, never an overflowing one), so this is correct whether or not Tier 5 games
+        // were already excluded above.
+        const rowSizes=GAME_ROW_SIZES[gen]||[rowGames.length];
+        let idx=0;
+        rowSizes.forEach(size=>{
+          const subRow=rowGames.slice(idx,idx+size);idx+=size;
+          if(subRow.length===0)return;
+          const row=document.createElement('div');row.className='obtain-game-row';
+          subRow.forEach(game=>{
+            const btn=document.createElement('button');btn.className='obtain-game-btn';btn.dataset.gameId=game.id;btn.title=game.name;
+            const ie=document.createElement('div');ie.className='obtain-game-icon';ie.textContent=game.name;
+            const img=document.createElement('img');img.className='obtain-game-img';img.src=`icons/games/${game.id}.png`;img.alt=game.name;
+            img.onerror=()=>{img.replaceWith(ie);};
+            btn.appendChild(img);
+            btn.addEventListener('click',()=>{
+              setMovesetSelectedGame(game.id);
+              loadMovesetContent();
+              document.getElementById('moveset-games-column').classList.remove('open');
+              document.getElementById('moveset-games-backdrop').classList.remove('open');
+              document.getElementById('moveset-games-trigger').setAttribute('aria-expanded','false');
+            });
+            row.appendChild(btn);
           });
-          row.appendChild(btn);
+          block.appendChild(row);
         });
-        block.appendChild(row);
         panel.appendChild(block);
       });
       return included;
