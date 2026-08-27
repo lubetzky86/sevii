@@ -2379,6 +2379,11 @@
     .tb-dexpick-close:hover { background: rgba(255,255,255,0.4); }
     .tb-dexpick-toolbar { flex-shrink: 0; padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; border-bottom: 1px solid #e8e4dd; background: white; }
     .tb-dexpick-search { flex: 1; min-width: 140px; padding: 8px 12px; border-radius: 20px; border: 1px solid #d4ccbc; font-size: 13px; }
+    /* Golden-standard fix: the wrapper reuses .app-header-search's real input styling
+       (icon, focus border, colors) but needs its own flex/sizing here since the toolbar row
+       isn't the app header. */
+    .tb-dexpick-search-wrap.app-header-search { flex: 1; min-width: 140px; max-width: none; margin: 0; }
+    .tb-dexpick-search-wrap.app-header-search input.tb-dexpick-search { border-radius: 20px; }
     .tb-dexpick-toolbar select { padding: 7px 10px; border-radius: 8px; border: 1px solid #d4ccbc; font-size: 12px; background: white; }
     /* Recycled from the main app's own filter-sheet trigger button (.mobile-filter-trigger) —
        was a stadium-shaped 20px-radius outline pill, unlike anything else in the app. Now matches
@@ -2400,6 +2405,17 @@
     .tb-dexpick-sheet-body { padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); display: flex; flex-wrap: wrap; gap: 8px; }
     .tb-dexpick-pill { padding: 7px 12px; border-radius: 20px; border: 1px solid #d4ccbc; background: white; font-size: 12px; font-weight: 700; cursor: pointer; color: #555; }
     .tb-dexpick-pill.selected { background: #43656e; color: white; border-color: #43656e; }
+    /* Golden-standard fix: the Types sheet's pills reuse the real .type-pill badge-icon
+       component (same markup/assets as the main grid's #type-filters) — override the generic
+       tb-dexpick-pill text-pill box model back to .type-pill's own square icon-swatch sizing
+       for these specifically, so the two classes' declarations don't fight each other. */
+    #tb-dexpick-type-sheet-body .tb-dexpick-pill.type-pill { flex: 0 0 44px; width: 44px; height: 44px; padding: 4px; border-radius: 8px; background: transparent; }
+    #tb-dexpick-type-sheet-body .tb-dexpick-pill.type-pill.selected,
+    #tb-dexpick-type-sheet-body .tb-dexpick-pill.type-pill.active { background: transparent; border-color: #1a1a1a; }
+    /* Gen sheet pills reuse the real .gen-pill icon component the same way. */
+    #tb-dexpick-gen-sheet-body .tb-dexpick-pill.gen-pill { flex: 0 0 44px; width: 44px; height: 44px; padding: 4px; border-radius: 8px; background: transparent; }
+    #tb-dexpick-gen-sheet-body .tb-dexpick-pill.gen-pill.selected,
+    #tb-dexpick-gen-sheet-body .tb-dexpick-pill.gen-pill.active { background: transparent; border-color: #1a1a1a; }
 
     /* Coverage accordions — round: Diego, 2026-08-24: restyled to the app's actual golden-
        standard accordion look (.obtain-egg-accordion-item's plain 13px/600 #333 recipe) instead
@@ -3950,7 +3966,12 @@
             <button class="tb-dexpick-close" id="tb-dexpick-close">✕</button>
           </div>
           <div class="tb-dexpick-toolbar">
-            <input type="text" class="tb-dexpick-search" id="tb-dexpick-search" placeholder="Search Pokémon...">
+            <!-- Golden-standard fix: search box reuses the main grid's real .app-header-search
+                 wrapper (same icon background, border, focus treatment) instead of the
+                 lookalike .tb-dexpick-search-only skin. -->
+            <div class="app-header-search tb-dexpick-search-wrap">
+              <input type="text" class="tb-dexpick-search" id="tb-dexpick-search" placeholder="Search Pokémon...">
+            </div>
             <button class="tb-dexpick-filter-btn" id="tb-dexpick-type-trigger">Types</button>
             <button class="tb-dexpick-filter-btn" id="tb-dexpick-gen-trigger">Gen</button>
             <div class="sort-row">
@@ -4162,6 +4183,25 @@
 
 
   <script>
+    // ── Fix 1 (bug): the Dex Picker overlay (#tb-dexpick-backdrop + its Types/Gen bottom
+    // sheets) was originally authored as HTML nested inside #section-teambuilder, a
+    // .section-panel that gets `display:none` whenever a DIFFERENT tab (e.g. Lists) is
+    // active. A `display:none` ancestor removes its entire subtree from the render tree —
+    // `position:fixed` on a descendant does NOT escape that, despite the backdrop's own
+    // z-index/.visible rules being otherwise correct. So when the List Editor's "+ Add
+    // Pokemon to list" button called openPokemonPicker(), the backdrop's `visible` class WAS
+    // added and the grid WAS populated (no JS exception anywhere in that chain), but the
+    // whole overlay stayed invisible because it lived inside the hidden Team Builder section.
+    // Hoisting these nodes to be direct children of <body> (before any other script code
+    // runs) makes the overlay render regardless of which section-panel is currently active,
+    // fixing both the Team Builder's own dex picker (which happened to work by coincidence,
+    // since it's only ever opened while #section-teambuilder is itself the active section)
+    // and the List Editor's use of the exact same shared component.
+    ['tb-dexpick-backdrop','tb-dexpick-type-sheet-backdrop','tb-dexpick-type-sheet','tb-dexpick-gen-sheet-backdrop','tb-dexpick-gen-sheet'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) document.body.appendChild(el);
+    });
+
     const FILTER_PATH = 'icons/types/badges';
     const BUTTON_PATH = 'icons/types/buttons';
     const TYPE_ORDER = ['normal','grass','fire','water','electric','bug','rock','ground','poison','fighting','flying','psychic','ghost','dark','ice','steel','dragon','fairy'];
@@ -4360,7 +4400,7 @@
       // entry per species, matching the main grid — see dedupFormEntries().
       const pokemonList = dedupFormEntries(rawPokemonList.map(p => ({name: p.pokemon.name, url: p.pokemon.url})));
       const isSignature = pokemonList.length === 1;
-      const sigPokemon = isSignature ? toTitleCase(baseSpeciesNameForPokemon(pokemonList[0].name).replace(/-/g,' ')) : '';
+      const sigPokemon = isSignature ? getDisplayName(baseSpeciesNameForPokemon(pokemonList[0].name)) : '';
 
       // Header — name only (no gen in subtitle), signature below name
       document.getElementById('ab-detail-name').textContent = toTitleCase(data.name.replace(/-/g,' '));
@@ -4800,7 +4840,7 @@
       const learnedBy=dedupFormEntries(rawLearnedBy.map(pk=>({name:pk.name,url:pk.url})));
       const mvSigEl=document.getElementById('mv-detail-sig');
       if(mvSigEl){
-        if(learnedBy.length===1){mvSigEl.textContent=`${toTitleCase(baseSpeciesNameForPokemon(learnedBy[0].name).replace(/-/g,' '))}'s Signature Move`;mvSigEl.style.display='block';}
+        if(learnedBy.length===1){mvSigEl.textContent=`${getDisplayName(baseSpeciesNameForPokemon(learnedBy[0].name))}'s Signature Move`;mvSigEl.style.display='block';}
         else{
           mvSigEl.style.display='none';
           // Same evolutionary-line check as Abilities — e.g. a move only two stages of one
@@ -8586,7 +8626,7 @@
       typeTrigger.classList.remove('has-selection');
       typeTrigger.textContent = 'Types';
       document.getElementById('tb-dexpick-gen-trigger').classList.remove('has-selection');
-      document.querySelectorAll('#tb-dexpick-type-sheet-body .tb-dexpick-pill').forEach(p=>p.classList.remove('selected'));
+      document.querySelectorAll('#tb-dexpick-type-sheet-body .tb-dexpick-pill').forEach(p=>{p.classList.remove('selected');p.classList.remove('active');});
       document.getElementById('tb-dexpick-backdrop').classList.add('visible');
       if(team && team.game){
         const grid = document.getElementById('tb-dexpick-grid');
@@ -8626,7 +8666,7 @@
       typeTrigger.classList.remove('has-selection');
       typeTrigger.textContent = 'Types';
       document.getElementById('tb-dexpick-gen-trigger').classList.remove('has-selection');
-      document.querySelectorAll('#tb-dexpick-type-sheet-body .tb-dexpick-pill').forEach(p=>p.classList.remove('selected'));
+      document.querySelectorAll('#tb-dexpick-type-sheet-body .tb-dexpick-pill').forEach(p=>{p.classList.remove('selected');p.classList.remove('active');});
       document.getElementById('tb-dexpick-backdrop').classList.add('visible');
       renderTbDexPickGenSheet();
       renderTbDexPickGrid();
@@ -8822,18 +8862,25 @@
     (function initTbDexPickTypeSheet(){
       const body = document.getElementById('tb-dexpick-type-sheet-body');
       if(!body) return;
+      // Golden-standard fix: re-skinned to reuse the main grid's REAL type-badge icon images
+      // (makeBadgeImg(type,true), the exact same FILTER_PATH='icons/types/badges' assets and
+      // .type-pill markup as #type-filters in buildTypeFilters()) instead of plain text pills.
+      // Selection logic (cap-2-with-FIFO-eviction) is unchanged — only the visual skin and
+      // markup were the bug.
       TYPE_ORDER.forEach(type=>{
-        const pill = document.createElement('button');
-        pill.className = 'tb-dexpick-pill';
+        const pill = document.createElement('div');
+        pill.className = 'type-pill tb-dexpick-pill';
         pill.dataset.type = type;
-        pill.textContent = type.charAt(0).toUpperCase()+type.slice(1);
+        pill.appendChild(makeBadgeImg(type, true));
         pill.addEventListener('click', ()=>{
           // Exact cap-2-with-FIFO-eviction pattern as the main grid's toggleType(): a 3rd
           // selected type silently evicts the first-selected one rather than allowing 3+.
           if(tbDexPickActiveTypes.has(type)){ tbDexPickActiveTypes.delete(type); }
           else{ if(tbDexPickActiveTypes.size>=2){ const [o] = tbDexPickActiveTypes; tbDexPickActiveTypes.delete(o); } tbDexPickActiveTypes.add(type); }
           body.querySelectorAll('.tb-dexpick-pill').forEach(p=>{
-            p.classList.toggle('selected', tbDexPickActiveTypes.has(p.dataset.type));
+            const isSel = tbDexPickActiveTypes.has(p.dataset.type);
+            p.classList.toggle('selected', isSel);
+            p.classList.toggle('active', isSel);
           });
           const trigger = document.getElementById('tb-dexpick-type-trigger');
           trigger.classList.toggle('has-selection', tbDexPickActiveTypes.size>0);
@@ -8860,14 +8907,28 @@
       const options = tbDexPickAvailableGens === null
         ? ['all', ...allGenNums]
         : ['all', ...allGenNums.filter(g => tbDexPickAvailableGens.has(g))];
+      // Golden-standard fix: numbered generation pills now reuse the main grid's REAL
+      // per-generation icon images (icons/generations/N.png, same markup as the static
+      // #gen-filters strip) instead of plain "Gen N" text buttons. "All" has no icon anywhere
+      // in the app, so it stays a small text pill — everything WITH a real icon asset now uses
+      // that real asset.
+      const GEN_ROMAN = {'1':'I','2':'II','3':'III','4':'IV','5':'V','6':'VI','7':'VII','8':'VIII','9':'IX'};
       options.forEach(gen=>{
-        const pill = document.createElement('button');
-        pill.className = 'tb-dexpick-pill' + (gen===tbDexPickActiveGen ? ' selected' : '');
-        pill.textContent = gen==='all' ? 'All' : `Gen ${gen}`;
+        const isAll = gen === 'all';
+        const pill = document.createElement(isAll ? 'button' : 'div');
+        pill.className = 'tb-dexpick-pill' + (isAll ? '' : ' gen-pill') + (gen===tbDexPickActiveGen ? ' selected active' : '');
+        if(isAll){
+          pill.textContent = 'All';
+        } else {
+          const img = document.createElement('img');
+          img.src = `icons/generations/${gen}.png`;
+          img.alt = `Gen ${GEN_ROMAN[gen]||gen}`;
+          pill.appendChild(img);
+        }
         pill.addEventListener('click', ()=>{
           tbDexPickActiveGen = gen;
-          body.querySelectorAll('.tb-dexpick-pill').forEach(p=>p.classList.remove('selected'));
-          pill.classList.add('selected');
+          body.querySelectorAll('.tb-dexpick-pill').forEach(p=>{p.classList.remove('selected');p.classList.remove('active');});
+          pill.classList.add('selected'); pill.classList.add('active');
           document.getElementById('tb-dexpick-gen-trigger').classList.toggle('has-selection', gen!=='all');
           renderTbDexPickGrid();
         });
@@ -10719,13 +10780,13 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
     async function resolveSignatureLabel(entries){
       if(!entries||entries.length<2) return null;
       const baseNames=[...new Set(entries.map(e=>baseSpeciesNameForPokemon(e.name)))];
-      if(baseNames.length===1) return toTitleCase(baseNames[0].replace(/-/g,' ')); // same species, different forms only
+      if(baseNames.length===1) return getDisplayName(baseNames[0]); // same species, different forms only
       const info=await getEvoChainInfo(baseNames[0]);
       if(!info) return null;
       if(!baseNames.every(n=>info.names.has(n))) return null; // not all in the same line
       const matchedTerminals=baseNames.filter(n=>info.terminals.has(n));
       if(matchedTerminals.length!==1) return null; // ambiguous branching — don't guess
-      return toTitleCase(matchedTerminals[0].replace(/-/g,' '));
+      return getDisplayName(matchedTerminals[0]);
     }
 
     // ── Missing form flag ──
@@ -11298,6 +11359,22 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
     function normalizeEggGroupLabel(apiName){
       return EGG_GROUP_NORMALIZE[apiName] || toTitleCase(apiName.replace(/-/g,' '));
     }
+    // Fix (bug): breeding.json (our curated breeding data file) was authored with its own slug
+    // convention that differs from PokéAPI's raw egg-group slugs in four places. When the
+    // selected Pokémon itself IS a breeding.json key, groupApiName already comes from
+    // breeding.json's own egg_groups array, so it's already in this convention. But when the
+    // selected Pokémon is NOT a breeding.json key (e.g. most regional/alternate forms), the
+    // code falls back to obtainSpeciesData's RAW PokéAPI egg_groups, whose slugs must be
+    // translated into breeding.json's convention before being used to filter breedingData's
+    // entries — otherwise the filter compares two different vocabularies and always comes back
+    // empty. This is ONLY for filtering breedingData; the direct PokéAPI egg-group fetch
+    // fallback (when breedingData itself failed to load) must keep using PokéAPI's own raw slug.
+    const EGG_GROUP_API_TO_BREEDING_SLUG={
+      'ground':'field',
+      'indeterminate':'amorphous',
+      'human-like':'humanshape','humanlike':'humanshape',
+      'grass':'plant'
+    };
     const SPECIAL_OBTAIN={'bulbasaur':{red:'Starter Pokémon — chosen at the start of the game',blue:'Starter Pokémon — chosen at the start of the game',yellow:'Starter Pokémon — chosen at the start of the game',firered:'Starter Pokémon — chosen at the start of the game',leafgreen:'Starter Pokémon — chosen at the start of the game',heartgold:'Starter Pokémon — chosen at the start of the game',soulsilver:'Starter Pokémon — chosen at the start of the game'},'charmander':{red:'Starter Pokémon — chosen at the start of the game',blue:'Starter Pokémon — chosen at the start of the game',yellow:'Starter Pokémon — chosen at the start of the game',firered:'Starter Pokémon — chosen at the start of the game',leafgreen:'Starter Pokémon — chosen at the start of the game',x:'Gift — received from a trainer in Lumiose City after defeating the first Gym',y:'Gift — received from a trainer in Lumiose City after defeating the first Gym'},'squirtle':{red:'Starter Pokémon — chosen at the start of the game',blue:'Starter Pokémon — chosen at the start of the game',yellow:'Gift — received from Officer Jenny in Vermilion City',firered:'Starter Pokémon — chosen at the start of the game',leafgreen:'Starter Pokémon — chosen at the start of the game'},'omanyte':{all:'Fossil revival — revive from the Helix Fossil'},'kabuto':{all:'Fossil revival — revive from the Dome Fossil'},'aerodactyl':{all:'Fossil revival — revive from the Old Amber'},'hitmonlee':{red:'Gift — received from the Dojo Master in Saffron City (choose one)',blue:'Gift — received from the Dojo Master in Saffron City (choose one)',yellow:'Gift — received from the Dojo Master in Saffron City (choose one)',firered:'Gift — received from the Dojo Master in Saffron City (choose one)',leafgreen:'Gift — received from the Dojo Master in Saffron City (choose one)'},'hitmonchan':{red:'Gift — received from the Dojo Master in Saffron City (choose one)',blue:'Gift — received from the Dojo Master in Saffron City (choose one)',yellow:'Gift — received from the Dojo Master in Saffron City (choose one)',firered:'Gift — received from the Dojo Master in Saffron City (choose one)',leafgreen:'Gift — received from the Dojo Master in Saffron City (choose one)'},'eevee':{red:'Gift — received from the Pokémon Mansion in Celadon City',blue:'Gift — received from the Pokémon Mansion in Celadon City',yellow:'Gift — received from the Pokémon Mansion in Celadon City',firered:'Gift — received from the Pokémon Mansion in Celadon City',leafgreen:'Gift — received from the Pokémon Mansion in Celadon City'},'porygon':{red:'Purchase — bought with coins at the Celadon Game Corner',blue:'Purchase — bought with coins at the Celadon Game Corner',yellow:'Purchase — bought with coins at the Celadon Game Corner',firered:'Purchase — bought with coins at the Celadon Game Corner',leafgreen:'Purchase — bought with coins at the Celadon Game Corner'},'lapras':{red:'Gift — received from an employee in Silph Co.',blue:'Gift — received from an employee in Silph Co.',yellow:'Gift — received from an employee in Silph Co.',firered:'Gift — received from an employee in Silph Co.',leafgreen:'Gift — received from an employee in Silph Co.'},'scyther':{red:'Purchase — bought with coins at the Celadon Game Corner',yellow:'Purchase — bought with coins at the Celadon Game Corner',firered:'Purchase — bought with coins at the Celadon Game Corner'},'pinsir':{blue:'Purchase — bought with coins at the Celadon Game Corner',yellow:'Purchase — bought with coins at the Celadon Game Corner',leafgreen:'Purchase — bought with coins at the Celadon Game Corner'}};
     const DLC_VERSION_MAP={sword:['sword','the-isle-of-armor','the-crown-tundra'],shield:['shield','the-isle-of-armor','the-crown-tundra'],scarlet:['scarlet','the-teal-mask','the-indigo-disk'],violet:['violet','the-teal-mask','the-indigo-disk'],'legends-za':['legends-za','mega-dimension']};
     function getVersionsForGame(id){return DLC_VERSION_MAP[id]||[id];}
@@ -11648,7 +11725,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       pills.appendChild(makePill('Leveling Rate',[{text:lrate}]));
       panel.appendChild(pills);
 
-      if(!obtainSelectedGame){const ph=document.createElement('div');ph.className='obtain-placeholder';ph.textContent=`Select a game to see where ${toTitleCase(selectedPokemon.name)} can be found`;panel.appendChild(ph);return;}
+      if(!obtainSelectedGame){const ph=document.createElement('div');ph.className='obtain-placeholder';ph.textContent=`Select a game to see where ${getDisplayName(baseSpeciesNameForPokemon(selectedPokemon.name))} can be found`;panel.appendChild(ph);return;}
 
       const vtc=getVersionsForGame(obtainSelectedGame);
       const ef=obtainSpeciesData?.evolves_from_species;
@@ -11658,15 +11735,15 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       const methodSections=[];
 
       if(isMegaForm(selectedPokemon.name)&&MEGA_GAMES.has(obtainSelectedGame)){
-        const sn2=selectedPokemon.name.replace(/-mega.*$/,'').replace(/-/g,' ');
+        const sn2raw=selectedPokemon.name.replace(/-mega.*$/,'');
         methodSections.push({type:'mega',label:'Mega Evolution',color:'#888780',icon:METHOD_ICONS.mega,body:()=>{
-          const d=document.createElement('div');d.innerHTML=`Activate in battle with the appropriate Mega Stone. Obtain the base form of ${toTitleCase(sn2)} first.`;d.style.cssText='font-size:13px;color:#1a1a1a;line-height:1.5;';return d;
+          const d=document.createElement('div');d.innerHTML=`Activate in battle with the appropriate Mega Stone. Obtain the base form of ${getDisplayName(baseSpeciesNameForPokemon(sn2raw))} first.`;d.style.cssText='font-size:13px;color:#1a1a1a;line-height:1.5;';return d;
         }});
       }
       if(isGmaxForm(selectedPokemon.name)&&GMAX_GAMES.has(obtainSelectedGame)){
-        const bn=selectedPokemon.name.replace(/-gmax$/,'').replace(/-/g,' ');
+        const bnraw=selectedPokemon.name.replace(/-gmax$/,'');
         methodSections.push({type:'gmax',label:'Gigantamax',color:'#888780',icon:METHOD_ICONS.gmax,body:()=>{
-          const d=document.createElement('div');d.innerHTML=`Gigantamax ${toTitleCase(bn)} in battle. Found in special Max Raid Battles in the Wild Area.`;d.style.cssText='font-size:13px;color:#1a1a1a;line-height:1.5;';return d;
+          const d=document.createElement('div');d.innerHTML=`Gigantamax ${getDisplayName(baseSpeciesNameForPokemon(bnraw))} in battle. Found in special Max Raid Battles in the Wild Area.`;d.style.cssText='font-size:13px;color:#1a1a1a;line-height:1.5;';return d;
         }});
       }
       const sp=getSpecialObtain(selectedPokemon.name,obtainSelectedGame);
@@ -11699,10 +11776,10 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
         }});
       }
       if(ef&&!sp){
-        const em=extractEvoMethod(obtainEvoChain,selectedPokemon.name)||`Evolve ${toTitleCase(ef.name.replace(/-/g,' '))}`;
+        const em=extractEvoMethod(obtainEvoChain,selectedPokemon.name)||`Evolve ${getDisplayName(baseSpeciesNameForPokemon(ef.name))}`;
         methodSections.push({type:'evolve',label:'Evolve',color:'#1d9e75',icon:METHOD_ICONS.evolve,body:()=>{
           const wrap=document.createElement('div');
-          const desc=document.createElement('div');desc.textContent=`Evolve ${toTitleCase(ef.name.replace(/-/g,' '))} — ${em}`;desc.style.cssText='font-size:13px;color:#1a1a1a;margin-bottom:8px;';wrap.appendChild(desc);
+          const desc=document.createElement('div');desc.textContent=`Evolve ${getDisplayName(baseSpeciesNameForPokemon(ef.name))} — ${em}`;desc.style.cssText='font-size:13px;color:#1a1a1a;margin-bottom:8px;';wrap.appendChild(desc);
           if(obtainEvoChain){
             const BASE='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home';
             const currentName=selectedPokemon.name.toLowerCase();
@@ -11724,7 +11801,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
               img.alt=name;img.dataset.pokeid=String(sid);img.dataset.pokename=name;
               img.style.cssText='width:56px;height:56px;object-fit:contain;image-rendering:pixelated;';
               img.onerror=()=>{img.src=`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${sid}.png`;};
-              const lbl=document.createElement('div');lbl.style.cssText='font-size:11px;font-weight:700;color:#333;text-align:center;text-transform:capitalize;max-width:64px;';lbl.textContent=toTitleCase(name.replace(/-/g,' '));
+              const lbl=document.createElement('div');lbl.style.cssText='font-size:11px;font-weight:700;color:#333;text-align:center;text-transform:capitalize;max-width:64px;';lbl.textContent=getDisplayName(baseSpeciesNameForPokemon(name));
               node.appendChild(img);node.appendChild(lbl);
               node.addEventListener('click',()=>{
                 if(isCurrent)return;
@@ -11749,7 +11826,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
         // whose location data PokéAPI hasn't backfilled, with no evolve/special method to fall back
         // on either. Uses the resolver's own message text (gameTier.message) rather than re-deriving
         // it, so this fallback and the Tier 3 Wild-Encounter-card branch above never drift out of sync.
-        const pname=toTitleCase(selectedPokemon.name.replace(/-/g,' '));
+        const pname=getDisplayName(baseSpeciesNameForPokemon(selectedPokemon.name));
         const ph=document.createElement('div');ph.className='obtain-placeholder';
         ph.textContent = gameTier.message ? `${pname} ${gameTier.message}` : `No available information to obtain ${pname} in this game.`;
         panel.appendChild(ph);return;
@@ -11846,8 +11923,9 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
             // Build from breedingData if available, else fetch PokéAPI
             if(breedingData){
               grid.innerHTML='';
+              const breedingSlug=EGG_GROUP_API_TO_BREEDING_SLUG[groupApiName]||groupApiName;
               const members=Object.entries(breedingData)
-                .filter(([,v])=>v.egg_groups.includes(groupApiName))
+                .filter(([,v])=>v.egg_groups.includes(breedingSlug))
                 .sort(([an,av],[bn,bv])=>{if(an===currentName)return-1;if(bn===currentName)return 1;return av.id-bv.id;});
               members.forEach(([name,entry])=>grid.appendChild(makeEggCard(name,evoIdCache[name]||entry.id,currentName,p)));
               if(!grid.children.length)grid.innerHTML='<div class="obtain-placeholder">No Pokémon found.</div>';
@@ -11873,7 +11951,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
         setSpriteSrc(img, sid, obtainModalShiny);
         img.alt=name;img.dataset.pokeid=String(sid);img.dataset.pokename=name;
         img.onerror=()=>{img.src=`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${sid}.png`;};
-        const lbl=document.createElement('div');lbl.className='obtain-egg-card-name';lbl.textContent=toTitleCase(name.replace(/-/g,' '));
+        const lbl=document.createElement('div');lbl.className='obtain-egg-card-name';lbl.textContent=getDisplayName(baseSpeciesNameForPokemon(name));
         card.appendChild(img);card.appendChild(lbl);
         card.addEventListener('click',()=>{
           if(name===currentName)return;
@@ -13055,7 +13133,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
 
         const info = document.createElement('div'); info.className = 'lore-rel-info';
         const name = document.createElement('div'); name.className = 'lore-rel-name';
-        name.textContent = toTitleCase(rel.species_slug.replace(/-/g,' '));
+        name.textContent = getDisplayName(baseSpeciesNameForPokemon(rel.species_slug));
         const typeKey = rel.relation_type || '';
         const pill = document.createElement('span');
         const colorClass = RELATION_COLOR_CLASS[typeKey] || 'lore-rel-default';
