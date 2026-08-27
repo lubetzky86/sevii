@@ -578,7 +578,7 @@
     "links": [
       {
         "pokemon": "basculin-white-striped",
-        "evolves_into": "basculegion",
+        "evolves_into": "basculegion-male",
         "method": "SPECIAL",
         "method_detail": "Take 294 recoil damage without fainting if male",
         "notes": null
