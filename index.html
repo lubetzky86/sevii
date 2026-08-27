@@ -3729,6 +3729,10 @@
     <div class="section-panel" id="section-lists">
       <div class="left-panel" id="lists-left-panel">
         <div class="lists-switcher-bar" id="lists-switcher-bar"></div>
+        <!-- "+ Create List" — recycled directly from the Team Builder Hub's own
+             "+ Create New Team" button (same .tb-create-btn-full class, same full-width
+             treatment) rather than a lookalike button, per Diego's golden-standard rule. -->
+        <button class="tb-create-btn-full" id="lists-create-list-btn">+ Create List</button>
 
         <!-- Mobile-only: the desktop pill row above overflows/wraps once there are more than a
              few lists, so mobile collapses it to 2 fixed buttons (Favorites + a "My Lists"
@@ -3765,6 +3769,28 @@
         <div class="grid-wrapper">
           <div class="result-count" id="lists-result-count"></div>
           <div class="grid" id="lists-grid"></div>
+        </div>
+      </div>
+
+      <!-- List Editor screen — recycles the Team Builder's Canvas shell (.tb-canvas-topbar,
+           .tb-canvas-name-input, Save/Close buttons) exactly, minus the Team-specific battle
+           mode/game pills and Coverage accordions (out of scope for a List per Diego's spec).
+           Below the header is just one .tb-party-grid of .tb-party-slot cards — the same empty-
+           slot "+" card component the Party screen uses — reused as-is (that grid is already a
+           3-per-row, unlimited-rows layout, so no separate row-capping rule was needed here). -->
+      <div class="tb-canvas" id="list-editor" style="display:none;">
+        <div class="tb-canvas-topbar">
+          <div class="tb-canvas-name-wrap">
+            <input type="text" class="tb-canvas-name-input" id="le-name-input" maxlength="40" placeholder="Enter list name">
+            <button class="tb-name-edit-btn" id="le-name-edit-btn" title="Rename">✎</button>
+          </div>
+          <div class="tb-canvas-topbar-right">
+            <button class="tb-canvas-save-btn" id="le-save-btn">Save<span class="tb-canvas-save-icon">💾</span></button>
+            <button class="tb-back-btn" id="le-close-btn" title="Close">✕</button>
+          </div>
+        </div>
+        <div class="grid-wrapper">
+          <div class="tb-party-grid" id="le-grid"></div>
         </div>
       </div>
     </div>
@@ -4938,6 +4964,10 @@
         else renderMvGrid();
       }
       if (name === 'lists') {
+        // Always land back on the Lists browser when the tab is opened, same convention as
+        // Team Builder always landing back on its Hub — the List Editor is only reached by
+        // creating/opening a specific list from there.
+        showListsBrowser();
         renderListsSwitcher();
         renderListsGrid();
       }
@@ -5279,12 +5309,25 @@
     // treatment but aren't in regionalForms — instead alternate-forms.json's curated entry for
     // every MEGA/GMAX form already carries a "base" field with the base species' PokéAPI slug
     // (e.g. "rayquaza-mega" -> base "rayquaza"), so look that up in allPokemon for its real id.
+    // Finds a curated "base" species slug (e.g. "giratina", "deoxys", "rayquaza") inside
+    // allPokemon. IMPORTANT: alternate-forms.json's "base" field is a clean grouping/display
+    // slug — it is NOT guaranteed to be the literal PokéAPI variety name allPokemon stores for
+    // that species. Several species' *default* variety carries its own suffix even though the
+    // curated base doesn't (Giratina's default /pokemon/ entry is named "giratina-altered", not
+    // "giratina"; Deoxys's is "deoxys-normal"; Shaymin's is "shaymin-land"; Wormadam's is
+    // "wormadam-plant"; the Forces of Nature trio's are "*-incarnate"; etc). An exact-name match
+    // covers the common case (most species' base slug IS the PokéAPI name, e.g. "rayquaza");
+    // the startsWith fallback catches every "<slug>-<defaultVariant>" case above without having
+    // to hardcode every known default-variety suffix.
+    function findBaseSpeciesInAllPokemon(slug){
+      return allPokemon.find(p=>p.name===slug) || allPokemon.find(p=>p.name.startsWith(slug+'-'));
+    }
     function listDexId(name, fallbackId){
       const rf=regionalForms.find(r=>r.data.name===name);
       if(rf) return rf.displayId;
       if(isMegaForm(name)||isGmaxForm(name)){
         const base=alternateForms?._byForm?.[name]?.base;
-        const baseP=base && allPokemon.find(p=>p.name===base);
+        const baseP=base && findBaseSpeciesInAllPokemon(base);
         if(baseP) return baseP.id;
       }
       // ORIGIN/SPECIAL forms (Giratina-Origin, Shaymin-Sky, Rotom-Wash, Deoxys forms, etc.) also
@@ -5293,7 +5336,7 @@
       const entry=alternateForms?._byForm?.[name];
       if(entry?.base){
         const baseSlug=stripKnownFormSuffix(entry.base);
-        const baseP=allPokemon.find(p=>p.name===baseSlug)||allPokemon.find(p=>p.name===baseSlug.split('-')[0]);
+        const baseP=findBaseSpeciesInAllPokemon(baseSlug)||findBaseSpeciesInAllPokemon(baseSlug.split('-')[0]);
         if(baseP) return baseP.id;
       }
       return fallbackId;
@@ -5386,6 +5429,116 @@
         listsActiveId='favorites';
         renderListsSwitcher();
         renderListsGrid();
+      }
+    });
+
+    // ── List Editor screen (Task 3) — recycles the Team Builder's Canvas shell/party-slot
+    // component. Lives here, ahead of the Team Builder section below, since it operates on the
+    // Lists data layer (createList/addToList/getList, all defined above) rather than teams.
+    // Opens on an EXISTING list (created immediately, same "create then edit" pattern as
+    // tbCreateAndOpenTeam) so every add/remove writes straight through the real Lists storage —
+    // there's no separate in-memory draft to reconcile on Save. ──
+    let leActiveListId = null;
+
+    function showListsBrowser(){
+      leActiveListId = null;
+      document.getElementById('lists-left-panel').style.display = '';
+      document.getElementById('list-editor').style.display = 'none';
+      const headerSearch = document.querySelector('.app-header-search');
+      if(headerSearch) headerSearch.style.display = '';
+      document.body.classList.remove('tb-canvas-active');
+    }
+    function showListEditor(listId){
+      leActiveListId = listId;
+      document.getElementById('lists-left-panel').style.display = 'none';
+      document.getElementById('list-editor').style.display = 'flex';
+      // Same rationale as the Team Canvas: this screen's own header stands in for the global
+      // one, and there's no search inside it.
+      const headerSearch = document.querySelector('.app-header-search');
+      if(headerSearch) headerSearch.style.display = 'none';
+      document.body.classList.add('tb-canvas-active');
+      renderListEditor();
+    }
+    function renderListEditor(){
+      const list = getList(leActiveListId);
+      if(!list){ showListsBrowser(); return; }
+      document.getElementById('le-name-input').value = list.name;
+      const grid = document.getElementById('le-grid');
+      grid.innerHTML = '';
+      list.items.forEach(item=>{
+        const pokemon = getListPokemonData(item);
+        const slot = document.createElement('div');
+        slot.className = 'tb-party-slot filled';
+        if(pokemon){
+          slot.innerHTML = `
+            <button class="tb-slot-remove-btn" title="Remove from list">&minus;</button>
+            <div class="tb-party-slot-filled-row">
+              <div class="tb-party-slot-sprite-zone">
+                <img class="tb-party-slot-sprite" src="${getSprite(pokemon,false)}" alt="${escapeHtml(pokemon.name)}">
+              </div>
+              <div>
+                <div class="tb-party-slot-name">${escapeHtml(getDisplayName(pokemon.name))}</div>
+                <div class="tb-party-slot-badges type-badges"></div>
+              </div>
+            </div>
+          `;
+          const badgeRow = slot.querySelector('.tb-party-slot-badges');
+          pokemon.types.forEach(t=>badgeRow.appendChild(makeBadgeImg(t.type.name,false)));
+        } else {
+          slot.innerHTML = `<button class="tb-slot-remove-btn" title="Remove from list">&minus;</button><div class="tb-party-slot-plus">…</div><div class="tb-party-slot-label">${escapeHtml(getDisplayName(item.name))}</div>`;
+        }
+        slot.querySelector('.tb-slot-remove-btn').addEventListener('click', (e)=>{
+          e.stopPropagation();
+          removeFromList(list.id, item.name);
+          renderListEditor();
+        });
+        grid.appendChild(slot);
+      });
+      // Always-present empty "+ Add Pokemon to list" slot — same empty-state look/markup as the
+      // Team Builder's empty .tb-party-slot, wraps into the grid's existing 3-per-row layout.
+      const addSlot = document.createElement('div');
+      addSlot.className = 'tb-party-slot';
+      addSlot.innerHTML = `<div class="tb-party-slot-plus">+</div><div class="tb-party-slot-label">Add Pokemon to list</div>`;
+      addSlot.addEventListener('click', ()=>{
+        openPokemonPicker((pokemon)=>{
+          addToList(list.id, pokemon);
+          renderListEditor();
+        });
+      });
+      grid.appendChild(addSlot);
+    }
+    document.getElementById('lists-create-list-btn')?.addEventListener('click', ()=>{
+      const list = createList('New List');
+      if(list) showListEditor(list.id);
+    });
+    document.getElementById('le-close-btn')?.addEventListener('click', ()=>{
+      renderListsSwitcher();
+      renderListsGrid();
+      showListsBrowser();
+    });
+    document.getElementById('le-name-input')?.addEventListener('change', e=>{
+      const list = getList(leActiveListId);
+      if(!list) return;
+      const trimmed = e.target.value.trim().slice(0,40) || 'New List';
+      renameList(list.id, trimmed);
+      e.target.value = trimmed;
+    });
+    document.getElementById('le-name-edit-btn')?.addEventListener('click', ()=>{
+      document.getElementById('le-name-input')?.focus();
+      document.getElementById('le-name-input')?.select();
+    });
+    // Save button — addToList/removeFromList/renameList already persist immediately (same
+    // autosave-first design as the Team Canvas' own Save button), so this is the same
+    // reassuring explicit action with a brief visual confirmation, not new save logic.
+    document.getElementById('le-save-btn')?.addEventListener('click', ()=>{
+      const list = getList(leActiveListId);
+      if(!list) return;
+      saveListsData();
+      const btn = document.getElementById('le-save-btn');
+      if(btn){
+        const original = btn.textContent;
+        btn.textContent = 'Saved ✓';
+        setTimeout(()=>{ btn.textContent = original; }, 1200);
       }
     });
 
@@ -8408,8 +8561,14 @@
     let tbDexPickSortAscending = true;
     let tbDexPickResolvedRoster = undefined; // undefined = not yet resolved for this open; null = no restriction (no game, or fallback); Set or {type:'idrange',...} = curated roster
     let tbDexPickAvailableGens = null;  // Set of generation numbers (as strings) present for the current game/roster; null = no restriction (show Gen 1-9)
+    // When set, overrides the Team Builder's default "fill this party slot" behavior — lets any
+    // OTHER feature (the Lists section's List Editor, Task 3) open this exact same "Choose a
+    // Pokémon" modal/grid/TYPES+GEN sheets and receive the picked Pokémon object back, instead
+    // of maintaining a second parallel copy of this component. See openPokemonPicker() below.
+    let tbDexPickOnSelect = null;
 
     async function tbOpenDexPicker(slotIndex){
+      tbDexPickOnSelect = null;
       tbDexPickSlotIndex = slotIndex;
       // Reset filters fresh each time the picker opens.
       tbDexPickSearch = '';
@@ -8439,6 +8598,36 @@
         tbDexPickResolvedRoster = null;
       }
       tbDexPickRecomputeAvailableGens();
+      renderTbDexPickGenSheet();
+      renderTbDexPickGrid();
+    }
+
+    // ── Shared "Choose a Pokémon" entry point for callers OUTSIDE the Team Builder (Task 3's
+    // List Editor is the first) — reuses this exact modal, grid, search box, and TYPES/GEN
+    // sheets rather than a second lookalike copy. No team/game is in scope here, so there's no
+    // roster restriction (tbDexPickFilteredSorted only applies one when tbDexPickSlotIndex is
+    // non-null, i.e. the Team Builder opened it). onSelect(pokemon) fires once, after the modal
+    // has already closed, with the full picked Pokémon object — exactly what tbDexPickSelect
+    // would otherwise have written into a team slot.
+    function openPokemonPicker(onSelect){
+      tbDexPickSlotIndex = null;
+      tbDexPickOnSelect = onSelect;
+      tbDexPickSearch = '';
+      tbDexPickActiveTypes = new Set();
+      tbDexPickActiveGen = 'all';
+      tbDexPickSort = 'number';
+      tbDexPickSortAscending = true;
+      tbDexPickResolvedRoster = null;
+      tbDexPickAvailableGens = null;
+      document.getElementById('tb-dexpick-search').value = '';
+      document.getElementById('tb-dexpick-sort-select').value = 'number';
+      document.getElementById('tb-dexpick-sort-dir-btn').textContent = '↑';
+      const typeTrigger = document.getElementById('tb-dexpick-type-trigger');
+      typeTrigger.classList.remove('has-selection');
+      typeTrigger.textContent = 'Types';
+      document.getElementById('tb-dexpick-gen-trigger').classList.remove('has-selection');
+      document.querySelectorAll('#tb-dexpick-type-sheet-body .tb-dexpick-pill').forEach(p=>p.classList.remove('selected'));
+      document.getElementById('tb-dexpick-backdrop').classList.add('visible');
       renderTbDexPickGenSheet();
       renderTbDexPickGrid();
     }
@@ -8497,7 +8686,10 @@
 
     function tbDexPickFilteredSorted(){
       let list = [...allPokemon, ...regionalForms];
-      const team = getTeam(tbActiveTeamId);
+      // Roster restriction only applies when the Team Builder opened this picker for a party
+      // slot (tbDexPickSlotIndex non-null) — a generic caller via openPokemonPicker() (e.g. the
+      // Lists section's List Editor) has no team/game in scope, so it always sees the full list.
+      const team = tbDexPickSlotIndex !== null ? getTeam(tbActiveTeamId) : null;
       if(team && team.game){
         const roster = tbDexPickResolvedRoster;
         if(roster instanceof Set){
@@ -8586,6 +8778,13 @@
     }
 
     function tbDexPickSelect(pokemon){
+      if(tbDexPickOnSelect){
+        const cb = tbDexPickOnSelect;
+        tbDexPickOnSelect = null;
+        tbCloseDexPicker();
+        cb(pokemon);
+        return;
+      }
       if(tbDexPickSlotIndex === null) return;
       const team = getTeam(tbActiveTeamId);
       if(!team) return;
@@ -10758,14 +10957,16 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       const section=document.createElement('div');section.className='matchup-section';
       const hdr=document.createElement('div');hdr.className='matchup-section-header';
       const left=document.createElement('div');left.className='matchup-section-header-left';
+      // Golden standard: text first, then icon(s), then the open/closed chevron (appended
+      // outside `left`, below) — so the title element must be appended before the type icon.
+      const titleEl=document.createElement('span');titleEl.className='matchup-section-title';titleEl.textContent=title;
+      left.appendChild(titleEl);
       if(typeIconName){
         const ico=document.createElement('img');ico.className='matchup-section-type-pill';
         ico.src=`${BUTTON_PATH}/${typeIconName}.png`;ico.alt=typeIconName;
         ico.onerror=()=>{ico.style.display='none';};
         left.appendChild(ico);
       }
-      const titleEl=document.createElement('span');titleEl.className='matchup-section-title';titleEl.textContent=title;
-      left.appendChild(titleEl);
       const arrow=document.createElement('span');arrow.className='matchup-section-arrow';arrow.textContent='▼';
       hdr.appendChild(left);hdr.appendChild(arrow);
       const body=document.createElement('div');body.className='matchup-section-body';
@@ -10861,10 +11062,14 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       });
 
       function rebuildAccordions(){
-        // Which sections are currently open?
-        const openTitles=new Set();
-        body.querySelectorAll('.matchup-section.open .matchup-section-title').forEach(el=>openTitles.add(el.textContent));
-        const firstOpen=openTitles.size===0;// first build
+        // Which sections are currently open? Tracked by a stable key (dataset.sectionKey), NOT
+        // the header's visible text — "Damage Dealt" is now shared text across every offensive
+        // (per-type) accordion, so matching on textContent would incorrectly reopen ALL of them
+        // instead of just the one the user had open. defSection uses key 'def'; each offensive
+        // section uses its own typeName as the key.
+        const openKeys=new Set();
+        body.querySelectorAll('.matchup-section.open').forEach(el=>{if(el.dataset.sectionKey)openKeys.add(el.dataset.sectionKey);});
+        const firstOpen=openKeys.size===0;// first build
 
         body.innerHTML='';
         const accordion=document.createElement('div');accordion.className='matchup-accordion';
@@ -10883,6 +11088,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
           const modified=applyDefensiveAbilityMods(raw,activeMods,pokemonTypes);
           buildMatchupTiers(modified,sBody,badgeClick,fluffyActive);
         },allSections);
+        defSection.dataset.sectionKey='def';
         // Type icons live in Damage Taken header, left of title
         const defLeft=defSection.querySelector('.matchup-section-header-left');
         pokemonTypes.forEach(typeName=>{
@@ -10903,20 +11109,23 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
           });
           defLeft.appendChild(ico);
         });
-        if(firstOpen||openTitles.has(defTitle))defSection.classList.add('open');
+        if(firstOpen||openKeys.has('def'))defSection.classList.add('open');
         allSections.push(defSection);
         accordion.appendChild(defSection);
 
         // ── Accordions 2+: Damage Dealt per type ──
         pokemonTypes.forEach(typeName=>{
-          const offTitle=`Damage Dealt \u2014 ${toTitleCase(typeName)}`;
+          // Golden standard: no redundant type-name text in the header \u2014 just "Damage Dealt",
+          // with the type icon rendered to its right (added by buildMatchupSection above).
+          const offTitle='Damage Dealt';
           const offSection=buildMatchupSection(offTitle,typeName,(sBody)=>{
             const raw=calculateOffensiveMatchups(typeName);
             if(!raw){const ph=document.createElement('div');ph.style.cssText='text-align:center;color:#aaa;font-size:12px;padding:12px 0;';ph.textContent='No data available.';sBody.appendChild(ph);return;}
             const modified=applyOffensiveAbilityMods(raw,typeName,activeMods);
             buildMatchupTiers(modified,sBody,badgeClick,false);
           },allSections);
-          if(openTitles.has(offTitle))offSection.classList.add('open');
+          offSection.dataset.sectionKey=typeName;
+          if(openKeys.has(typeName))offSection.classList.add('open');
           allSections.push(offSection);
           accordion.appendChild(offSection);
         });
@@ -11553,7 +11762,8 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
         const section=document.createElement('div');section.className='obtain-hunt-section'+(idx===0?' open':'');
         const hdr=document.createElement('div');hdr.className='obtain-hunt-header';
         hdr.style.borderLeftColor=ms.color;
-        hdr.innerHTML=`<div class="obtain-hunt-header-left"><div class="obtain-hunt-icon" style="color:${ms.color}">${ms.icon||''}</div><span class="obtain-hunt-label" style="color:${ms.color}">${ms.label}</span></div><span class="obtain-hunt-arrow">▼</span>`;
+        // Golden standard: text before icon(s) before the open/closed chevron.
+        hdr.innerHTML=`<div class="obtain-hunt-header-left"><span class="obtain-hunt-label" style="color:${ms.color}">${ms.label}</span><div class="obtain-hunt-icon" style="color:${ms.color}">${ms.icon||''}</div></div><span class="obtain-hunt-arrow">▼</span>`;
         const body=document.createElement('div');body.className='obtain-hunt-body';
         body.appendChild(ms.body());
         section.appendChild(hdr);section.appendChild(body);
