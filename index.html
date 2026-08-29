@@ -1384,11 +1384,16 @@
     .moveset-section-body { display: none; border-top: 1px solid rgba(0,0,0,0.06); max-height: 660px; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
     .moveset-section-body::-webkit-scrollbar { display: none; }
     .moveset-section.open .moveset-section-body { display: block; }
-    /* Move table */
+    /* Move table — golden standard for every scrollable data table in the app (reused verbatim by
+       .tb-move-table below). The scroll container is the table's own ancestor with overflow-y:auto
+       (.moveset-section-body here) — sticky is applied directly to the <thead> th cells rather than
+       a `.moveset-table-head` wrapper class (that class used to target a non-existent element and
+       did nothing), because <thead>-level `position:sticky` support is inconsistent across
+       browsers while per-cell sticky is reliable. Each th needs its own opaque background (sticky
+       elements paint transparent by default) so scrolled-past rows don't show through underneath. */
     .moveset-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    .moveset-table-head { position: sticky; top: 0; z-index: 2; }
     .moveset-table thead tr { background: #f0f0f4; }
-    .moveset-table thead th { padding: 7px 4px; font-size: 10px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.4px; text-align: left; white-space: nowrap; overflow: hidden; }
+    .moveset-table thead th { position: sticky; top: 0; z-index: 2; background: #f0f0f4; padding: 7px 4px; font-size: 10px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.4px; text-align: left; white-space: nowrap; overflow: hidden; }
     .moveset-table thead th:first-child { padding-left: 10px; width: 38px; }
     .moveset-table thead th.col-move { width: 28%; }
     .moveset-table thead th.col-type { width: 42px; }
@@ -1532,16 +1537,22 @@
     .addlist-backdrop.visible { display: flex; }
     .addlist-sheet {
       background: #fff; width: 100%; max-width: 460px; border-radius: 20px 20px 0 0;
-      padding: 10px 18px 20px; max-height: 70vh; overflow-y: auto;
+      padding: 10px 18px 20px; max-height: 70vh; overflow-y: hidden;
+      display: flex; flex-direction: column;
       transform: translateY(100%); transition: transform 0.25s ease;
       box-shadow: 0 -8px 30px rgba(0,0,0,0.18);
     }
     .addlist-backdrop.visible .addlist-sheet { transform: translateY(0); }
-    .addlist-sheet-handle { width: 36px; height: 4px; border-radius: 3px; background: #e2ddd0; margin: 2px auto 12px; }
-    .addlist-sheet-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .addlist-sheet-handle { width: 36px; height: 4px; border-radius: 3px; background: #e2ddd0; margin: 2px auto 12px; flex-shrink: 0; }
+    .addlist-sheet-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-shrink: 0; }
     .addlist-sheet-title { font-family: 'Archivo Black', sans-serif; font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: #1a1a1a; }
     .addlist-sheet-close { width: 30px; height: 30px; border-radius: 50%; border: none; background: #f0efe9; font-size: 13px; color: #555; cursor: pointer; flex-shrink: 0; transition: background 0.15s; }
     .addlist-sheet-close:hover { background: #e2ddd0; }
+    /* Bottom-sheet golden standard (see .tb-game-sheet-header/-body): header/handle pinned via
+       flex-shrink:0, the list is the one flexible+scrollable child, the create-row footer stays
+       pinned below it. */
+    .addlist-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+    .addlist-create-row { flex-shrink: 0; }
     .addlist-item {
       display: flex; align-items: center; justify-content: space-between; gap: 10px;
       padding: 12px 12px; margin-bottom: 6px; border-radius: 14px; background: #faf9f5;
@@ -1747,6 +1758,10 @@
     .tb-pill-trigger:hover { border-color: #43656e; background: rgba(67,101,110,0.06); }
     .tb-pill-trigger.has-selection { border-color: #43656e; background: rgba(67,101,110,0.1); }
     .tb-pill-chevron { font-size: 9px; color: #999; }
+    /* Disabled state for a pill trigger that's temporarily not applicable (e.g. the Hub's Game
+       filter while its Format filter is purely competitive) — dimmed and inert, same idiom as
+       .lists-action-btn:disabled elsewhere. */
+    .tb-pill-disabled, #tb-hub-game-pill:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
 
     /* One team per row — a vertical list of full-width cards rather than the auto-fill grid
        every other section uses, so a team's full context reads at a glance without opening it. */
@@ -2055,15 +2070,15 @@
        Studio overlay (z-index 210). Own classes so Studio styling stays fully isolated. ── */
     .tb-studio-sheet-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.35); z-index: 310; display: none; }
     .tb-studio-sheet-backdrop.open { display: block; }
-    /* Round: Diego, 2026-08-24 — mechanics matched to the app's golden-standard bottom sheet
-       (.mobile-sheet-header's container rule): animates transform (not `bottom`), and is now the
-       ONE padded/scrollable box holding header+body together, instead of a separate bordered/
-       sticky header sitting above a separately-padded body. See .tb-studio-sheet-header/-body
-       below — neither carries its own padding any more, the parent provides all of it. */
+    /* Round: 2026-08-29 — superseded by the app-wide bottom-sheet golden standard (see
+       .tb-game-sheet-header/-body). Earlier (2026-08-24) this was collapsed into ONE
+       padded/scrollable box holding header+body together; that made the title scroll away with
+       long lists (Ability/Item pickers), so it's reverted back to a fixed header + independently
+       scrolling body like every other sheet in the app. */
     .tb-studio-sheet {
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 320;
       display: flex; flex-direction: column; background: white; border-radius: 16px 16px 0 0;
-      max-height: 65vh; overflow-y: auto;
+      max-height: 65vh; overflow-y: hidden;
       padding: 14px 14px calc(14px + env(safe-area-inset-bottom, 0px));
       transform: translateY(100%); transition: transform 0.25s ease;
       box-shadow: 0 -6px 24px rgba(0,0,0,0.2);
@@ -2077,7 +2092,7 @@
     .tb-studio-sheet-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0; }
     .tb-studio-sheet-title { font-family: 'Archivo Black', sans-serif; font-weight: 900; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: #333; }
     .tb-studio-sheet-close { width: 30px; height: 30px; border-radius: 50%; background: #f0efe9; border: none; cursor: pointer; font-size: 13px; color: #555; }
-    .tb-studio-sheet-body { display: flex; flex-direction: column; }
+    .tb-studio-sheet-body { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
     .tb-studio-sheet-empty { padding: 16px 0; font-size: 12px; color: #999; font-style: italic; text-align: center; }
 
     .tb-studio-opt-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 4px; border-bottom: 1px solid #f0f0f0; cursor: pointer; background: none; border-left: none; border-right: none; border-top: none; width: 100%; text-align: left; font: inherit; }
@@ -2295,9 +2310,12 @@
     .tb-move-section.open .tb-move-section-arrow { transform: rotate(180deg); }
     .tb-move-section-body { display: none; border-top: 1px solid rgba(0,0,0,0.06); max-height: 360px; overflow-y: auto; }
     .tb-move-section.open .tb-move-section-body { display: block; }
+    /* Sticky header, same golden-standard mechanism as .moveset-table thead th (recycled verbatim,
+       not a separate implementation): scroll container is .tb-move-section-body, sticky lives on
+       the th cells themselves with their own opaque background. */
     .tb-move-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     .tb-move-table thead tr { background: #f0f0f4; }
-    .tb-move-table thead th { padding: 7px 4px; font-size: 10px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.4px; text-align: left; white-space: nowrap; overflow: hidden; }
+    .tb-move-table thead th { position: sticky; top: 0; z-index: 2; background: #f0f0f4; padding: 7px 4px; font-size: 10px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.4px; text-align: left; white-space: nowrap; overflow: hidden; }
     .tb-move-table thead th:first-child { padding-left: 10px; width: 34px; }
     .tb-move-table thead th.tb-mv-col-move { width: 26%; }
     .tb-move-table thead th.tb-mv-col-type { width: 40px; }
@@ -2612,13 +2630,19 @@
          sheet reuses it below. ── */
       .mobile-sheet-backdrop { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 400; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
       .mobile-sheet-backdrop.open { opacity: 1; pointer-events: all; }
+      /* Bottom-sheet golden standard (see .tb-game-sheet-header/-body for the canonical example):
+         the sheet itself is the flex column with a bounded max-height and does NOT scroll as a
+         whole (overflow-y:hidden here) — .mobile-sheet-header is a non-shrinking flex item pinned
+         at the top, and the sheet's content element is the one flexible/scrollable child
+         (flex:1 1 auto; min-height:0; overflow-y:auto below), so the title stays fixed while the
+         content scrolls underneath it. */
       #type-filter-row, #gen-filter-row, #grid-sort-wrapper,
       #ab-gen-filter-row, #ab-hidden-filter-row, #ab-sort-wrap,
       #mv-type-filter-row, #mv-gen-filter-row, #mv-cat-filter-row, #mv-sort-wrap,
       #lists-mylists-sheet {
         position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 401;
         display: flex; flex-direction: column; align-items: stretch; background: white; border-radius: 16px 16px 0 0;
-        max-height: 65vh; overflow-y: auto; padding: 14px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+        max-height: 65vh; overflow-y: hidden; padding: 14px 14px calc(14px + env(safe-area-inset-bottom, 0px));
         transform: translateY(100%); transition: transform 0.25s ease; box-shadow: 0 -6px 24px rgba(0,0,0,0.2);
       }
       #type-filter-row.open, #gen-filter-row.open, #grid-sort-wrapper.open,
@@ -2631,8 +2655,12 @@
 
       #type-filter-row.open .type-filter-strip, #gen-filter-row.open .gen-strip,
       #ab-gen-filter-row.open .gen-strip, #mv-gen-filter-row.open .gen-strip,
-      #mv-type-filter-row.open #mv-type-filter { display: flex; flex-wrap: wrap; overflow: visible; gap: 8px; }
-      #ab-hidden-filter-row.open #ab-hidden-row, #mv-cat-filter-row.open #mv-cat-row { display: flex; flex-wrap: wrap; overflow: visible; gap: 8px; justify-content: center; }
+      #mv-type-filter-row.open #mv-type-filter { display: flex; flex-wrap: wrap; overflow-y: auto; flex: 1 1 auto; min-height: 0; gap: 8px; }
+      #ab-hidden-filter-row.open #ab-hidden-row, #mv-cat-filter-row.open #mv-cat-row { display: flex; flex-wrap: wrap; overflow-y: auto; flex: 1 1 auto; min-height: 0; gap: 8px; justify-content: center; }
+      /* Sort sheets' visible content is .sort-row (label above it stays display:none on mobile) —
+         same flexible/scrollable-body treatment as the filter sheets above. */
+      #grid-sort-wrapper .sort-row, #ab-sort-wrap .sort-row, #mv-sort-wrap .sort-row { overflow-y: auto; flex: 1 1 auto; min-height: 0; }
+      #lists-mylists-sheet .lists-mylists-strip { overflow-y: auto; flex: 1 1 auto; min-height: 0; }
       /* Type filter sheets (Pokémon + Moves, same treatment): 3 pills per row (6 equal rows for
          the 18 types), bigger pills, and a taller sheet so the extra row height still fits
          without scrolling awkwardly. */
@@ -3858,15 +3886,22 @@
         <div class="tb-context-header">
           <div class="tb-header-controls">
             <div class="tb-battle-mode-label">Battle Mode</div>
-              <!-- Unified Format pill — merges the old separate Mode (Story/Competitive) and
-                   Format (Singles/Doubles) toggles into one concept, opening the shared
-                   #tb-format-sheet (context: canvas). Still sets team.mode/team.format underneath. -->
-              <button class="tb-pill-trigger" id="tb-canvas-format-pill">
+              <!-- Step 1: Battle Mode pill (Casual Playthrough vs Competitive) — opens
+                   #tb-battlemode-sheet. Drives which second pill (below) is shown. -->
+              <button class="tb-pill-trigger" id="tb-canvas-battlemode-pill">
+                <span id="tb-canvas-battlemode-label">Battle Mode</span><span class="tb-pill-chevron">▾</span>
+              </button>
+
+              <!-- Step 2, Competitive: Singles/Doubles pill — reuses the existing #tb-format-sheet
+                   (context: canvas), now restricted to just those two options since Playthrough is
+                   chosen one step earlier via Battle Mode. Hidden for Casual teams. -->
+              <button class="tb-pill-trigger" id="tb-canvas-format-pill" style="display:none;">
                 <span id="tb-canvas-format-label">Format</span><span class="tb-pill-chevron">▾</span>
               </button>
 
-              <!-- Game selector: opens a bottom-sheet picker grouped by generation, built from
-                   the existing GAME_LIST constant. Visual only — no legality filtering yet. -->
+              <!-- Step 2, Casual: Game selector — opens a bottom-sheet picker grouped by generation,
+                   built from the existing GAME_LIST constant. Not applicable to Competitive teams
+                   (hidden there — game selection doesn't drive competitive roster/movepool/mechanics). -->
               <button class="tb-game-select-btn" id="tb-game-select-btn">
                 <span id="tb-game-select-label">Select a game</span><span class="tb-game-select-chevron">▾</span>
               </button>
@@ -3915,10 +3950,22 @@
         <div class="tb-game-sheet-body" id="tb-game-sheet-body"></div>
       </div>
 
-      <!-- Unified Format sheet — shared by the Hub's FORMAT filter pill and the Canvas's Battle
-           Mode FORMAT pill (context tracked in JS via tbFormatSheetContext). Groups options into
-           "Competitive / VGC" (Doubles, Singles) and "Casual / Story Mode" (Playthrough), the
-           deliberate merge of the old separate Mode+Format toggles into one concept. -->
+      <!-- Battle Mode sheet — Step 1 of the Canvas's two-step chain (Battle Mode, then a
+           contextual second pill: Select a Game for Casual, Singles/Doubles for Competitive).
+           Same tb-game-sheet markup/classes reused verbatim, own body id. -->
+      <div class="tb-game-sheet-backdrop" id="tb-battlemode-sheet-backdrop"></div>
+      <div class="tb-game-sheet" id="tb-battlemode-sheet">
+        <div class="tb-game-sheet-header">
+          <span class="tb-game-sheet-title">Battle Mode</span>
+          <button class="tb-game-sheet-close" id="tb-battlemode-sheet-close">✕</button>
+        </div>
+        <div class="tb-game-sheet-body" id="tb-battlemode-sheet-body"></div>
+      </div>
+
+      <!-- Format sheet — the Hub's FORMAT filter pill (multi-select, all 3 options: Doubles /
+           Singles / Playthrough) and the Canvas's Battle-Mode-Competitive second pill (single-
+           select, Doubles/Singles ONLY — Playthrough is chosen one step earlier via the Battle
+           Mode sheet above), context tracked in JS via tbFormatSheetContext. -->
       <div class="tb-game-sheet-backdrop" id="tb-format-sheet-backdrop"></div>
       <div class="tb-game-sheet" id="tb-format-sheet">
         <div class="tb-game-sheet-header">
@@ -5830,12 +5877,69 @@
       tbHubSortAscending = false;
       tbUpdateHubTriggerCount('tb-hub-format-pill','tb-hub-format-count',0);
       tbUpdateHubTriggerCount('tb-hub-game-pill','tb-hub-game-count',0);
+      tbUpdateHubGamePillAvailability();
       tbApplySortPillLabel();
       renderTeamBuilderHub();
     });
 
-    // Format sheet is shared between the Hub (filter, multi-select) and the Canvas (sets a
-    // single team's mode/format, single-select) — tbFormatSheetContext picks which behavior
+    // A team's game is only meaningful for a Casual/Playthrough team — for a Competitive team,
+    // every place that would otherwise gate roster/movepool/mechanics by team.game must instead
+    // treat it as unrestricted (see Item 4 point 2). One small helper, threaded into every gating
+    // condition below rather than duplicating `team.mode==='competitive'` checks ad hoc.
+    function tbIsGameRestricted(team){ return !!team && team.mode !== 'competitive'; }
+    // Tera Type / Gen 9 mechanics: gated by TB_STUDIO_GEN9_GAMES for a Casual team (whose game
+    // determines what mechanics exist), but a Competitive team has no game to check — and
+    // Terastallization is a core, format-defining mechanic in every current competitive context,
+    // so treat Competitive as always Gen-9-mechanics-eligible regardless of team.game.
+    function tbTeraApplicable(team){ return !!team && (!tbIsGameRestricted(team) || TB_STUDIO_GEN9_GAMES.has(team.game)); }
+
+    // Battle Mode sheet — Step 1 of the Canvas's two-step chain. Single-select Casual/Competitive,
+    // reuses the same .tb-game-pill/.tb-game-gen-group markup as the Format sheet below.
+    function renderBattleModeSheet(){
+      const body = document.getElementById('tb-battlemode-sheet-body');
+      if(!body) return;
+      const team = getTeam(tbActiveTeamId);
+      const pill = (key,label)=> `<button class="tb-game-pill${team && team.mode===key?' selected':''}" data-battlemode-key="${key}" style="flex:1;">${label}</button>`;
+      body.innerHTML = `
+        <div class="tb-game-gen-group">
+          <div class="tb-game-pill-row" style="grid-template-columns:1fr;">
+            ${pill('story','Casual Playthrough')}
+          </div>
+        </div>
+        <div class="tb-game-gen-group">
+          <div class="tb-game-pill-row" style="grid-template-columns:1fr;">
+            ${pill('competitive','Competitive')}
+          </div>
+        </div>
+      `;
+      body.querySelectorAll('[data-battlemode-key]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const t = getTeam(tbActiveTeamId);
+          if(!t) return;
+          const key = btn.dataset.battlemodeKey;
+          t.mode = key;
+          if(key === 'story'){
+            if(!t.format) t.format = 'singles';
+          } else {
+            // Competitive: game selection isn't applicable — always clear it (not just <gen 8,
+            // generalizing the old gen-gated clear), and default a format so the second pill has
+            // something selected the first time Competitive is picked.
+            t.game = null;
+            if(!t.format) t.format = 'singles';
+          }
+          touchTeam(t);
+          document.getElementById('tb-battlemode-sheet')?.classList.remove('open');
+          document.getElementById('tb-battlemode-sheet-backdrop')?.classList.remove('open');
+          renderTeamCanvas();
+        });
+      });
+    }
+    setupMobileSheet('tb-canvas-battlemode-pill','tb-battlemode-sheet','tb-battlemode-sheet-backdrop','tb-battlemode-sheet-close');
+    document.getElementById('tb-canvas-battlemode-pill')?.addEventListener('click', renderBattleModeSheet);
+
+    // Format sheet is shared between the Hub (filter, multi-select, all 3 keys) and the Canvas
+    // (context: canvas — single-select, Doubles/Singles ONLY; Playthrough is chosen one step
+    // earlier via the Battle Mode sheet above) — tbFormatSheetContext picks which behavior
     // renderFormatSheet uses. Declared before first use below.
     let tbFormatSheetContext = 'hub'; // 'hub' | 'canvas'
     function renderFormatSheet(){
@@ -5843,36 +5947,38 @@
       if(!body) return;
       const team = tbFormatSheetContext === 'canvas' ? getTeam(tbActiveTeamId) : null;
       const isSelected = (key)=> tbFormatSheetContext === 'canvas'
-        ? (team ? tbTeamMatchesFormatKey(team, key) : false)
+        ? (team ? team.format === key : false)
         : tbHubActiveFormatKeys.has(key);
       const pill = (key,label)=> `<button class="tb-game-pill${isSelected(key)?' selected':''}" data-format-key="${key}" style="flex:1;">${label}</button>`;
-      body.innerHTML = `
+      let html = `
         <div class="tb-game-gen-group">
           <div class="tb-game-gen-label">Competitive / VGC</div>
           <div class="tb-game-pill-row" style="grid-template-columns:1fr 1fr;">
             ${pill('doubles','Doubles')}
             ${pill('singles','Singles')}
           </div>
-        </div>
+        </div>`;
+      // Casual/Story is only a valid choice from the Hub's filter (multi-select across all
+      // teams); the Canvas's own Format pill only ever appears for a Competitive team (Casual
+      // teams use the Game-select pill instead), so it never shows the Playthrough option.
+      if(tbFormatSheetContext !== 'canvas'){
+        html += `
         <div class="tb-game-gen-group">
           <div class="tb-game-gen-label">Casual / Story Mode</div>
           <div class="tb-game-pill-row" style="grid-template-columns:1fr;">
             ${pill('story','Playthrough')}
           </div>
-        </div>
-      `;
+        </div>`;
+      }
+      body.innerHTML = html;
       body.querySelectorAll('[data-format-key]').forEach(btn=>{
         btn.addEventListener('click', ()=>{
           const key = btn.dataset.formatKey;
           if(tbFormatSheetContext === 'canvas'){
             const t = getTeam(tbActiveTeamId);
             if(!t) return;
-            if(key === 'story'){ t.mode = 'story'; }
-            else { t.mode = 'competitive'; t.format = key; }
-            if(t.mode === 'competitive' && t.game){
-              const gen = (function(){ for(const g of GAME_LIST){ if(g.games.some(x=>x.id===t.game)) return g.gen; } return null; })();
-              if(gen !== null && gen < 8) t.game = null;
-            }
+            t.mode = 'competitive'; t.format = key;
+            t.game = null; // game selection never applies to a Competitive team
             touchTeam(t);
             document.getElementById('tb-format-sheet')?.classList.remove('open');
             document.getElementById('tb-format-sheet-backdrop')?.classList.remove('open');
@@ -5880,6 +5986,7 @@
           } else {
             if(tbHubActiveFormatKeys.has(key)) tbHubActiveFormatKeys.delete(key); else tbHubActiveFormatKeys.add(key);
             tbUpdateHubTriggerCount('tb-hub-format-pill','tb-hub-format-count', tbHubActiveFormatKeys.size);
+            tbUpdateHubGamePillAvailability();
             renderFormatSheet();
             renderTeamBuilderHub();
           }
@@ -5888,6 +5995,23 @@
     }
     setupMobileSheet('tb-hub-format-pill','tb-format-sheet','tb-format-sheet-backdrop','tb-format-sheet-close');
     document.getElementById('tb-hub-format-pill')?.addEventListener('click', ()=>{ tbFormatSheetContext = 'hub'; renderFormatSheet(); });
+
+    // Hub Game filter pill doesn't apply once the Format filter is purely competitive (singles
+    // and/or doubles, no story) — disable it in that state, matching the Canvas rule that game
+    // selection isn't applicable to Competitive teams. Re-enabled the moment 'story' is included
+    // again (or the Format filter is cleared).
+    function tbUpdateHubGamePillAvailability(){
+      const keys = tbHubActiveFormatKeys;
+      const competitiveOnly = keys.size > 0 && !keys.has('story');
+      const pill = document.getElementById('tb-hub-game-pill');
+      if(!pill) return;
+      pill.disabled = competitiveOnly;
+      pill.classList.toggle('tb-pill-disabled', competitiveOnly);
+      if(competitiveOnly && tbHubActiveGames.size){
+        tbHubActiveGames.clear();
+        tbUpdateHubTriggerCount('tb-hub-game-pill','tb-hub-game-count', 0);
+      }
+    }
 
     function renderHubGameSheet(){
       const body = document.getElementById('tb-hub-game-sheet-body');
@@ -5957,16 +6081,29 @@
       const nameInput = document.getElementById('tb-team-name-input');
       nameInput.value = team.name;
 
-      // Unified Format pill label — reflects the merged Mode+Format concept (Doubles / Singles /
-      // Playthrough) in one place.
-      const formatLabel = document.getElementById('tb-canvas-format-label');
-      if(formatLabel) formatLabel.textContent = team.mode === 'competitive' ? (team.format === 'doubles' ? 'Doubles' : 'Singles') : 'Playthrough';
+      // Step 1: Battle Mode pill label.
+      const battleModeLabel = document.getElementById('tb-canvas-battlemode-label');
+      if(battleModeLabel) battleModeLabel.textContent = team.mode === 'competitive' ? 'Competitive' : 'Casual Playthrough';
 
-      // Game selector label (+ logo, when available)
-      const gameLabelEl = document.getElementById('tb-game-select-label');
-      if(gameLabelEl){
-        gameLabelEl.innerHTML = tbGameIconImgHtml(team.game, tbGameLabelFor(team.game) || 'Select a game');
-        document.getElementById('tb-game-select-btn')?.classList.toggle('has-logo', !!team.game);
+      // Step 2: exactly one of the two contextual second pills is shown, based on Battle Mode.
+      // Competitive → Singles/Doubles pill (reuses #tb-format-sheet); Casual → Select-a-Game pill.
+      // Game selection doesn't apply to Competitive teams, so the game pill is hidden entirely
+      // there (not just left unselected).
+      const formatPill = document.getElementById('tb-canvas-format-pill');
+      const formatLabel = document.getElementById('tb-canvas-format-label');
+      const gamePill = document.getElementById('tb-game-select-btn');
+      if(team.mode === 'competitive'){
+        if(formatLabel) formatLabel.textContent = team.format === 'doubles' ? 'Doubles' : 'Singles';
+        if(formatPill) formatPill.style.display = '';
+        if(gamePill) gamePill.style.display = 'none';
+      } else {
+        if(formatPill) formatPill.style.display = 'none';
+        if(gamePill) gamePill.style.display = '';
+        const gameLabelEl = document.getElementById('tb-game-select-label');
+        if(gameLabelEl){
+          gameLabelEl.innerHTML = tbGameIconImgHtml(team.game, tbGameLabelFor(team.game) || 'Select a game');
+          gamePill?.classList.toggle('has-logo', !!team.game);
+        }
       }
 
       renderTeamPartyGrid(team);
@@ -6466,8 +6603,15 @@
     // Shield are cosmetic/lore holds with no separate battle mechanic requirement, so they pass
     // this gate unconditionally (species gate above is what actually restricts them).
     function tbItemMechanicGate(slug, team, catalog){
-      if(!catalog || !team || !team.game) return false;
-      const mechs = catalog.game_mechanics[team.game] || [];
+      if(!catalog || !team) return false;
+      // Competitive teams have no team.game to gate by (Item 4) — union every game's mechanics
+      // list instead of restricting to one, so a mega stone/Z-crystal compatible with ANY
+      // generation's ruleset stays available, rather than gating (and finding nothing) on a
+      // single game the team was never assigned.
+      const mechs = tbIsGameRestricted(team)
+        ? (team.game ? (catalog.game_mechanics[team.game] || []) : [])
+        : Object.values(catalog.game_mechanics || {}).flat();
+      if(tbIsGameRestricted(team) && !team.game) return false;
       if(catalog.mega_stone_species[slug]) return mechs.includes('mega');
       if(catalog.z_crystal_species[slug] || catalog.type_variant_z_crystals[slug]) return mechs.includes('zmove');
       // Orbs, Masks, Rusted Sword/Shield, Plates, Memories, Drives — no game-specific mechanic
@@ -7101,7 +7245,7 @@
     // Walls/Support-Disruptor, using this member's CURRENT weakness profile from
     // tbCalcDefensiveCoverage. Returns null when the team's game doesn't support Tera at all.
     function tbAdviceRecommendTera(member, team, cls){
-      if(!team || !TB_STUDIO_GEN9_GAMES.has(team.game)) return null;
+      if(!tbTeraApplicable(team)) return null;
       const types = (member.types||[]).map(t=> (typeof t==='string') ? t : (t && t.name)).filter(Boolean);
       if(!types.length) return null;
       const offensive = TB_ADVICE_OFFENSIVE_ROLES.includes(cls.role) || cls.role === 'FAST_MIXED_ATTACKER';
@@ -7278,7 +7422,7 @@
         item: recommendedItem,
         nature: archetype.natures[0],
         tera_type: recommendedTera,
-        tera_applicable: !!(team && TB_STUDIO_GEN9_GAMES.has(team.game)),
+        tera_applicable: tbTeraApplicable(team),
         stat_focus: archetype.statFocus,
         ev_spread: archetype.evSpread,
         moves: recommendedMoves.map(mv=>mv.name)
@@ -7460,7 +7604,7 @@
       }
 
       // Rule 112 — Ineffective/redundant defensive Tera Type (Gen 9 only)
-      if(team && TB_STUDIO_GEN9_GAMES.has(team.game) && member.teraType){
+      if(tbTeraApplicable(team) && member.teraType){
         const types = (member.types||[]).map(t=> (typeof t === 'string') ? t : (t && t.name)).filter(Boolean);
         if(['PHYSICAL_WALL','SPECIAL_WALL','FAST_SUPPORT_DISRUPTOR'].includes(cls.role) && types.includes(member.teraType)){
           push('RULE_112','ADVISORY','tera_type','Tera Type Re-Types to Native Type',
@@ -7582,7 +7726,7 @@
       // Tera Type badge-button — only for Gen 9 contexts. Lives inside the badge row now, not its
       // own section, so only the button itself is gated, not a wrapper.
       const teraBadgeBtn = document.getElementById('tb-studio-tera-pill');
-      if(teraBadgeBtn) teraBadgeBtn.style.display = (team.game && TB_STUDIO_GEN9_GAMES.has(team.game)) ? '' : 'none';
+      if(teraBadgeBtn) teraBadgeBtn.style.display = tbTeraApplicable(team) ? '' : 'none';
 
       // Ability/Nature/Tera pills reflect any already-saved selection; Item + Moves are stubs
       // this round.
@@ -9647,6 +9791,11 @@
       updateInfoHeader(pokemon);
       syncFavoriteButton();
       openPanel();
+      // openPanel() animates #right-panel open via transform — the name's clientWidth measured
+      // before that layout has settled (esp. position:fixed mobile layout) can be wrong, under- or
+      // over-sizing the fit. Re-measure against the FINAL settled layout post-paint. Double-rAF:
+      // one frame for the .open class/transform to apply, a second to be safe post-layout.
+      requestAnimationFrame(()=>requestAnimationFrame(()=>fitPokemonNameFont()));
       try{
         const speciesUrl=pokemon.species?.url||`https://pokeapi.co/api/v2/pokemon-species/${pokemon.id}`;
         const speciesData=await fetch(speciesUrl).then(r=>r.json());
@@ -9676,7 +9825,7 @@
       if(!el)return;
       el.style.fontSize='';
       let size=parseFloat(getComputedStyle(el).fontSize);
-      const minSize=16;
+      const minSize=12;
       el.style.fontSize=size+'px';
       let guard=0;
       while(el.scrollWidth>el.clientWidth&&size>minSize&&guard<60){
@@ -12057,7 +12206,16 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
     // is the single injection point every color/genus read goes through.
     const VARIANT_OVERRIDES={
       'ponyta-galar':{color:'pink',genus:'Unique Horn Pokémon'},
-      'rapidash-galar':{color:'white',genus:'Unique Horn Pokémon'}
+      'rapidash-galar':{color:'white',genus:'Unique Horn Pokémon'},
+      // Researched 2026-08-29 against Bulbapedia (raw infobox wikitext) + Serebii cross-check —
+      // see /data/variant-overrides.json. Only genus differs for these; official Pokédex COLOR
+      // is unchanged from the base species in every case checked this round (Galar batch of 5,
+      // Hisui batch of 5, Paldea Tauros x3 + Wooper) — so no 'color' key is set for any of them.
+      'growlithe-hisui':{genus:'Scout Pokémon'},
+      'voltorb-hisui':{genus:'Sphere Pokémon'},
+      'typhlosion-hisui':{genus:'Ghost Flame Pokémon'},
+      'sliggoo-hisui':{genus:'Snail Pokémon'},
+      'wooper-paldea':{genus:'Poison Fish Pokémon'}
     };
     function getVariantVisualOverride(pokemonName){
       return VARIANT_OVERRIDES[pokemonName]||null;
