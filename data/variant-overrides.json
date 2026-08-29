@@ -1,0 +1,21 @@
+{
+  "_readme": "Regional/alt-form varieties whose OFFICIAL Pokédex color category and/or Genus ('the ___ Pokémon' title) differ from their base species. PokéAPI's species.color and species.genera fields are shared across every variety of a species, so a variety with a genuinely different official color/genus needs an explicit override here — mirrors index.html's VARIANT_OVERRIDES object exactly (same keys, same PokéAPI pokemon-slug names). Researched against Bulbapedia (raw infobox wikitext) + Serebii cross-check, 2026-08-29. Only include a 'color' or 'genus' key when it has been positively confirmed to differ — omitting a key means 'fall back to the base species value', which is correct for every case checked this round except genus on the 5 Hisui/Paldea entries below.",
+  "overrides": {
+    "ponyta-galar": { "color": "pink", "genus": "Unique Horn Pokémon" },
+    "rapidash-galar": { "color": "white", "genus": "Unique Horn Pokémon" },
+    "growlithe-hisui": { "genus": "Scout Pokémon" },
+    "voltorb-hisui": { "genus": "Sphere Pokémon" },
+    "typhlosion-hisui": { "genus": "Ghost Flame Pokémon" },
+    "sliggoo-hisui": { "genus": "Snail Pokémon" },
+    "wooper-paldea": { "genus": "Poison Fish Pokémon" }
+  },
+  "_researched_and_confirmed_no_override_needed": {
+    "note": "These variants were researched this round and confirmed to share the SAME official color and genus as their base form — listed here so future research doesn't re-check them from scratch.",
+    "pokemon": [
+      "meowth-alola", "vulpix-alola", "ninetales-alola", "diglett-alola", "marowak-alola",
+      "weezing-galar", "slowpoke-galar", "slowbro-galar", "zigzagoon-galar", "darumaka-galar",
+      "qwilfish-hisui",
+      "tauros-paldea-combat-breed", "tauros-paldea-blaze-breed", "tauros-paldea-aqua-breed"
+    ]
+  }
+}
