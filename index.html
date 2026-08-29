@@ -1903,11 +1903,17 @@
        idiom as the remove button above, just anchored to the card's bottom edge instead of the
        top. Only rendered when the member actually has that field set (Studio-selected), so an
        unconfigured party member's card stays exactly as clean as before. */
-    .tb-party-slot-item-badge, .tb-party-slot-tera-badge { position: absolute; bottom: 6px; width: 20px; height: 20px; border-radius: 6px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; overflow: hidden; z-index: 2; }
+    /* icon-fills-enclosure golden standard: a single icon inside a small badge/pill fills the
+       ENTIRE enclosure edge to edge, with no background/box-shadow/border framing it (see
+       .dex-entry-game / .tb-badge.tb-badge-game). Item + Tera party-slot badges were the location
+       this standard's own writeup flagged as not-yet-swept; swept here (Diego, round 15). */
+    .tb-party-slot-item-badge, .tb-party-slot-tera-badge { position: absolute; bottom: 6px; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; overflow: hidden; z-index: 2; }
     .tb-party-slot-item-badge { left: 6px; }
-    .tb-party-slot-tera-badge { right: 6px; border-radius: 50%; }
+    .tb-party-slot-tera-badge { right: 6px; }
     .tb-party-slot-item-badge img, .tb-party-slot-item-badge .tb-item-icon-fallback { width: 100%; height: 100%; object-fit: contain; }
     .tb-party-slot-tera-badge img { width: 100%; height: 100%; object-fit: contain; }
+    /* Letter-fallback badge (no sprite available) is text, not an icon image — the fills-enclosure
+       standard doesn't apply to it, so it keeps its own background for legibility. */
     .tb-party-slot-item-badge .tb-item-icon-fallback { display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800; color: #43656e; background: #eef4f3; width: 100%; height: 100%; }
 
     /* ══════════ POKÉMON STUDIO — fully self-contained overlay, parallel to the main grid's
@@ -2702,7 +2708,7 @@
            in the mobile layout regardless of that older rule. */
         display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start;
         position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 401;
-        background: white; border-radius: 16px 16px 0 0; max-height: 65vh; overflow-y: auto;
+        background: white; border-radius: 16px 16px 0 0; max-height: 65vh;
         padding: 14px 14px calc(14px + env(safe-area-inset-bottom, 0px));
         transition: transform 0.25s ease; box-shadow: 0 -6px 24px rgba(0,0,0,0.2);
       }
@@ -2714,7 +2720,9 @@
       .lore-filter-tabs { display: flex; justify-content: center; gap: 6px; width: 100%; margin-bottom: 12px; flex-shrink: 0; }
       .lore-filter-tab { flex: 0 0 auto; width: auto; height: 32px; padding: 0 10px; border-radius: 8px; border: 1.5px solid #e2ddd0; background: #f7f5f0; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2px; color: #666; cursor: pointer; white-space: nowrap; }
       .lore-filter-tab.active { border-color: #43656e; background: #43656e; color: white; }
-      .lore-icon-grid { width: 100%; }
+      /* Golden standard (round 14): the sheet's title/tabs stay fixed; only this content grid
+         scrolls underneath, via overflow on the inner content element, not the outer sheet. */
+      .lore-icon-grid { width: 100%; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
       .lore-icon-btn { width: calc(25% - 8px); }
       .lore-icon-btn img { width: 52px; height: 52px; }
 
@@ -5893,6 +5901,12 @@
     // so treat Competitive as always Gen-9-mechanics-eligible regardless of team.game.
     function tbTeraApplicable(team){ return !!team && (!tbIsGameRestricted(team) || TB_STUDIO_GEN9_GAMES.has(team.game)); }
 
+    // Playthrough-only games that predate in-game ability mechanics entirely — the Ability
+    // selector has no meaning there and is hidden outright. Competitive teams, and Playthrough
+    // teams on any other game (including one with no team.game set yet), always show it.
+    const TB_STUDIO_NO_ABILITY_GAMES = new Set(['red','blue','yellow','gold','silver','crystal','legends-arceus','legends-za']);
+    function tbAbilityApplicable(team){ return !(!!team && team.mode==='story' && TB_STUDIO_NO_ABILITY_GAMES.has(team.game)); }
+
     // Battle Mode sheet — Step 1 of the Canvas's two-step chain. Single-select Casual/Competitive,
     // reuses the same .tb-game-pill/.tb-game-gen-group markup as the Format sheet below.
     function renderBattleModeSheet(){
@@ -6626,7 +6640,9 @@
     }
 
     // Gen-9 game ids — used to gate the Tera Type slot's visibility.
-    const TB_STUDIO_GEN9_GAMES = new Set(['scarlet','violet','legends-za']);
+    // Terastallizing is only coded into Scarlet/Violet — Legends: Z-A does not have it, despite
+    // being a Gen-9-adjacent release, so it's deliberately excluded here (Diego, round 15).
+    const TB_STUDIO_GEN9_GAMES = new Set(['scarlet','violet']);
 
     // Standard 25-nature chart — universal to every Pokémon (PokéAPI's /nature/ endpoint has no
     // per-species filtering, so this well-established public game data is hardcoded rather than
@@ -7728,6 +7744,11 @@
       const teraBadgeBtn = document.getElementById('tb-studio-tera-pill');
       if(teraBadgeBtn) teraBadgeBtn.style.display = tbTeraApplicable(team) ? '' : 'none';
 
+      // Ability pill — hidden entirely for a Playthrough team on a game that predates in-game
+      // ability mechanics (see tbAbilityApplicable). Always shown for Competitive, or any other game.
+      const abilityBadgeBtn = document.getElementById('tb-studio-ability-pill');
+      if(abilityBadgeBtn) abilityBadgeBtn.style.display = tbAbilityApplicable(team) ? '' : 'none';
+
       // Ability/Nature/Tera pills reflect any already-saved selection; Item + Moves are stubs
       // this round.
       document.getElementById('tb-studio-pill-hint').textContent = '';
@@ -8267,6 +8288,17 @@
           recommendedItem = report.recommended_blueprint.item;
         }
       }catch(e){ recommendedItem = null; }
+      // Mega-stone check for THIS specific member — cross-referenced against catalog.mega_stone_species
+      // (slug -> species slug it's for), the same species-gate data tbItemSpeciesGate already uses.
+      const memberSpeciesSlug = (member.speciesName || '').toLowerCase();
+      const tbIsMegaStoneForMember = (slug)=> catalog.mega_stone_species[slug] === memberSpeciesSlug;
+      // Z-Crystals are no longer used anywhere in this app (no icons, just clutter) — excluded from
+      // Special Artifacts entirely. Identified via membership in the catalog's own z-crystal maps
+      // rather than a naive "-z" slug suffix: a handful of mega-stone slugs (e.g. "absolite-z") also
+      // end in "-z" as a taxonomy data quirk but are NOT Z-Crystals, so suffix alone would misfire.
+      const tbIsZCrystal = (slug)=> !!(catalog.z_crystal_species[slug] || catalog.type_variant_z_crystals[slug]);
+
+      const sections = []; // built first, then reordered/appended so Special Artifacts can move to front
       TB_ITEM_CATEGORY_ORDER.forEach(({key, label})=>{
         const isArtifacts = key === 'special-artifacts';
         let slugs = Object.keys(taxonomy).filter(slug=>{
@@ -8274,17 +8306,36 @@
           const entry = taxonomy[slug];
           if(!entry || entry.category !== key) return false;
           if(!tbItemPassesMode(entry, team)) return false;
+          if(isArtifacts && tbIsZCrystal(slug)) return false;
           if(isArtifacts && !tbItemArtifactVisible(slug, member, team, catalog)) return false;
           return true;
         });
         if(slugs.length === 0) return; // omit the whole section rather than showing it empty
         slugs.sort((a,b)=>{
+          // Within Special Artifacts, a mega stone usable by this Pokémon always sorts first,
+          // ahead of tier — everything else falls back to the existing tier-then-alphabetical sort.
+          if(isArtifacts){
+            const ma = tbIsMegaStoneForMember(a), mb = tbIsMegaStoneForMember(b);
+            if(ma !== mb) return ma ? -1 : 1;
+          }
           const ta = TB_ITEM_TIER_ORDER[taxonomy[a].tier] ?? 5;
           const tb = TB_ITEM_TIER_ORDER[taxonomy[b].tier] ?? 5;
           if(ta !== tb) return ta - tb;
           return a.localeCompare(b);
         });
+        const hasMegaForMember = isArtifacts && slugs.some(tbIsMegaStoneForMember);
+        sections.push({key, label, slugs, hasMegaForMember});
+      });
 
+      // Special Artifacts leads the sheet whenever it contains a mega stone this specific member
+      // can actually use; otherwise every category keeps its normal TB_ITEM_CATEGORY_ORDER position.
+      const megaSectionIdx = sections.findIndex(s=>s.hasMegaForMember);
+      if(megaSectionIdx > 0){
+        const [megaSection] = sections.splice(megaSectionIdx, 1);
+        sections.unshift(megaSection);
+      }
+
+      sections.forEach(({key, label, slugs})=>{
         const section = document.createElement('div');
         section.className = 'tb-studio-item-cat collapsed';
         const header = document.createElement('button');
@@ -8362,9 +8413,8 @@
         body.appendChild(section);
       });
 
-      // Open the first section by default so the sheet doesn't look empty on first tap.
-      const firstSection = body.querySelector('.tb-studio-item-cat');
-      if(firstSection){ firstSection.classList.add('open'); firstSection.classList.remove('collapsed'); }
+      // No category is auto-opened — every section renders collapsed regardless of whether
+      // Special Artifacts was reordered to the front.
       if(!body.children.length){
         body.innerHTML = '<div class="tb-studio-sheet-empty">No items available for this mode yet.</div>';
       }
@@ -9791,6 +9841,7 @@
       updateInfoHeader(pokemon);
       syncFavoriteButton();
       openPanel();
+      ensureInfoNameResizeObserver();
       // openPanel() animates #right-panel open via transform — the name's clientWidth measured
       // before that layout has settled (esp. position:fixed mobile layout) can be wrong, under- or
       // over-sizing the fit. Re-measure against the FINAL settled layout post-paint. Double-rAF:
@@ -9835,6 +9886,25 @@
       }
     }
     window.addEventListener('resize',()=>{ if(document.getElementById('right-panel')?.classList.contains('open')) fitPokemonNameFont(); });
+    // Robust re-fit: a ResizeObserver on the name row catches any layout change that could
+    // alter the name's available width (panel open/close animation settling, orientation
+    // change, sidebar resize, etc.) without depending on rAF-timing assumptions. This is the
+    // primary correctness guarantee; the rAF calls elsewhere are just an early first-paint kick.
+    // Module-level singleton — created once, never per selectPokemon() call, so it can't leak.
+    let _infoNameResizeObserver=null;
+    function ensureInfoNameResizeObserver(){
+      if(_infoNameResizeObserver)return;
+      const row=document.querySelector('.info-name-row');
+      if(!row||typeof ResizeObserver==='undefined')return;
+      _infoNameResizeObserver=new ResizeObserver(()=>{ fitPokemonNameFont(); });
+      _infoNameResizeObserver.observe(row);
+    }
+    // Also re-fit once the custom webfont has actually loaded/swapped — scrollWidth can change
+    // after the initial fit ran against a fallback font, without the container itself resizing
+    // (so ResizeObserver alone wouldn't catch it).
+    if(document.fonts&&document.fonts.ready){
+      document.fonts.ready.then(()=>{ fitPokemonNameFont(); });
+    }
 
     function updateInfoHeader(pokemon){
       updateInfoSprite(pokemon);
