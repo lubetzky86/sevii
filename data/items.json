@@ -13,8 +13,6 @@
     "scope-lens": {"category":"offensive-boosters","modes":["casual","competitive"],"tier":"common"},
     "razor-claw": {"category":"offensive-boosters","modes":["casual","competitive"],"tier":"niche"},
     "leek": {"category":"offensive-boosters","modes":["casual","competitive"],"tier":"niche"},
-    "stick": {"category":"offensive-boosters","modes":["casual"],"tier":"story-only"},
-    "lucky-punch": {"category":"offensive-boosters","modes":["casual"],"tier":"story-only"},
     "silk-scarf": {"category":"offensive-boosters","modes":["casual","competitive"],"tier":"common"},
     "charcoal": {"category":"offensive-boosters","modes":["casual","competitive"],"tier":"common"},
     "mystic-water": {"category":"offensive-boosters","modes":["casual","competitive"],"tier":"common"},
@@ -40,8 +38,6 @@
     "rock-incense": {"category":"offensive-boosters","modes":["casual"],"tier":"story-only"},
     "light-ball": {"category":"offensive-boosters","modes":["casual","competitive"],"tier":"niche"},
     "thick-club": {"category":"offensive-boosters","modes":["casual","competitive"],"tier":"niche"},
-    "deep-sea-tooth": {"category":"offensive-boosters","modes":["casual"],"tier":"story-only"},
-
     "eviolite": {"category":"defense-protection","modes":["casual","competitive"],"tier":"staple"},
     "assault-vest": {"category":"defense-protection","modes":["casual","competitive"],"tier":"staple"},
     "heavy-duty-boots": {"category":"defense-protection","modes":["casual","competitive"],"tier":"staple"},
@@ -50,8 +46,6 @@
     "clear-amulet": {"category":"defense-protection","modes":["casual","competitive"],"tier":"staple"},
     "safety-goggles": {"category":"defense-protection","modes":["casual","competitive"],"tier":"common"},
     "protective-pads": {"category":"defense-protection","modes":["casual","competitive"],"tier":"niche"},
-    "deep-sea-scale": {"category":"defense-protection","modes":["casual"],"tier":"story-only"},
-
     "leftovers": {"category":"recovery-sustain","modes":["casual","competitive"],"tier":"staple"},
     "black-sludge": {"category":"recovery-sustain","modes":["casual","competitive"],"tier":"common"},
     "shell-bell": {"category":"recovery-sustain","modes":["casual","competitive"],"tier":"common"},
