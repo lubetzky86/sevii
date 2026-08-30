@@ -2307,6 +2307,7 @@
     @media (max-width: 600px) { .tb-evsivs-confirm-wrap { margin-top: 14px; } }
     .tb-move-sheet-body { display: flex; flex-direction: column; gap: 10px; }
     .tb-move-sheet-empty { padding: 16px; font-size: 12px; color: #999; font-style: italic; text-align: center; }
+    .tb-move-sheet-fallback-note { padding: 8px 12px; font-size: 11.5px; color: #6b6b6b; background: rgba(0,0,0,0.045); border-radius: 8px; text-align: center; flex-shrink: 0; }
     .tb-move-section { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); background: white; flex-shrink: 0; }
     .tb-move-section-header { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; cursor: pointer; user-select: none; font-size: 13px; color: #333; transition: background 0.15s; }
     .tb-move-section-header:hover { background: rgba(0,0,0,0.03); }
@@ -3813,6 +3814,7 @@
             <select id="lists-sort-select">
               <option value="alpha">Alphabetical</option>
               <option value="number">Pokédex number</option>
+              <option value="recent">Latest Added</option>
             </select>
             <div class="grid-sort-dir" id="lists-sort-dir-btn">↑</div>
           </div>
@@ -5272,7 +5274,7 @@
     function isFavorite(name){ return isPokemonInList('favorites', name); }
     function addToList(listId, pokemon){
       const l=getList(listId); if(!l||!pokemon?.name) return;
-      if(!l.items.some(it=>it.name===pokemon.name)){ l.items.push({name:pokemon.name,id:pokemon.id}); saveListsData(); }
+      if(!l.items.some(it=>it.name===pokemon.name)){ l.items.push({name:pokemon.name,id:pokemon.id,addedAt:Date.now()}); saveListsData(); }
     }
     function removeFromList(listId, name){
       const l=getList(listId); if(!l) return;
@@ -5463,6 +5465,7 @@
       items=items.slice().sort((a,b)=>{
         let r;
         if(listsSortMode==='number') r=listDexId(a.name,a.id||0)-listDexId(b.name,b.id||0);
+        else if(listsSortMode==='recent') r=(a.addedAt||0)-(b.addedAt||0);
         else r=a.name.localeCompare(b.name);
         return listsSortAscending?r:-r;
       });
@@ -7309,7 +7312,7 @@
     function tbAdviceRecommendMoves(member, cls, baseStats, team){
       const species = tbStudioSpeciesCache[member.speciesId];
       if(!species) return [];
-      const vg = (team && GAME_TO_VERSION_GROUP[team.game]) || 'scarlet-violet';
+      const vg = tbResolveVersionGroup(team, species.movesRaw);
       const learnable = tbGetMovesForVersionGroup(species.movesRaw, vg);
       const detailed = [];
       learnable.forEach(m=>{
@@ -7787,7 +7790,7 @@
         // above.
         const adviceBlock = document.getElementById('tb-studio-advice-block');
         if(adviceBlock) adviceBlock.innerHTML = `<p>Loading move recommendations…</p>`;
-        const vg = (team && GAME_TO_VERSION_GROUP[team.game]) || 'scarlet-violet';
+        const vg = tbResolveVersionGroup(team, data.movesRaw);
         try{ await tbWarmMoveDetailCache(member.speciesId, data.movesRaw, vg); }catch(e){}
         // Bail again if the Studio moved on while the move-detail warm-up was in flight.
         if(tbStudioTeam !== team || tbStudioSlotIndex !== slotIndex) return;
@@ -8515,12 +8518,18 @@
       if(!team || slotIndex === null || !body) return;
       const member = team.party[slotIndex];
       if(!member) return;
-      const vg = GAME_TO_VERSION_GROUP[team.game] || 'scarlet-violet';
       let speciesData;
       try{ speciesData = await tbFetchStudioSpeciesData(member.speciesId); }
       catch(err){ body.innerHTML = '<div class="tb-move-sheet-empty">Couldn\'t load move data.</div>'; return; }
       // Bail if Studio moved on / the sheet was closed while fetching.
       if(tbStudioTeam !== team || tbStudioSlotIndex !== slotIndex) return;
+      // vg is computed AFTER speciesData is in hand (not before, like the old code) because the
+      // fallback path (round 16: Legends: Z-A has no GAME_TO_VERSION_GROUP mapping — see
+      // tbFallbackVersionGroup) needs this specific Pokémon's own movesRaw to pick its most
+      // recent version group with real data, rather than a single hardcoded guess.
+      const mappedVg = GAME_TO_VERSION_GROUP[team.game];
+      const vg = mappedVg || tbFallbackVersionGroup(speciesData.movesRaw);
+      tbStudioActiveVg = vg; // read by tbBuildMoveTable's TM-number lookup instead of recomputing
       const moves = tbGetMovesForVersionGroup(speciesData.movesRaw, vg);
       if(!moves.length){
         body.innerHTML = '<div class="tb-move-sheet-empty">No move data available for this game.</div>';
@@ -8536,6 +8545,26 @@
         }
       }catch(e){ recommendedMoveNames = []; }
       tbRenderMoveSections(body, moves, member, recommendedMoveNames);
+      // team.game is a real selected Playthrough game with no moveset mapping of its own (only
+      // Legends: Z-A today) — tell the user which game's moveset they're actually looking at,
+      // rather than silently substituting one with no explanation.
+      if(!mappedVg && team.game){
+        const note = document.createElement('div');
+        note.className = 'tb-move-sheet-fallback-note';
+        note.textContent = `Move data isn't tracked for this game yet — showing ${vgToGameName(vg) || 'the most recent available'} moveset instead.`;
+        body.insertBefore(note, body.firstChild);
+      }
+    }
+    let tbStudioActiveVg = 'scarlet-violet';
+    // Reverse-lookup: version group -> the first GAME_LIST entry name that maps to it. Only used
+    // for the fallback notice above, so any of a vg's sibling games' names is fine to display.
+    function vgToGameName(vg){
+      for(const grp of GAME_LIST){
+        for(const g of grp.games){
+          if(GAME_TO_VERSION_GROUP[g.id] === vg) return g.name;
+        }
+      }
+      return null;
     }
 
     function tbRenderMoveSections(body, moves, member, recommendedMoveNames){
@@ -8689,7 +8718,11 @@
         tr.dataset.pp = pp!==null ? pp : -1;
 
         if(showNum && !isLevelUp && det?.machines?.length){
-          const vg = GAME_TO_VERSION_GROUP[(tbStudioTeam&&tbStudioTeam.game)] || 'scarlet-violet';
+          // Reuses the same vg tbLoadMoveSheetContent already resolved for the open sheet (module-
+          // level tbStudioActiveVg) instead of recomputing with the old GAME_TO_VERSION_GROUP-only
+          // lookup, which went stale/wrong exactly like the sheet's own move list did before the
+          // round-16 Legends: Z-A fallback fix — same bug, two call sites.
+          const vg = tbStudioActiveVg;
           const machineEntry = det.machines.find(mc=>mc.version_group.name===vg);
           if(machineEntry){
             try{
@@ -12261,6 +12294,51 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       // legends-za has no PokéAPI moveset data yet, so it's intentionally left unmapped
       // and filtered out of the moveset game picker below.
     };
+
+    // Chronological order of every version group GAME_TO_VERSION_GROUP maps to (oldest → newest).
+    // Used only by tbFallbackVersionGroup, below, to find a Pokémon's own most recent version
+    // group with real data when the team's selected game (e.g. Legends: Z-A) has no mapping of
+    // its own — never used to pick which games are user-selectable (that stays GAME_TO_VERSION_
+    // GROUP-driven everywhere else, e.g. buildMovesetGames's `!GAME_TO_VERSION_GROUP[g.id]` filter).
+    const VG_CHRONOLOGICAL_ORDER = [
+      'red-blue','yellow','gold-silver','crystal','ruby-sapphire','emerald',
+      'firered-leafgreen','diamond-pearl','platinum','heartgold-soulsilver',
+      'black-white','black-2-white-2','x-y','omega-ruby-alpha-sapphire',
+      'sun-moon','ultra-sun-ultra-moon','lets-go-pikachu-lets-go-eevee',
+      'sword-shield','brilliant-diamond-shining-pearl','legends-arceus','scarlet-violet'
+    ];
+    // Diego, round 16: Team Builder Studio's move sheet was showing "No move data available for
+    // this game" for any Pokémon (e.g. Emolga) whose Playthrough game is Legends: Z-A — because
+    // Z-A has no GAME_TO_VERSION_GROUP mapping (PokéAPI has no Z-A moveset data at all), every
+    // call site fell back to the hardcoded default 'scarlet-violet' (flagged back in round 14's
+    // wrap-up as "a convenient default, not a true union-all-games lookup") — and a Pokémon that
+    // simply isn't native to Scarlet/Violet (Emolga's last real moveset entries are Sword/Shield)
+    // has zero scarlet-violet version_group_details, so the SV fallback came up empty too.
+    // Fix: when the selected game has no vg mapping, walk this Pokémon's OWN version_group_details
+    // backwards through VG_CHRONOLOGICAL_ORDER and use the most recent version group it actually
+    // has data for, instead of a single hardcoded guess. 'scarlet-violet' is kept as the last-
+    // resort return only for the degenerate case of a Pokémon with no moves data at all (should be
+    // unreachable in practice — every real Pokémon has data for at least one version group).
+    function tbFallbackVersionGroup(movesRaw){
+      const present = new Set();
+      (movesRaw||[]).forEach(m=>(m.version_group_details||[]).forEach(vd=>{
+        const n = vd.version_group?.name;
+        if(n) present.add(n);
+      }));
+      for(let i=VG_CHRONOLOGICAL_ORDER.length-1;i>=0;i--){
+        if(present.has(VG_CHRONOLOGICAL_ORDER[i])) return VG_CHRONOLOGICAL_ORDER[i];
+      }
+      return 'scarlet-violet';
+    }
+    // Single injection point for "which version group should Moves/Advice use for this team".
+    // Competitive teams (team.game === null, per round 14) and any team with no game selected yet
+    // intentionally keep the plain 'scarlet-violet' default exactly as before — this only changes
+    // behavior for a Playthrough team whose game IS selected but has no GAME_TO_VERSION_GROUP entry
+    // (currently just Legends: Z-A), where it now resolves per-Pokémon instead of guessing.
+    function tbResolveVersionGroup(team, movesRaw){
+      if(!team || !team.game) return 'scarlet-violet';
+      return GAME_TO_VERSION_GROUP[team.game] || tbFallbackVersionGroup(movesRaw);
+    }
 
     // ── Variant Color/Genus Overrides ───────────────────────────────────
     // species.color and species.genera are locked at the SPECIES level in PokéAPI — every variety
