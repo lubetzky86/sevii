@@ -3110,6 +3110,21 @@
 .has-selection .bdb-card:not(.bdb-card--selected):hover { opacity: 0.85; }
 
 /* --------------------------------------------------------------------------
+   1b. Trio load-failure state — shown when a draft trio's live PokéAPI
+       fetch fails (network hiccup, bad response). Bug found integrating
+       into Sevii, 2026-08-30: this state didn't exist before — a failed
+       load just left the grid permanently blank. Uses the same empty-state
+       idiom as the rest of the app (§11: centered, generous padding) plus
+       the standard .bdb-action-btn for Retry.
+   -------------------------------------------------------------------------- */
+.bdb-load-error {
+  grid-column: 1 / -1;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  padding: 40px 20px; text-align: center;
+}
+.bdb-load-error-text { font-size: 14px; font-weight: 600; color: #555; }
+
+/* --------------------------------------------------------------------------
    2. Trio row (draft picks) — 3-up, same card shape, centered.
    -------------------------------------------------------------------------- */
 .bdb-trio-row {
@@ -15854,11 +15869,24 @@ var SeviiBlindDraft = (() => {
       return unit.isShiny ? homeShinySpriteUrl(unit.id) : homeSpriteUrl(unit.id);
     }
     async fetchAndCacheProfile(speciesId) {
-      var _a, _b, _c, _d, _e, _f, _g, _h;
-      const pokemonRes = await this.fetchImpl(`https://pokeapi.co/api/v2/pokemon/${speciesId}`);
-      const data = await pokemonRes.json();
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i;
+      let pokemonRes;
+      try {
+        pokemonRes = await this.fetchImpl(`https://pokeapi.co/api/v2/pokemon/${speciesId}`);
+      } catch (err) {
+        throw new Error(`PokemonFactory: network error fetching species ${speciesId} \u2014 ${err instanceof Error ? err.message : String(err)}`);
+      }
+      if (pokemonRes.ok === false) {
+        throw new Error(`PokemonFactory: Pok\xE9API returned ${(_a = pokemonRes.status) != null ? _a : "a non-OK status"} for species ${speciesId}.`);
+      }
+      let data;
+      try {
+        data = await pokemonRes.json();
+      } catch (err) {
+        throw new Error(`PokemonFactory: species ${speciesId} response wasn't valid JSON \u2014 ${err instanceof Error ? err.message : String(err)}`);
+      }
       let speciesData = {};
-      if ((_a = data.species) == null ? void 0 : _a.url) {
+      if ((_b = data.species) == null ? void 0 : _b.url) {
         try {
           const speciesRes = await this.fetchImpl(data.species.url);
           speciesData = await speciesRes.json();
@@ -15873,12 +15901,12 @@ var SeviiBlindDraft = (() => {
       const types = data.types.map((t) => t.type.name);
       const heightM = (data.height / 10).toFixed(1);
       const weightKg = (data.weight / 10).toFixed(1);
-      const abilityObj = (_b = data.abilities) == null ? void 0 : _b[0];
+      const abilityObj = (_c = data.abilities) == null ? void 0 : _c[0];
       const abilityKey = abilityObj ? abilityObj.ability.name : "pressure";
       const abilityName = abilityKey.replace(/-/g, " ");
-      const shapeName = (_d = (_c = speciesData.shape) == null ? void 0 : _c.name) != null ? _d : "quadruped";
-      const colorName = (_f = (_e = speciesData.color) == null ? void 0 : _e.name) != null ? _f : types[0];
-      const eggGroupKeys = (_h = (_g = speciesData.egg_groups) == null ? void 0 : _g.map((g) => g.name)) != null ? _h : ["undiscovered"];
+      const shapeName = (_e = (_d = speciesData.shape) == null ? void 0 : _d.name) != null ? _e : "quadruped";
+      const colorName = (_g = (_f = speciesData.color) == null ? void 0 : _f.name) != null ? _g : types[0];
+      const eggGroupKeys = (_i = (_h = speciesData.egg_groups) == null ? void 0 : _h.map((g) => g.name)) != null ? _i : ["undiscovered"];
       const eggGroupLabel = eggGroupKeys.map((k) => k.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())).join(" / ");
       const evoMeta = resolveEvolutionMetadata(data.id);
       const baseAtk = getStat("attack");
@@ -16100,7 +16128,8 @@ var SeviiBlindDraft = (() => {
         trioReady: [],
         pickResolved: [],
         roundAdvanced: [],
-        draftComplete: []
+        draftComplete: [],
+        trioLoadFailed: []
       };
       this.factory = factory;
       this.clueSelector = new ClueModeSelector(initialClueModes);
@@ -16167,15 +16196,36 @@ var SeviiBlindDraft = (() => {
       if (!continueThisDraft) this.resetDraft();
     }
     // -- draft flow --------------------------------------------------------------
-    /** Draws a new trio and, if it's the PC's turn, resolves its pick immediately. */
+    /**
+     * Draws a new trio and, if it's the PC's turn, resolves its pick immediately.
+     *
+     * The 3 `factory.resolve()` calls below hit live PokéAPI/species-detail fetches (see
+     * sevii-pokemon-repository.ts) — any ONE of them failing used to reject the whole
+     * `Promise.all()` with nothing here to catch it, silently leaving `currentTrio` stale/empty
+     * and no event ever firing, so the draft grid stayed permanently blank with zero feedback.
+     * Bug found integrating into Sevii, 2026-08-30 — now caught and reported via `trioLoadFailed`
+     * so a UI layer can show the player a real message and a retry action instead of a silent hang.
+     */
     async startTurn() {
       this.isResolving = false;
       const availableIds = this.draftPool.filter((id) => !this.usedSpeciesIds.has(id));
       const pool = availableIds.length >= 3 ? availableIds : this.draftPool;
       const chosenIds = this.shuffle(pool).slice(0, 3);
       chosenIds.forEach((id) => this.usedSpeciesIds.add(id));
-      this.currentTrio = await Promise.all(chosenIds.map((id) => this.factory.resolve(id, this.randomFn)));
       const owner = this.isPlayerTurnToPick() ? "player" : "pc";
+      let trio;
+      try {
+        trio = await Promise.all(chosenIds.map((id) => this.factory.resolve(id, this.randomFn)));
+      } catch (err) {
+        chosenIds.forEach((id) => this.usedSpeciesIds.delete(id));
+        this.emit("trioLoadFailed", {
+          error: err instanceof Error ? err : new Error(String(err)),
+          owner,
+          pickNumber: this.getPickNumber()
+        });
+        return;
+      }
+      this.currentTrio = trio;
       this.emit("trioReady", { trio: [...this.currentTrio], owner, pickNumber: this.getPickNumber() });
       if (owner === "pc") {
         this.resolvePcPick();
@@ -16829,12 +16879,26 @@ var SeviiBlindDraft = (() => {
      * not a new fetch habit introduced by this engine.
      */
     async resolveBySlug(slug, randomFn = Math.random) {
+      var _a;
       const genderEntry = this.bridge.getAlternateFormEntry(slug);
       const genderLabel = (genderEntry == null ? void 0 : genderEntry.form_type) === "GENDER" && genderEntry.label ? genderEntry.label : void 0;
       const known = this.findRawBySlug(slug);
       if (known) return this.resolveFromRaw(known.raw, randomFn, known.regionalLabel, genderLabel);
-      const res = await this.fetchImpl(`https://pokeapi.co/api/v2/pokemon/${slug}`);
-      const raw = await res.json();
+      let res;
+      try {
+        res = await this.fetchImpl(`https://pokeapi.co/api/v2/pokemon/${slug}`);
+      } catch (err) {
+        throw new Error(`SeviiPokemonRepository: network error resolving "${slug}" \u2014 ${err instanceof Error ? err.message : String(err)}`);
+      }
+      if (res.ok === false) {
+        throw new Error(`SeviiPokemonRepository: Pok\xE9API returned ${(_a = res.status) != null ? _a : "a non-OK status"} for "${slug}".`);
+      }
+      let raw;
+      try {
+        raw = await res.json();
+      } catch (err) {
+        throw new Error(`SeviiPokemonRepository: "${slug}" response wasn't valid JSON \u2014 ${err instanceof Error ? err.message : String(err)}`);
+      }
       return this.resolveFromRaw(raw, randomFn, void 0, genderLabel);
     }
     async resolveFromRaw(raw, randomFn, regionalLabel, genderLabel) {
@@ -17300,6 +17364,11 @@ var SeviiBlindDraft = (() => {
         }
         this.renderTrioLabel(owner, pickNumber);
       });
+      draft.on("trioLoadFailed", ({ error, owner }) => {
+        console.error("Blind Draft Battle: trio failed to load \u2014", error);
+        this.toasts.toast("Couldn't load this round's Pok\xE9mon \u2014 check your connection and retry.", "error", 4e3);
+        this.renderTrioLoadError(draft, owner);
+      });
       draft.on("pickResolved", (event) => {
         const who = event.owner === "player" ? "You" : "Rival";
         this.toasts.toast(`${who} drafted ${event.picked.displayName}.`, "success");
@@ -17343,6 +17412,17 @@ var SeviiBlindDraft = (() => {
         }));
       });
       this.gridWrapper.appendChild(row);
+    }
+    renderTrioLoadError(draft, owner) {
+      clear(this.gridWrapper);
+      const box = el("div", "bdb-load-error");
+      const msg = el("div", "bdb-load-error-text");
+      msg.textContent = "This round's Pok\xE9mon couldn't be loaded.";
+      const retryBtn = el("button", "bdb-action-btn");
+      retryBtn.textContent = "Retry";
+      retryBtn.addEventListener("click", () => void draft.startTurn());
+      box.append(msg, retryBtn);
+      this.gridWrapper.appendChild(box);
     }
     renderClueModeButton(draft) {
       const btn = el("button", "bdb-action-btn bdb-action-btn--outline");
@@ -17546,7 +17626,6 @@ var SeviiBlindDraft = (() => {
   };
   return __toCommonJS(bundle_entry_exports);
 })();
-
   </script>
 
   <script>
