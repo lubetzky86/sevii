@@ -3125,8 +3125,8 @@
        fetch fails (network hiccup, bad response). Bug found integrating
        into Sevii, 2026-08-30: this state didn't exist before — a failed
        load just left the grid permanently blank. Uses the same empty-state
-       idiom as the rest of the app (§11: centered, generous padding) plus
-       the standard .bdb-action-btn for Retry.
+       idiom as the rest of the app (visual-language.md §11: centered,
+       generous padding) plus the standard .bdb-action-btn for Retry.
    -------------------------------------------------------------------------- */
 .bdb-load-error {
   grid-column: 1 / -1;
@@ -3145,7 +3145,8 @@
      cards, so without spanning every auto-fill track it was being sized to
      just ONE ~150px column — squashing the whole 3-card row into a sliver
      of the screen. Confirmed by direct measurement (56px rendered width)
-     integrating into Sevii, 2026-08-30. */
+     integrating into Sevii, 2026-08-30. `.bdb-load-error` already had this;
+     this rule was the one actually missing it. */
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -3160,7 +3161,8 @@
    2b. Draft-phase bench strip — reuses the battle phase's .bdb-squad-chip
        shape (§3 below) so drafted-so-far rosters are visible under the
        trio during the draft itself, not just once battle starts. Missing
-       entirely before this fix — flagged by Diego 2026-08-30 as
+       entirely before this fix (blind-draft-ui.ts never rendered the squad
+       strip until startBattle()) — flagged by Diego 2026-08-30 as
        "rosters missing".
    -------------------------------------------------------------------------- */
 .bdb-draft-squads {
@@ -3181,14 +3183,95 @@
 .bdb-draft-squad-chips { display: flex; gap: 6px; overflow-x: auto; }
 
 /* --------------------------------------------------------------------------
-   3. Squad strip (battle phase roster) — compact horizontal list of the
-      "sub-card" tier (§5: 10px radius / 48-54px sprite band).
+   2c. Battle banner + clash stage — the face-off that was entirely missing
+       before 2026-08-30's rebuild. Diego's report: "no messages, no window,
+       nothing is indicating that the battle is going on." This is the fix:
+       a persistent narration line plus both active Pokémon shown side by
+       side with real HP bars, using the same card/pill/HP-bar recipes
+       already established elsewhere in this file rather than inventing a
+       new visual language.
    -------------------------------------------------------------------------- */
-.bdb-squad-strip {
-  display: flex; gap: 8px; padding: 10px 14px; overflow-x: auto;
+.bdb-battle-banner {
+  margin: 0 14px 10px;
+  padding: 12px 14px;
+  background: white;
+  border-radius: 12px;
+  border: 2px solid var(--bdb-theme-border);
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+  min-height: 1.4em;
+}
+.bdb-clash-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 14px 14px;
+}
+.bdb-clash-face {
+  flex: 1;
+  max-width: 200px;
+  background: white;
+  border-radius: 12px;
+  border: 2px solid #e8e4dd;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.bdb-clash-face--you { border-color: var(--bdb-theme-dark); }
+.bdb-clash-face--rival { border-color: #a94438; }
+.bdb-clash-sprite-wrap { width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; }
+.bdb-clash-sprite { width: 72px; height: 72px; image-rendering: pixelated; }
+.bdb-clash-name {
+  font-family: 'Archivo Black', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 13px;
+  color: #1a1a1a;
+  text-transform: capitalize;
+  margin-top: 2px;
+}
+.bdb-clash-vs {
+  font-family: 'Archivo Black', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 14px;
+  color: #a09890;
+  flex: 0 0 auto;
+}
+.bdb-clash-hp-row {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 8px;
+}
+.bdb-clash-hp-num { font-size: 10px; font-weight: 700; color: #555; }
+
+/* --------------------------------------------------------------------------
+   3. Squad strip (battle phase roster) — compact horizontal list of the
+      "sub-card" tier (§5: 10px radius / 48-54px sprite band). Grouped into
+      a "You" row and a "Rival" row (2026-08-30 — previously one undivided
+      strip with no indication of which Pokémon belonged to which side).
+   -------------------------------------------------------------------------- */
+.bdb-squad-strip { padding: 6px 0; }
+.bdb-squad-strip-group + .bdb-squad-strip-group { margin-top: 6px; }
+.bdb-squad-strip-label {
+  font-family: 'Archivo Black', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #7c756a;
+  padding: 0 14px 4px;
+}
+.bdb-squad-strip-row {
+  display: flex; gap: 8px; padding: 0 14px 4px; overflow-x: auto;
   scrollbar-width: none;
 }
-.bdb-squad-strip::-webkit-scrollbar { display: none; }
+.bdb-squad-strip-row::-webkit-scrollbar { display: none; }
 .bdb-squad-chip {
   flex: 0 0 auto;
   width: 64px;
@@ -3208,12 +3291,38 @@
 }
 
 /* --------------------------------------------------------------------------
-   4. Action bar (battle phase controls) — pill buttons matching
-      `.info-action-btn` (§8): solid theme-dark fill, translucent white
-      border, 24px radius, 13px/600.
+   4. Action bar (battle phase controls). Rebuilt 2026-08-30: previously a
+      single "Attack" button hardcoded to a blind normal-type hit — real
+      per-type STAB move buttons (with the move name and expected damage,
+      matching Gemini's move-button spec) plus a Setup button when
+      available, sitting above the Protect/Gimmick row.
    -------------------------------------------------------------------------- */
+.bdb-move-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 0 14px 8px;
+}
+.bdb-move-btn {
+  padding: 10px 8px;
+  border-radius: 12px;
+  background: var(--bdb-theme-bg);
+  border: 2px solid var(--bdb-theme-border);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.1s;
+}
+.bdb-move-btn:hover { border-color: var(--bdb-theme-dark); transform: translateY(-1px); }
+.bdb-move-btn--setup { grid-column: 1 / -1; background: #fff8ea; border-color: #e8d9a8; }
+.bdb-move-btn-label {
+  font-size: 12px; font-weight: 700; color: #333; text-transform: capitalize;
+}
+.bdb-move-btn-dmg { font-size: 11px; color: #777; margin-top: 2px; }
 .bdb-action-bar {
-  display: flex; gap: 8px; padding: 10px 14px 14px;
+  display: flex; flex-direction: column;
+}
+.bdb-action-bottom-row {
+  display: flex; gap: 8px; padding: 0 14px 14px;
 }
 .bdb-action-btn {
   flex: 1;
@@ -3236,6 +3345,7 @@
   border: 2px solid var(--bdb-theme-dark);
   color: var(--bdb-theme-dark);
 }
+.bdb-move-btn:disabled, .bdb-move-btn[data-disabled="true"] { opacity: 0.45; cursor: default; }
 
 /* --------------------------------------------------------------------------
    5. Clue-mode picker — bottom sheet, §0 golden-standard recipe verbatim.
