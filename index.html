@@ -3109,6 +3109,17 @@
 .has-selection .bdb-card:not(.bdb-card--selected) { opacity: 0.6; }
 .has-selection .bdb-card:not(.bdb-card--selected):hover { opacity: 0.85; }
 
+/* Draft-pick reveal state — the winning/passed-over trio cards after a pick resolves
+   (see revealDraftPick() in blind-draft-ui.ts). Added 2026-08-30: previously a pick
+   (especially the PC's, which resolves almost instantly) left no visible trace at all. */
+.bdb-card--winner { border-color: var(--bdb-theme-dark); box-shadow: 0 0 0 2px var(--bdb-theme-dark); }
+.bdb-card--dimmed { opacity: 0.4; }
+.bdb-card-passed-flag {
+  position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  font-size: 9px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  color: #a09890; background: #f2ede3; padding: 2px 6px; border-radius: 6px;
+}
+
 /* --------------------------------------------------------------------------
    1b. Trio load-failure state — shown when a draft trio's live PokéAPI
        fetch fails (network hiccup, bad response). Bug found integrating
@@ -3128,13 +3139,46 @@
    2. Trio row (draft picks) — 3-up, same card shape, centered.
    -------------------------------------------------------------------------- */
 .bdb-trio-row {
+  /* .bdb-grid-wrapper (its parent) is `display:grid; grid-template-columns:
+     repeat(auto-fill, minmax(150px, 1fr))` — built for laying out many cards
+     directly. .bdb-trio-row is a single wrapper *div*, not a flat set of
+     cards, so without spanning every auto-fill track it was being sized to
+     just ONE ~150px column — squashing the whole 3-card row into a sliver
+     of the screen. Confirmed by direct measurement (56px rendered width)
+     integrating into Sevii, 2026-08-30. */
+  grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
   max-width: 520px;
   margin: 0 auto;
   padding: 14px;
+  width: 100%;
 }
+
+/* --------------------------------------------------------------------------
+   2b. Draft-phase bench strip — reuses the battle phase's .bdb-squad-chip
+       shape (§3 below) so drafted-so-far rosters are visible under the
+       trio during the draft itself, not just once battle starts. Missing
+       entirely before this fix — flagged by Diego 2026-08-30 as
+       "rosters missing".
+   -------------------------------------------------------------------------- */
+.bdb-draft-squads {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 14px 10px;
+}
+.bdb-draft-squad-row { display: flex; align-items: center; gap: 8px; }
+.bdb-draft-squad-label {
+  font-family: 'Archivo Black', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #7c756a;
+  min-width: 40px;
+}
+.bdb-draft-squad-chips { display: flex; gap: 6px; overflow-x: auto; }
 
 /* --------------------------------------------------------------------------
    3. Squad strip (battle phase roster) — compact horizontal list of the
@@ -17361,6 +17405,7 @@ var SeviiBlindDraft = (() => {
       void this.draft.startTurn();
     }
     wireDraftEvents(draft) {
+      this.renderDraftSquads(draft);
       draft.on("trioReady", async ({ trio, owner, pickNumber }) => {
         this.renderDraftTrio(trio, draft, owner === "pc");
         if (owner === "pc" && this.pcThinkDelayMs > 0) {
@@ -17377,7 +17422,9 @@ var SeviiBlindDraft = (() => {
       draft.on("pickResolved", (event) => {
         const who = event.owner === "player" ? "You" : "Rival";
         this.toasts.toast(`${who} drafted ${event.picked.displayName}.`, "success");
-        setTimeout(() => void draft.advance(), 700);
+        this.revealDraftPick(event);
+        this.renderDraftSquads(draft);
+        setTimeout(() => void draft.advance(), 1100);
       });
       draft.on("roundAdvanced", ({ round, subPhase }) => {
         this.toasts.toast(`Round ${round} \u2014 ${subPhase === "turn1" ? "first" : "second"} pick.`, "info", 1600);
@@ -17385,6 +17432,56 @@ var SeviiBlindDraft = (() => {
       draft.on("draftComplete", ({ playerSquad, pcSquad }) => {
         this.toasts.toast("Draft complete! Choose your lead.", "success");
         this.startBattle(playerSquad, pcSquad);
+      });
+    }
+    /** Draft-phase bench strip — both squads-so-far, visible under the trio while drafting.
+     *  Previously the squad strip was only ever populated once battle started
+     *  (renderBattleState()), so nothing showed what had already been drafted — flagged by
+     *  Diego 2026-08-30 as "rosters missing". Reuses the same .bdb-squad-chip shape. */
+    renderDraftSquads(draft) {
+      clear(this.squadStrip);
+      const wrap = el("div", "bdb-draft-squads");
+      [
+        { label: "You", squad: draft.getPlayerSquad() },
+        { label: "Rival", squad: draft.getPcSquad() }
+      ].forEach(({ label, squad }) => {
+        const row = el("div", "bdb-draft-squad-row");
+        const labelEl = el("div", "bdb-draft-squad-label");
+        labelEl.textContent = label;
+        const chips = el("div", "bdb-draft-squad-chips");
+        squad.forEach((unit) => {
+          const chip = el("div", "bdb-squad-chip");
+          const sprite = el("img", "bdb-squad-chip-sprite", { alt: unit.displayName });
+          const urls = resolveSpriteUrls(this.bridge, unit.id, unit.isShiny, unit.spriteGender === "female");
+          sprite.src = urls.primary;
+          sprite.addEventListener("error", () => {
+            sprite.src = urls.fallback;
+          }, { once: true });
+          chip.appendChild(sprite);
+          chips.appendChild(chip);
+        });
+        row.append(labelEl, chips);
+        wrap.appendChild(row);
+      });
+      this.squadStrip.appendChild(wrap);
+    }
+    /** Highlights the picked card, dims + labels the passed-over cards in the trio
+     *  currently on screen. Purely presentational — event.trio is already the exact
+     *  set renderDraftTrio() just drew, so we re-select by id rather than re-render. */
+    revealDraftPick(event) {
+      const cards = Array.from(this.gridWrapper.querySelectorAll(".bdb-card"));
+      cards.forEach((card, i) => {
+        const unit = event.trio[i];
+        if (!unit) return;
+        const isWinner = unit === event.picked;
+        card.classList.toggle("bdb-card--winner", isWinner);
+        card.classList.toggle("bdb-card--dimmed", !isWinner);
+        card.setAttribute("data-disabled", "true");
+        if (!isWinner) {
+          const passed = el("div", "bdb-card-passed-flag");
+          passed.textContent = "Passed";
+          card.appendChild(passed);
+        }
       });
     }
     renderTrioLabel(owner, pickNumber) {
