@@ -14799,7 +14799,8 @@ var SeviiBlindDraft = (() => {
       const res = computeDamage(attacker, defender, t, false, attacker.isGmax);
       if (!best || res.damage > best.damage) best = res;
     }
-    return best;
+    if (best) return best;
+    return computeDamage(attacker, defender, "normal", false, attacker.isGmax);
   }
   function getPeakStatProfile(mon) {
     const stats = [
@@ -16423,15 +16424,28 @@ var SeviiBlindDraft = (() => {
     // ---------------------------------------------------------------------------
     // Lead selection
     // ---------------------------------------------------------------------------
-    /** Player picks their starting lead; the PC's lead is chosen by a simple speed+bulk+damage heuristic. */
+    /**
+     * Player picks their starting lead; the PC's lead is chosen by a simple speed+bulk+damage
+     * heuristic. Scoring each PC candidate is wrapped defensively — the same class of bug that
+     * froze the draft screen (an unguarded per-candidate computation throwing on real, messy
+     * Pokémon data a clean test never exercised) applies here too, and this function had no
+     * caller-side try/catch at all (promptSelectLead's onClick in blind-draft-ui.ts called it
+     * bare), so any throw here would freeze "Choose your lead" the same way. A throwing
+     * candidate is logged and scored as unattractive rather than aborting lead selection.
+     */
     selectLead(playerChoice) {
       this.activePlayerMon = playerChoice;
       wipeBoosts(playerChoice);
       let bestScore = -Infinity;
       let pcLead = this.pcSquad[0];
       this.pcSquad.forEach((candidate) => {
-        let score = candidate.speed + candidate.hp;
-        score += getOptimalStab(candidate, playerChoice).damage;
+        var _a;
+        let score = -Infinity;
+        try {
+          score = candidate.speed + candidate.hp + getOptimalStab(candidate, playerChoice).damage;
+        } catch (err) {
+          console.error(`BattleSimulator: scoring "${(_a = candidate == null ? void 0 : candidate.displayName) != null ? _a : "a candidate"}" for PC lead threw \u2014 treating as unattractive instead of freezing lead selection.`, err);
+        }
         if (score > bestScore) {
           bestScore = score;
           pcLead = candidate;
@@ -17611,11 +17625,16 @@ var SeviiBlindDraft = (() => {
           bridge: this.bridge,
           onClick: () => {
             if (!this.battle) return;
-            const { playerLead, pcLead } = this.battle.selectLead(unit);
-            this.currentPlayerLead = playerLead;
-            this.currentPcLead = pcLead;
-            this.gimmickModal.close();
-            this.renderBattleState();
+            try {
+              const { playerLead, pcLead } = this.battle.selectLead(unit);
+              this.currentPlayerLead = playerLead;
+              this.currentPcLead = pcLead;
+              this.gimmickModal.close();
+              this.renderBattleState();
+            } catch (err) {
+              console.error("Blind Draft Battle: selecting your lead failed:", err);
+              this.toasts.toast("Couldn't start the battle with that Pok\xE9mon \u2014 try another.", "error");
+            }
           }
         }));
       });
@@ -17634,10 +17653,15 @@ var SeviiBlindDraft = (() => {
           bridge: this.bridge,
           onClick: () => {
             if (!this.battle) return;
-            this.battle.selectReplacement(unit);
-            this.currentPlayerLead = unit;
-            this.gimmickModal.close();
-            this.renderBattleState();
+            try {
+              this.battle.selectReplacement(unit);
+              this.currentPlayerLead = unit;
+              this.gimmickModal.close();
+              this.renderBattleState();
+            } catch (err) {
+              console.error("Blind Draft Battle: selecting a replacement failed:", err);
+              this.toasts.toast("Couldn't send that Pok\xE9mon out \u2014 try another.", "error");
+            }
           }
         }));
       });
@@ -17740,6 +17764,18 @@ var SeviiBlindDraft = (() => {
       }
       if (result.requiresPlayerReplacement && this.battle) {
         setTimeout(() => this.promptSelectReplacement(this.battle.playerSquad, "Choose your next Pok\xE9mon"), 500);
+      }
+      if (result.requiresPcReplacement && this.battle) {
+        setTimeout(() => {
+          if (!this.battle) return;
+          try {
+            this.currentPcLead = this.battle.pcSendReplacement();
+          } catch (err) {
+            console.error("Blind Draft Battle: rival's replacement pick failed:", err);
+            this.toasts.toast("The rival couldn't send out a replacement \u2014 battle may be stuck.", "error");
+          }
+          this.renderBattleState();
+        }, 500);
       }
       this.renderBattleState();
     }
