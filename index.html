@@ -528,13 +528,24 @@
        are neutered (selectPokemon() itself no-ops while tbJourneyLocked) — this class just makes
        that visually obvious rather than leaving them looking clickable but silently broken. */
     .journey-locked-inert { pointer-events: none !important; opacity: 0.55 !important; cursor: default !important; }
+    /* Round 22: moved from a floating pill pinned to the BOTTOM of the screen (where it sat on
+       top of the Info Card's own bottom action row — Matchups/Obtain/Moveset/Sevii Report,
+       #info-action-btn — blocking those) to a full-width bar pinned to the very TOP of the
+       screen instead, matching the app's own solid-band header language (#43656e, no radius,
+       full-bleed — the same visual grammar as .ab-detail-header/the Canvas topbar) rather than a
+       generic dark rounded pill. Placing it at the top means it would otherwise sit on top of
+       the Info Card's OWN top row instead (fav/add-to-list icons, shiny toggle, close button) —
+       so #right-panel gets a matching `padding-top` (see .right-panel.floating.journey-bar-open
+       below) whenever this bar is visible, reserving real space for it instead of overlapping. */
     #tb-journey-back-btn {
-      position: fixed; z-index: 510; bottom: 20px; left: 50%; transform: translateX(-50%);
-      background: #222; color: #fff; border: none; border-radius: 999px; padding: 10px 20px;
-      font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.35);
-      display: none;
+      position: fixed; z-index: 520; top: 0; left: 0; right: 0; height: 40px;
+      background: #43656e; color: #fff; border: none; border-radius: 0;
+      font-size: 12px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase;
+      cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      display: none; align-items: center; justify-content: center;
     }
-    #tb-journey-back-btn.visible { display: block; }
+    #tb-journey-back-btn.visible { display: flex; }
+    .right-panel.floating.journey-bar-open { padding-top: 40px; }
     /* When opened from Abilities/Moves — floats over current section */
     .right-panel.floating {
       position: fixed;
@@ -1594,9 +1605,14 @@
     }
     .addlist-create-row button:hover { opacity: 0.85; }
 
-    /* "Add from List" trigger row + its two-step sheet extras (base sheet chrome recycled from
-       .addlist-sheet/.addlist-item above — only the parts that differ get their own rules here). */
-    .tb-addfromlist-row { display: flex; justify-content: center; margin: 0 0 10px; }
+    /* "Add from List" trigger + its two-step sheet extras (base sheet chrome recycled from
+       .addlist-sheet/.addlist-item above — only the parts that differ get their own rules here).
+       Round 22: the trigger moved from its own full-width row above the roster grid (too much
+       vertical space) into .tb-context-header itself, right alongside the Battle Mode/Game-select
+       pills — same compact header box, same tight 6px row gap, and reuses .tb-game-select-btn's
+       exact pill styling (border/background/color/font) so it visually matches its new neighbors
+       instead of looking like a separate, differently-styled control. */
+    .tb-addfromlist-header-row { display: flex; justify-content: flex-end; }
     .tb-afl-back-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: #f0efe9; font-size: 16px; font-weight: 900; color: #43656e; cursor: pointer; flex-shrink: 0; margin-right: 4px; }
     .tb-afl-back-btn:hover { background: #e2ddd0; }
     .tb-afl-pokemon-view { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
@@ -3991,16 +4007,20 @@
                 <span id="tb-game-select-label">Select a game</span><span class="tb-game-select-chevron">▾</span>
               </button>
           </div>
-        </div>
 
-        <div class="grid-wrapper">
           <!-- "Add from List" — second roster entry point alongside each empty slot's own
                "+ Add Team Member". Opens #tb-addfromlist-backdrop: step 1 picks one of the user's
                Lists, step 2 multi-selects Pokémon from it (capped at the team's remaining open
-               slots) and imports them all at once. See tbOpenAddFromList() below. -->
-          <div class="tb-addfromlist-row">
-            <button class="tb-pill-trigger" id="tb-addfromlist-btn">📋 Add from List</button>
+               slots) and imports them all at once. See tbOpenAddFromList() below. Round 22: lives
+               in its own slim row inside .tb-context-header (same tight 6px row gap as the Battle
+               Mode controls above it) instead of a separate full-width row above the roster grid —
+               reuses .tb-game-select-btn's exact pill styling so it matches its header neighbors. -->
+          <div class="tb-addfromlist-header-row">
+            <button class="tb-game-select-btn" id="tb-addfromlist-btn">Add from List</button>
           </div>
+        </div>
+
+        <div class="grid-wrapper">
           <!-- Sticky wrapper: pins the party roster in view while the Coverage accordions below
                scroll past it inside .grid-wrapper (the actual scroll container here), so the
                positional mirroring between a coverage row's cells and party slot N stays visible
@@ -8001,12 +8021,14 @@
         resetPokemonTheme();
         tbJourneyLocked = false;
         document.getElementById('tb-journey-back-btn')?.classList.remove('visible');
+        rp.classList.remove('journey-bar-open');
         closeBtn.removeEventListener('click', tbLearnMoreCloseHandler);
         tbLearnMoreCloseHandler = null;
       };
       closeBtn.addEventListener('click', tbLearnMoreCloseHandler, { once: true });
 
       document.getElementById('tb-journey-back-btn')?.classList.add('visible');
+      rp.classList.add('journey-bar-open');
 
       // IMPORTANT: selectPokemon() itself bails out immediately when tbJourneyLocked is true (its
       // very first line — the guard that suppresses Pokémon-swap navigation while journey-locked).
@@ -8037,7 +8059,7 @@
         tbLearnMoreCloseHandler = null;
       }
       const rp = document.getElementById('right-panel');
-      rp.classList.remove('floating', 'open');
+      rp.classList.remove('floating', 'open', 'journey-bar-open');
       document.getElementById('left-panel').classList.remove('panel-open');
       selectedPokemon = null;
       resetPokemonTheme();
