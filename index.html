@@ -1594,6 +1594,24 @@
     }
     .addlist-create-row button:hover { opacity: 0.85; }
 
+    /* "Add from List" trigger row + its two-step sheet extras (base sheet chrome recycled from
+       .addlist-sheet/.addlist-item above — only the parts that differ get their own rules here). */
+    .tb-addfromlist-row { display: flex; justify-content: center; margin: 0 0 10px; }
+    .tb-afl-back-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: #f0efe9; font-size: 16px; font-weight: 900; color: #43656e; cursor: pointer; flex-shrink: 0; margin-right: 4px; }
+    .tb-afl-back-btn:hover { background: #e2ddd0; }
+    .tb-afl-pokemon-view { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+    .tb-afl-grid { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .tb-afl-card { position: relative; cursor: pointer; }
+    .tb-afl-card.selected { outline: 2px solid #f8d030; outline-offset: -2px; border-radius: 10px; }
+    .tb-afl-card.disabled { opacity: 0.4; cursor: default; pointer-events: none; }
+    .tb-afl-card-check { position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; border-radius: 50%; background: rgba(255,255,255,0.85); border: 1.5px solid #c8bfaf; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: transparent; z-index: 2; }
+    .tb-afl-card.selected .tb-afl-card-check { background: #f8d030; border-color: #f8d030; color: #1a1a1a; }
+    .tb-afl-footer { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; padding-top: 12px; border-top: 1px solid #f0efe9; }
+    .tb-afl-footer span { font-size: 11.5px; font-weight: 700; color: #666; }
+    .tb-afl-footer button { padding: 8px 16px; border-radius: 18px; border: none; background: #43656e; color: white; font-size: 12px; font-weight: 800; cursor: pointer; }
+    .tb-afl-footer button:disabled { background: #cfc9bb; cursor: default; }
+    .tb-afl-empty-note { padding: 30px 10px; text-align: center; font-size: 12px; color: #888; }
+
     .ability-modal-backdrop {
       position: absolute; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.6);
@@ -1969,7 +1987,8 @@
        absolutely-positioned overlay. */
     #tb-studio-shiny-control { position: static; flex-shrink: 0; z-index: 2; }
     .tb-studio-close:hover { background: rgba(255,255,255,0.4); }
-    .tb-studio-learn-more-btn { position: static; flex-shrink: 0; margin-left: auto; padding: 5px 12px; border-radius: 13px; background: rgba(255,255,255,0.25); border: none; cursor: pointer; font-size: 11px; font-weight: 700; color: white; transition: background 0.15s; z-index: 2; }
+    .tb-studio-learn-more-row { display: flex; justify-content: flex-end; width: 100%; margin-top: 4px; }
+    .tb-studio-learn-more-btn { position: static; flex-shrink: 0; padding: 5px 12px; border-radius: 13px; background: rgba(255,255,255,0.25); border: none; cursor: pointer; font-size: 11px; font-weight: 700; color: white; transition: background 0.15s; z-index: 2; }
     .tb-studio-learn-more-btn:hover { background: rgba(255,255,255,0.4); }
     .tb-studio-learn-more-btn:disabled { opacity: 0.4; cursor: default; }
     /* Round 5 (Diego): the nickname editor moves into the header's controls-bar row itself, at
@@ -3381,6 +3400,35 @@
         </div>
       </div>
 
+      <!-- ── ADD FROM LIST SHEET (Team Builder roster) ──
+           Two-step wizard reusing the exact .addlist-sheet bottom-sheet visual language:
+           step 'lists' shows one .addlist-item row per list (tap navigates into it, unlike the
+           toggle behavior addlist-item normally has); step 'pokemon' shows a multi-select grid of
+           that list's Pokémon (reusing the shared .card/.card-sprite-zone/.card-number/.card-name/
+           .type-badges classes the main Pokédex grid and Dex Picker both use) capped at the
+           team's remaining open roster slots. See tbOpenAddFromList()/tbAflRenderLists()/
+           tbAflRenderPokemon()/tbAflConfirm() below. -->
+      <div class="addlist-backdrop" id="tb-addfromlist-backdrop">
+        <div class="addlist-sheet" id="tb-addfromlist-sheet">
+          <div class="addlist-sheet-handle"></div>
+          <div class="addlist-sheet-header">
+            <button class="tb-afl-back-btn" id="tb-addfromlist-back" title="Back" style="display:none;">‹</button>
+            <div class="addlist-sheet-title" id="tb-addfromlist-title">Add from List</div>
+            <button class="addlist-sheet-close" id="tb-addfromlist-close">✕</button>
+          </div>
+          <div class="addlist-list" id="tb-addfromlist-lists-view">
+            <div id="tb-addfromlist-list-rows"></div>
+          </div>
+          <div class="tb-afl-pokemon-view" id="tb-addfromlist-pokemon-view" style="display:none;">
+            <div class="tb-afl-grid" id="tb-addfromlist-grid"></div>
+            <div class="tb-afl-footer">
+              <span id="tb-addfromlist-count">0 selected</span>
+              <button id="tb-addfromlist-confirm" disabled>Add to Team</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ── ABILITY POPUP ── -->
       <div class="ability-modal-backdrop" id="ability-modal-backdrop">
         <div class="ability-modal" id="ability-modal">
@@ -3935,6 +3983,13 @@
         </div>
 
         <div class="grid-wrapper">
+          <!-- "Add from List" — second roster entry point alongside each empty slot's own
+               "+ Add Team Member". Opens #tb-addfromlist-backdrop: step 1 picks one of the user's
+               Lists, step 2 multi-selects Pokémon from it (capped at the team's remaining open
+               slots) and imports them all at once. See tbOpenAddFromList() below. -->
+          <div class="tb-addfromlist-row">
+            <button class="tb-pill-trigger" id="tb-addfromlist-btn">📋 Add from List</button>
+          </div>
           <!-- Sticky wrapper: pins the party roster in view while the Coverage accordions below
                scroll past it inside .grid-wrapper (the actual scroll container here), so the
                positional mirroring between a coverage row's cells and party slot N stays visible
@@ -4150,6 +4205,11 @@
                 </div>
               </div>
               <button class="tb-studio-close" id="tb-studio-close" title="Close">✕</button>
+            </div>
+            <!-- Learn More sits in its own row BELOW the controls bar, right-aligned under the
+                 close button — the close button must stay the last/rightmost control in the top
+                 row per the app's golden rule (close button always top-right, nothing after it). -->
+            <div class="tb-studio-learn-more-row">
               <button class="tb-studio-learn-more-btn" id="tb-studio-learn-more-btn" title="Learn More">Learn More</button>
             </div>
             <div class="tb-studio-sprite-zone">
@@ -7857,8 +7917,6 @@
         catch(e){ return; }
       }
 
-      tbJourneyLocked = true;
-
       const rp = document.getElementById('right-panel');
       rp.classList.add('floating');
 
@@ -7879,7 +7937,15 @@
 
       document.getElementById('tb-journey-back-btn')?.classList.add('visible');
 
-      await selectPokemon(pkData, null);
+      // IMPORTANT: selectPokemon() itself bails out immediately when tbJourneyLocked is true (its
+      // very first line — the guard that suppresses Pokémon-swap navigation while journey-locked).
+      // So the lock can only be armed AFTER selectPokemon() has been invoked, never before, or this
+      // call self-blocks and nothing opens. Start the call first (its synchronous prefix — DOM
+      // resets, openPanel() — runs immediately, before any awaited fetch yields control back here),
+      // THEN arm the lock, THEN await the rest of it.
+      const selectPromise = selectPokemon(pkData, null);
+      tbJourneyLocked = true;
+      await selectPromise;
     }
     document.getElementById('tb-studio-learn-more-btn')?.addEventListener('click', tbOpenLearnMore);
 
@@ -9168,6 +9234,192 @@
       tbCloseDexPicker();
       renderTeamPartyGrid(team);
     }
+
+    // ── "Add from List" — second Team Builder roster entry point (Diego's ecosystem-connectivity
+    // idea): step 1 picks one of the user's Lists, step 2 multi-selects Pokémon from it, capped at
+    // however many roster slots are currently open. Confirmed decisions (round 18): duplicates
+    // already on the team are allowed (no de-dupe check against team.party), and the cap is the
+    // team's REMAINING open slots, not a flat 6.
+    let tbAflStep = 'lists';         // 'lists' | 'pokemon'
+    let tbAflListId = null;          // the list currently being browsed in step 'pokemon'
+    let tbAflSelected = [];          // array of list-item names the user has checked
+    const tbAflCache = {};           // name -> full PokeAPI pokemon object, resolved lazily (mirrors listsPokemonCache)
+
+    function tbAflRemainingSlots(){
+      const team = getTeam(tbActiveTeamId);
+      if(!team) return 0;
+      return team.party.filter(m => !m).length;
+    }
+
+    function tbOpenAddFromList(){
+      const team = getTeam(tbActiveTeamId);
+      if(!team) return;
+      if(tbAflRemainingSlots() === 0){
+        alert('Your roster is full — remove a Pokémon first to add from a list.');
+        return;
+      }
+      tbAflStep = 'lists';
+      tbAflListId = null;
+      tbAflSelected = [];
+      document.getElementById('tb-addfromlist-backdrop').classList.add('visible');
+      tbAflRenderStep();
+    }
+
+    function tbCloseAddFromList(){
+      document.getElementById('tb-addfromlist-backdrop').classList.remove('visible');
+      tbAflStep = 'lists';
+      tbAflListId = null;
+      tbAflSelected = [];
+    }
+
+    function tbAflRenderStep(){
+      const listsView = document.getElementById('tb-addfromlist-lists-view');
+      const pokeView = document.getElementById('tb-addfromlist-pokemon-view');
+      const backBtn = document.getElementById('tb-addfromlist-back');
+      const title = document.getElementById('tb-addfromlist-title');
+      if(tbAflStep === 'lists'){
+        listsView.style.display = '';
+        pokeView.style.display = 'none';
+        backBtn.style.display = 'none';
+        title.textContent = 'Add from List';
+        tbAflRenderLists();
+      }else{
+        listsView.style.display = 'none';
+        pokeView.style.display = '';
+        backBtn.style.display = '';
+        const l = getList(tbAflListId);
+        title.textContent = l ? l.name : 'Add from List';
+        tbAflRenderPokemon();
+      }
+    }
+
+    function tbAflRenderLists(){
+      const wrap = document.getElementById('tb-addfromlist-list-rows');
+      const lists = getLists();
+      wrap.innerHTML = '';
+      if(lists.length === 0 || lists.every(l => l.items.length === 0)){
+        wrap.innerHTML = `<div class="tb-afl-empty-note">You don't have any saved Pokémon in Lists yet.</div>`;
+        return;
+      }
+      lists.forEach(l=>{
+        const row = document.createElement('div');
+        row.className = 'addlist-item';
+        row.innerHTML = `<span class="addlist-item-name">${l.name}<span class="addlist-item-count">${l.items.length} saved</span></span>`;
+        if(l.items.length === 0){
+          row.classList.add('tb-afl-card', 'disabled'); // reuse the disabled look for an empty list row
+        }else{
+          row.addEventListener('click', ()=>{
+            tbAflListId = l.id;
+            tbAflStep = 'pokemon';
+            tbAflSelected = [];
+            tbAflRenderStep();
+          });
+        }
+        wrap.appendChild(row);
+      });
+    }
+
+    // Resolves a list item ({name,id,addedAt}) to full PokeAPI data, mirroring the same
+    // fire-and-forget-async pattern getListPokemonData() uses for the Lists section itself
+    // (first call can return null while a fetch is in flight; re-renders this sheet's grid once
+    // the fetch lands, but only if the user is still looking at this same list).
+    function tbAflResolvePokemon(item){
+      const known = allPokemon.find(p => p.name === item.name);
+      if(known) return known;
+      if(tbAflCache[item.name]) return tbAflCache[item.name];
+      if(listsPokemonCache[item.name]){ tbAflCache[item.name] = listsPokemonCache[item.name]; return tbAflCache[item.name]; }
+      fetch(`https://pokeapi.co/api/v2/pokemon/${item.name}`).then(r=>r.json()).then(data=>{
+        tbAflCache[item.name] = data;
+        if(tbAflStep === 'pokemon') tbAflRenderPokemon();
+      }).catch(()=>{});
+      return null;
+    }
+
+    function tbAflUpdateFooter(){
+      const cap = tbAflRemainingSlots();
+      const n = tbAflSelected.length;
+      document.getElementById('tb-addfromlist-count').textContent = `${n} selected (max ${cap})`;
+      document.getElementById('tb-addfromlist-confirm').disabled = n === 0;
+    }
+
+    function tbAflRenderPokemon(){
+      const grid = document.getElementById('tb-addfromlist-grid');
+      const l = getList(tbAflListId);
+      grid.innerHTML = '';
+      if(!l || l.items.length === 0){
+        grid.innerHTML = `<div class="tb-afl-empty-note">This list is empty.</div>`;
+        tbAflUpdateFooter();
+        return;
+      }
+      const cap = tbAflRemainingSlots();
+      l.items.forEach(item=>{
+        const pokemon = tbAflResolvePokemon(item);
+        const card = document.createElement('div');
+        card.className = 'tb-afl-card card';
+        if(!pokemon){
+          card.innerHTML = `<div class="card-sprite-zone tb-afl-loading">…</div><div class="card-name">${item.name}</div>`;
+          grid.appendChild(card);
+          return;
+        }
+        const entryData = cardData(pokemon);
+        const isSelected = tbAflSelected.includes(item.name);
+        const atCap = cap > 0 && tbAflSelected.length >= cap && !isSelected;
+        card.className = 'tb-afl-card card' + (isSelected ? ' selected' : '') + (atCap ? ' disabled' : '');
+        const spriteZone = document.createElement('div');
+        spriteZone.className = 'card-sprite-zone';
+        const si = document.createElement('img');
+        si.src = getSprite(entryData, false);
+        si.alt = entryData.name;
+        si.className = 'sprite';
+        si.loading = 'lazy'; si.decoding = 'async'; si.width = 88; si.height = 88;
+        spriteZone.appendChild(si);
+        const nm = document.createElement('div'); nm.className = 'card-name'; nm.textContent = cardLabelText(pokemon);
+        const bd = document.createElement('div'); bd.className = 'type-badges';
+        cardTypes(pokemon).forEach(t => bd.appendChild(makeBadgeImg(t.type.name, false)));
+        const check = document.createElement('div'); check.className = 'tb-afl-card-check'; check.textContent = '✓';
+        card.appendChild(spriteZone); card.appendChild(nm); card.appendChild(bd); card.appendChild(check);
+        card.addEventListener('click', ()=>{
+          if(tbAflSelected.includes(item.name)){
+            tbAflSelected = tbAflSelected.filter(n => n !== item.name);
+          }else{
+            if(tbAflSelected.length >= tbAflRemainingSlots()) return; // at cap — ignore further picks
+            tbAflSelected.push(item.name);
+          }
+          tbAflRenderPokemon();
+        });
+        grid.appendChild(card);
+      });
+      tbAflUpdateFooter();
+    }
+
+    function tbAflConfirm(){
+      const team = getTeam(tbActiveTeamId);
+      if(!team || tbAflSelected.length === 0) return;
+      const openSlots = team.party.map((m,i)=>i).filter(i => !team.party[i]);
+      tbAflSelected.slice(0, openSlots.length).forEach((name, idx)=>{
+        const pokemon = tbAflResolvePokemon({name});
+        if(!pokemon) return; // shouldn't happen — was already resolved to render its card
+        const entryData = cardData(pokemon);
+        const types = cardTypes(pokemon).map(t => t.type.name);
+        team.party[openSlots[idx]] = makeTeamMember(entryData.id, entryData.name, false, types);
+      });
+      touchTeam(team);
+      tbCloseAddFromList();
+      renderTeamPartyGrid(team);
+    }
+
+    document.getElementById('tb-addfromlist-btn')?.addEventListener('click', tbOpenAddFromList);
+    document.getElementById('tb-addfromlist-close')?.addEventListener('click', tbCloseAddFromList);
+    document.getElementById('tb-addfromlist-backdrop')?.addEventListener('click', (e)=>{
+      if(e.target.id === 'tb-addfromlist-backdrop') tbCloseAddFromList();
+    });
+    document.getElementById('tb-addfromlist-back')?.addEventListener('click', ()=>{
+      tbAflStep = 'lists';
+      tbAflListId = null;
+      tbAflSelected = [];
+      tbAflRenderStep();
+    });
+    document.getElementById('tb-addfromlist-confirm')?.addEventListener('click', tbAflConfirm);
 
     document.getElementById('tb-dexpick-search')?.addEventListener('input', e=>{
       tbDexPickSearch = e.target.value;
