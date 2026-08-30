@@ -2979,6 +2979,376 @@
       .tb-team-card-sprite-name { font-size: 8px; }
       .tb-team-card-name { font-size: 12px; }
     }
+
+    /* ============================================================================
+       GAMES SECTION — Blind Draft Battle (integration, 2026-08-30)
+       Ported verbatim from the standalone Blind Draft Battle engine's UI layer
+       (blind-draft-ui.css) — every token traces to visual-language.md, see that
+       file's own header comment. .bdb-section additionally needs to actually
+       fill its .section-panel parent's height (the panel is `flex:1; display:flex`
+       once `.active`, but a plain child div doesn't inherit that sizing on its
+       own) so the modal backdrop's `position:absolute; inset:0` covers the whole
+       Games tab rather than collapsing to zero height — added here, not present
+       in the standalone file since that one wasn't embedded in a flex parent.
+       ============================================================================ */
+    .bdb-section { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
+
+/* ============================================================================
+   Sevii — Blind Draft Battle: UI layer (Phase 3)
+   Every token below is copied from claude/visual-language.md, not invented.
+   Section-scoped under `.bdb-*` so nothing here can leak onto/collide with
+   the main app's `.card`, `.pill`, `.mobile-sheet*`, `.info-*` etc.
+   ============================================================================ */
+
+/* --------------------------------------------------------------------------
+   0. Section shell — matches the app's warm-parchment chrome + grid wrapper
+      paper-grain idiom (§1 fixed structural colors, §11 paper-grain).
+   -------------------------------------------------------------------------- */
+.bdb-section {
+  --bdb-theme-dark: #43656e;   /* fixed brand teal — this Section has no per-Pokémon theme */
+  --bdb-theme-bg: #f0f5f4;
+  --bdb-theme-border: #c8d8d6;
+  background: #eae3d7;
+  position: relative;
+}
+.bdb-section::before {
+  /* paper-grain texture, §11 — same base64 noise idiom used on .grid-wrapper */
+  content: "";
+  position: absolute; inset: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PGZpbHRlciBpZD0ibiI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuOSIgbnVtT2N0YXZlcz0iMiIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPjwvc3ZnPg==");
+  background-size: 60px 60px;
+  opacity: 0.18;
+}
+.bdb-grid-wrapper {
+  position: relative;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+}
+
+/* --------------------------------------------------------------------------
+   1. Draft/roster cards — same shape as the main grid `.card` (§5), sized
+      identically so the Section never feels like a different app: 12px
+      radius, 2px transparent-to-hover border, min-height 185px, 88x88
+      sprite, Archivo Black 12px/900 name (capitalize, not uppercase — the
+      one documented exception), single-line ellipsis truncation so a long
+      form name never re-flows the grid mid-batch-transition.
+   -------------------------------------------------------------------------- */
+.bdb-card {
+  background: white;
+  border-radius: 12px;
+  padding: 10px 8px 12px;
+  border: 2px solid #e8e4dd;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+  min-height: 185px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s, opacity 0.15s;
+  position: relative;
+}
+.bdb-card:hover {
+  border-color: #c8bfaf;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.11);
+  transform: translateY(-2px);
+}
+.bdb-card[data-disabled="true"] {
+  opacity: 0.35;
+  cursor: default;
+  pointer-events: none;
+}
+.bdb-card.bdb-card--selected {
+  border-color: var(--bdb-theme-dark);
+  background: var(--bdb-theme-bg);
+}
+.bdb-card-sprite-wrap {
+  width: 88px; height: 88px;
+  display: flex; align-items: center; justify-content: center;
+}
+.bdb-card-sprite {
+  width: 88px; height: 88px;
+  image-rendering: pixelated;
+}
+.bdb-card-number { font-size: 10px; font-weight: 700; color: #a09890; }
+.bdb-card-name {
+  font-family: 'Archivo Black', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 12px;
+  color: #1a1a1a;
+  text-transform: capitalize;
+  margin-top: 4px;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bdb-card-type-badges {
+  display: flex; gap: 4px; margin-top: 6px; min-height: 20px;
+}
+.bdb-card-type-badge {
+  width: 20px; height: 20px;
+}
+.bdb-card-shiny-flag {
+  position: absolute; top: 8px; right: 8px;
+  font-size: 13px; color: #f8d030;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.25));
+}
+.bdb-card-hp-bar {
+  width: 100%; height: 5px; border-radius: 8px;
+  background: rgba(0,0,0,0.08); overflow: hidden; margin-top: 8px;
+}
+.bdb-card-hp-fill {
+  height: 100%; border-radius: 8px; transition: width 0.2s ease, background 0.2s ease;
+}
+.bdb-card-clue-line {
+  font-size: 11px; color: #555; margin-top: 4px; text-align: center;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+}
+.has-selection .bdb-card:not(.bdb-card--selected) { opacity: 0.6; }
+.has-selection .bdb-card:not(.bdb-card--selected):hover { opacity: 0.85; }
+
+/* --------------------------------------------------------------------------
+   2. Trio row (draft picks) — 3-up, same card shape, centered.
+   -------------------------------------------------------------------------- */
+.bdb-trio-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 14px;
+}
+
+/* --------------------------------------------------------------------------
+   3. Squad strip (battle phase roster) — compact horizontal list of the
+      "sub-card" tier (§5: 10px radius / 48-54px sprite band).
+   -------------------------------------------------------------------------- */
+.bdb-squad-strip {
+  display: flex; gap: 8px; padding: 10px 14px; overflow-x: auto;
+  scrollbar-width: none;
+}
+.bdb-squad-strip::-webkit-scrollbar { display: none; }
+.bdb-squad-chip {
+  flex: 0 0 auto;
+  width: 64px;
+  background: #f7f7fa;
+  border-radius: 10px;
+  padding: 6px 4px 8px;
+  display: flex; flex-direction: column; align-items: center;
+  border: 2px solid transparent;
+  transition: border-color 0.15s, opacity 0.15s;
+}
+.bdb-squad-chip[data-active="true"] { border-color: var(--bdb-theme-dark); }
+.bdb-squad-chip[data-fainted="true"] { opacity: 0.35; }
+.bdb-squad-chip-sprite { width: 48px; height: 48px; image-rendering: pixelated; }
+.bdb-squad-chip-name {
+  font-size: 9px; font-weight: 700; color: #444; text-transform: capitalize;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   4. Action bar (battle phase controls) — pill buttons matching
+      `.info-action-btn` (§8): solid theme-dark fill, translucent white
+      border, 24px radius, 13px/600.
+   -------------------------------------------------------------------------- */
+.bdb-action-bar {
+  display: flex; gap: 8px; padding: 10px 14px 14px;
+}
+.bdb-action-btn {
+  flex: 1;
+  padding: 10px 8px;
+  border-radius: 24px;
+  background: var(--bdb-theme-dark);
+  border: 1.5px solid rgba(255,255,255,0.5);
+  font-size: 13px; font-weight: 600; letter-spacing: 0;
+  color: white;
+  transition: background 0.15s, opacity 0.15s, transform 0.1s;
+  cursor: pointer;
+}
+.bdb-action-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+.bdb-action-btn:disabled,
+.bdb-action-btn[data-disabled="true"] {
+  opacity: 0.45; cursor: default; transform: none;
+}
+.bdb-action-btn--outline {
+  background: transparent;
+  border: 2px solid var(--bdb-theme-dark);
+  color: var(--bdb-theme-dark);
+}
+
+/* --------------------------------------------------------------------------
+   5. Clue-mode picker — bottom sheet, §0 golden-standard recipe verbatim.
+      This sheet's content (clue toggles) is static-height, so max-height
+      alone is correct (Gotcha #2 only applies to accordion-bearing sheets).
+   -------------------------------------------------------------------------- */
+.bdb-sheet-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.35);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 400;
+}
+.bdb-sheet-backdrop.bdb-open { opacity: 1; pointer-events: auto; }
+
+.bdb-sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 401;
+  display: flex; flex-direction: column; align-items: stretch; /* Gotcha #1 — always explicit */
+  background: white; border-radius: 16px 16px 0 0;
+  max-height: 65vh;
+  overflow-y: auto;
+  padding: 14px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+  transform: translateY(100%);
+  transition: transform 0.25s ease;
+  box-shadow: 0 -6px 24px rgba(0,0,0,0.2);
+}
+.bdb-sheet.bdb-open { transform: translateY(0); }
+
+.bdb-sheet-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.bdb-sheet-title {
+  font-family: 'Archivo Black', system-ui, sans-serif;
+  font-weight: 900; font-size: 13px; text-transform: uppercase;
+  letter-spacing: 0.5px; color: #333;
+}
+.bdb-sheet-close {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: #f0efe9; border: none; color: #555; font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+
+.bdb-clue-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; border-radius: 10px;
+  background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  margin-bottom: 8px; cursor: pointer;
+  border: 2px solid transparent;
+}
+.bdb-clue-pill[data-active="true"] {
+  border-color: var(--bdb-theme-dark);
+  background: var(--bdb-theme-bg);
+}
+.bdb-clue-pill-label { font-size: 13px; font-weight: 600; color: #1a1a1a; flex: 1; }
+.bdb-clue-pill-check { font-size: 12px; color: var(--bdb-theme-dark); opacity: 0; }
+.bdb-clue-pill[data-active="true"] .bdb-clue-pill-check { opacity: 1; }
+
+/* --------------------------------------------------------------------------
+   6. Gimmick / lead-select / game-over modal — §7 centered floating panel.
+   -------------------------------------------------------------------------- */
+.bdb-modal-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(3px);
+  z-index: 100;
+  display: none;
+  align-items: center; justify-content: center;
+  padding: 10px 16px;
+}
+.bdb-modal-backdrop.bdb-open { display: flex; }
+
+.bdb-modal {
+  width: 100%; max-width: 420px; height: auto; max-height: 90%;
+  border-radius: 16px;
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 10px 36px rgba(0,0,0,0.28);
+  background: white;
+}
+.bdb-modal-header {
+  padding: 10px 14px; min-height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bdb-theme-dark);
+}
+.bdb-modal-title-block { display: flex; flex-direction: column; }
+.bdb-modal-title {
+  font-family: 'Archivo Black', system-ui, sans-serif;
+  font-weight: 900; font-size: 16px; color: white; text-transform: uppercase;
+}
+.bdb-modal-subtitle {
+  font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.75);
+  text-transform: uppercase; letter-spacing: 0.3px;
+}
+.bdb-modal-close {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(255,255,255,0.22); border: none; color: white; font-size: 12px;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.bdb-modal-close:hover { background: rgba(255,255,255,0.4); }
+.bdb-modal-body {
+  padding: 14px; overflow-y: auto; flex: 1;
+}
+.bdb-modal-footer {
+  padding: 8px 16px 12px;
+  display: flex; justify-content: center; gap: 10px;
+}
+.bdb-modal-footer-btn {
+  width: 130px; padding: 8px 0; border-radius: 24px;
+  border: 2px solid var(--bdb-theme-dark); background: transparent;
+  color: var(--bdb-theme-dark); font-size: 13px; font-weight: 600;
+  cursor: pointer;
+}
+.bdb-modal-footer-btn:hover { opacity: 0.85; }
+
+.bdb-gimmick-option {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 14px; border-radius: 12px;
+  background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  margin-bottom: 8px; cursor: pointer;
+  border: 2px solid transparent;
+}
+.bdb-gimmick-option:hover { background: rgba(0,0,0,0.03); }
+.bdb-gimmick-option[data-disabled="true"] { opacity: 0.4; cursor: default; pointer-events: none; }
+
+/* --------------------------------------------------------------------------
+   7. Toasts / confirmation banners — replaces alert()/confirm(). No direct
+      precedent named in visual-language.md, so this is built from the same
+      family-B "white card + soft shadow" idiom + action-btn typography
+      (§2B, §8) rather than inventing a new visual language.
+   -------------------------------------------------------------------------- */
+.bdb-toast-stack {
+  position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 500;
+  display: flex; flex-direction: column; gap: 8px;
+  width: min(360px, calc(100vw - 28px));
+  pointer-events: none;
+}
+.bdb-toast {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+  padding: 10px 14px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; font-weight: 500; color: #333;
+  border-left: 4px solid var(--bdb-theme-dark);
+  opacity: 0; transform: translateY(8px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: auto;
+}
+.bdb-toast.bdb-toast--show { opacity: 1; transform: translateY(0); }
+.bdb-toast--error { border-left-color: #ad2119; }
+.bdb-toast--success { border-left-color: #78e642; }
+
+.bdb-confirm-banner {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+  padding: 12px 14px;
+  border-left: 4px solid var(--bdb-theme-dark);
+  pointer-events: auto;
+}
+.bdb-confirm-banner-text { font-size: 13px; color: #333; margin-bottom: 10px; }
+.bdb-confirm-banner-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.bdb-confirm-banner-btn {
+  padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;
+  cursor: pointer; border: none;
+}
+.bdb-confirm-banner-btn--confirm { background: var(--bdb-theme-dark); color: white; }
+.bdb-confirm-banner-btn--cancel { background: #f0efe9; color: #555; }
+
   </style>
 </head>
 <body>
@@ -3010,6 +3380,18 @@
       </button>
       <button class="sidenav-item sidenav-item-lists" data-section="lists">
         <img src="icons/sections/lists.png" alt="Lists" class="sidenav-section-img">
+      </button>
+      <!-- Games (Blind Draft Battle), placeholder name/icon per Diego — no icons/sections/games.png
+           exists yet, so this uses an inline SVG the same way "teams.png" used to before it got a
+           real icon; .sidenav-item svg.sidenav-section-img already carries the right chrome
+           (#eae3d7 bg, 14px padding) for exactly this fallback case. -->
+      <button class="sidenav-item sidenav-item-games" data-section="games">
+        <svg class="sidenav-section-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="7" width="20" height="12" rx="4" stroke="#43656e" stroke-width="1.6"/>
+          <path d="M7 10v4M5 12h4" stroke="#43656e" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="16" cy="11" r="1.1" fill="#43656e"/>
+          <circle cx="18.5" cy="13.5" r="1.1" fill="#43656e"/>
+        </svg>
       </button>
     </div>
 
@@ -4367,6 +4749,13 @@
 
   </div>
 
+  <!-- ── GAMES SECTION (Blind Draft Battle) — placeholder section name/icon per Diego,
+       2026-08-30. Empty mount point: BlindDraftBattleSection (blind-draft-ui.ts, bundled below
+       as window.SeviiBlindDraft) builds its whole DOM into this div the first time the Games
+       tab is opened (see initGamesSection() near the end of the closing <script>), the same
+       lazy-init-on-first-visit convention abilities/moves/lists already use in switchSection(). -->
+  <div class="section-panel" id="section-games"></div>
+
 
   <script>
     // ── Fix 1 (bug): the Dex Picker overlay (#tb-dexpick-backdrop + its Types/Gen bottom
@@ -5207,7 +5596,8 @@
         searchInput.placeholder = name === 'abilities'   ? 'Search abilities…' :
                                    name === 'moves'       ? 'Search moves…' :
                                    name === 'lists'       ? 'Search this list…' :
-                                   name === 'teambuilder' ? 'Search your teams…' : 'Search Sevii';
+                                   name === 'teambuilder' ? 'Search your teams…' :
+                                   name === 'games'       ? 'Search Games' : 'Search Sevii';
         searchInput.value = '';
         document.getElementById('search-clear-btn').style.display = 'none';
       }
@@ -5219,13 +5609,19 @@
       // The search bar is hidden entirely while the Team Builder's Canvas screen is showing
       // (see tbShowCanvas/tbShowHub) — leaving that section any other way (a different nav
       // tab) must restore it, same as any other shared header element getting reset here.
-      if (name !== 'teambuilder') {
+      // Games also has no search-driven grid (yet), so it's excluded here the same way — added
+      // to this existing condition rather than as a separate block below, so this one restore/
+      // hide toggle stays the single source of truth instead of two blocks racing each other.
+      if (name !== 'teambuilder' && name !== 'games') {
         const headerSearch = document.querySelector('.app-header-search');
         if (headerSearch) headerSearch.style.display = '';
         // Leaving Team Builder entirely (any other nav tab) must also restore the global
         // header if the Canvas screen had suppressed it — tbShowHub only runs when landing
         // back inside Team Builder, not when navigating away from it outright.
         document.body.classList.remove('tb-canvas-active');
+      } else if (name === 'games') {
+        const headerSearch = document.querySelector('.app-header-search');
+        if (headerSearch) headerSearch.style.display = 'none';
       }
       closeSidenav();
       if (name === 'abilities') {
@@ -5261,6 +5657,13 @@
         // Always land back on the Hub when the tab is opened; Canvas is only reached by
         // creating/opening a specific team from there.
         tbShowHub();
+      }
+      if (name === 'games') {
+        // initGamesSection() is defined at the bottom of this file (after the
+        // SeviiBlindDraft bundle script) and lazily mounts BlindDraftBattleSection into
+        // #section-games on first visit only, same convention as loadAbilitiesSection()/
+        // loadMovesSection() above (abLoaded/mvLoaded flags).
+        if (typeof initGamesSection === 'function') initGamesSection();
       }
     }
 
@@ -14095,5 +14498,3130 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
     updateAbMobileFilterBadges();
     updateMvMobileFilterBadges();
   </script>
+
+  <!-- ══════════ GAMES SECTION — Blind Draft Battle engine (integration, 2026-08-30) ══════════
+       Bundled via esbuild (--bundle --format=iife --global-name=SeviiBlindDraft) from the
+       standalone engine project's TypeScript source (Phases 1-4) — unmodified by this
+       integration step other than the bundling itself. Exposes window.SeviiBlindDraft. -->
+  <script>
+"use strict";
+var SeviiBlindDraft = (() => {
+  var __defProp = Object.defineProperty;
+  var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  var __getOwnPropNames = Object.getOwnPropertyNames;
+  var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __export = (target, all) => {
+    for (var name in all)
+      __defProp(target, name, { get: all[name], enumerable: true });
+  };
+  var __copyProps = (to, from, except, desc) => {
+    if (from && typeof from === "object" || typeof from === "function") {
+      for (let key of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(to, key) && key !== except)
+          __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+    }
+    return to;
+  };
+  var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+  // src/bundle-entry.ts
+  var bundle_entry_exports = {};
+  __export(bundle_entry_exports, {
+    ALL_CLUE_MODE_IDS: () => ALL_CLUE_MODE_IDS,
+    ALL_TYPES: () => ALL_TYPES,
+    APEX_POKEDEX_IDS: () => APEX_POKEDEX_IDS,
+    BLIND_DRAFT_STORAGE_KEY: () => BLIND_DRAFT_STORAGE_KEY,
+    BattleSimulator: () => BattleSimulator,
+    BlindDraftBattleSection: () => BlindDraftBattleSection,
+    BlockedActionError: () => BlockedActionError,
+    ClueModeSelector: () => ClueModeSelector,
+    DraftEngine: () => DraftEngine,
+    GMAX_LOOKUP: () => GMAX_LOOKUP,
+    MAX_ACTIVE_CLUE_MODES: () => MAX_ACTIVE_CLUE_MODES,
+    MEGA_LOOKUP: () => MEGA_LOOKUP,
+    PHYSICAL_MOVES: () => PHYSICAL_MOVES,
+    PokemonFactory: () => PokemonFactory,
+    SHINY_ODDS: () => SHINY_ODDS,
+    SHINY_STAT_BONUS: () => SHINY_STAT_BONUS,
+    SPECIAL_MOVES: () => SPECIAL_MOVES,
+    SQUAD_SIZE: () => SQUAD_SIZE,
+    SeviiPokemonRepository: () => SeviiPokemonRepository,
+    SeviiStorageAdapter: () => SeviiStorageAdapter,
+    TOTAL_DRAFT_ROUNDS: () => TOTAL_DRAFT_ROUNDS,
+    TOTAL_PICKS: () => TOTAL_PICKS,
+    TYPE_CHART: () => TYPE_CHART,
+    bindEngineToSevii: () => bindEngineToSevii,
+    bindEngineToSeviiTypeEffectiveness: () => bindEngineToSeviiTypeEffectiveness,
+    calculateMultiplier: () => calculateMultiplier,
+    capitalizeWords: () => capitalizeWords,
+    clueName: () => clueName,
+    computeDamage: () => computeDamage,
+    formatPokemonName: () => formatPokemonName,
+    getGeneration: () => getGeneration,
+    getOptimalStab: () => getOptimalStab,
+    getPeakStatProfile: () => getPeakStatProfile,
+    getTypeEffectivenessLabel: () => getTypeEffectivenessLabel,
+    homeShinySpriteUrl: () => homeShinySpriteUrl,
+    homeSpriteUrl: () => homeSpriteUrl,
+    isDualMega: () => isDualMega,
+    precacheSprites: () => precacheSprites,
+    resetMultiplierProviderToStaticChart: () => resetMultiplierProviderToStaticChart,
+    resolveEvolutionMetadata: () => resolveEvolutionMetadata,
+    resolveMegaTarget: () => resolveMegaTarget,
+    resolveSetupMove: () => resolveSetupMove,
+    resolveSpriteUrls: () => resolveSpriteUrls,
+    revealActiveClues: () => revealActiveClues,
+    revealClue: () => revealClue,
+    scoreDraftCandidate: () => scoreDraftCandidate,
+    setMultiplierProvider: () => setMultiplierProvider,
+    toPersistedRosterMember: () => toPersistedRosterMember,
+    wipeBoosts: () => wipeBoosts
+  });
+
+  // src/type-chart.ts
+  var ALL_TYPES = [
+    "normal",
+    "fire",
+    "water",
+    "electric",
+    "grass",
+    "ice",
+    "fighting",
+    "poison",
+    "ground",
+    "flying",
+    "psychic",
+    "bug",
+    "rock",
+    "ghost",
+    "dragon",
+    "dark",
+    "steel",
+    "fairy"
+  ];
+  var TYPE_CHART = {
+    normal: { rock: 0.5, ghost: 0, steel: 0.5 },
+    fire: { fire: 0.5, water: 0.5, grass: 2, ice: 2, bug: 2, rock: 0.5, dragon: 0.5, steel: 2 },
+    water: { fire: 2, water: 0.5, grass: 0.5, ground: 2, rock: 2, dragon: 0.5 },
+    electric: { water: 2, electric: 0.5, grass: 0.5, ground: 0, flying: 2, dragon: 0.5 },
+    grass: { fire: 0.5, water: 2, grass: 0.5, poison: 0.5, ground: 2, flying: 0.5, bug: 0.5, rock: 2, dragon: 0.5, steel: 0.5 },
+    ice: { fire: 0.5, water: 0.5, grass: 2, ice: 0.5, ground: 2, flying: 2, dragon: 2, steel: 0.5 },
+    fighting: { normal: 2, ice: 2, poison: 0.5, flying: 0.5, psychic: 0.5, bug: 0.5, rock: 2, ghost: 0, dark: 2, steel: 2, fairy: 0.5 },
+    poison: { grass: 2, poison: 0.5, ground: 0.5, rock: 0.5, ghost: 0.5, steel: 0, fairy: 2 },
+    ground: { fire: 2, electric: 2, grass: 0.5, poison: 2, flying: 0, bug: 0.5, rock: 2, steel: 2 },
+    flying: { electric: 0.5, grass: 2, fighting: 2, bug: 2, rock: 0.5, steel: 0.5 },
+    psychic: { fighting: 2, poison: 2, psychic: 0.5, dark: 0, steel: 0.5 },
+    bug: { fire: 0.5, grass: 2, fighting: 0.5, poison: 0.5, flying: 0.5, psychic: 2, ghost: 0.5, dark: 2, steel: 0.5, fairy: 0.5 },
+    rock: { fire: 2, ice: 2, fighting: 0.5, ground: 0.5, flying: 2, bug: 2, steel: 0.5 },
+    ghost: { normal: 0, psychic: 2, ghost: 2, dark: 0.5 },
+    dragon: { dragon: 2, steel: 0.5, fairy: 0 },
+    dark: { fighting: 0.5, psychic: 2, ghost: 2, dark: 0.5, fairy: 0.5 },
+    steel: { fire: 0.5, water: 0.5, electric: 0.5, ice: 2, rock: 2, steel: 0.5, fairy: 2 },
+    fairy: { fire: 0.5, fighting: 2, poison: 0.5, dragon: 2, dark: 2, steel: 0.5 }
+  };
+  var PHYSICAL_MOVES = {
+    normal: "Double-Edge",
+    fire: "Flare Blitz",
+    water: "Wave Crash",
+    electric: "Wild Charge",
+    grass: "Wood Hammer",
+    ice: "Icicle Crash",
+    fighting: "Close Combat",
+    poison: "Gunk Shot",
+    ground: "Earthquake",
+    flying: "Brave Bird",
+    psychic: "Zen Headbutt",
+    bug: "X-Scissor",
+    rock: "Stone Edge",
+    ghost: "Shadow Claw",
+    dragon: "Outrage",
+    dark: "Knock Off",
+    steel: "Iron Head",
+    fairy: "Play Rough"
+  };
+  var SPECIAL_MOVES = {
+    normal: "Hyper Beam",
+    fire: "Fire Blast",
+    water: "Hydro Pump",
+    electric: "Thunderbolt",
+    grass: "Solar Beam",
+    ice: "Blizzard",
+    fighting: "Focus Blast",
+    poison: "Sludge Bomb",
+    ground: "Earth Power",
+    flying: "Hurricane",
+    psychic: "Psychic",
+    bug: "Bug Buzz",
+    rock: "Power Gem",
+    ghost: "Shadow Ball",
+    dragon: "Draco Meteor",
+    dark: "Dark Pulse",
+    steel: "Flash Cannon",
+    fairy: "Moonblast"
+  };
+  var multiplierProvider = staticCalculateMultiplier;
+  function setMultiplierProvider(fn) {
+    multiplierProvider = fn;
+  }
+  function resetMultiplierProviderToStaticChart() {
+    multiplierProvider = staticCalculateMultiplier;
+  }
+  function staticCalculateMultiplier(atkType, defTypes) {
+    var _a, _b;
+    let mult = 1;
+    for (const dType of defTypes) {
+      const factor = (_b = (_a = TYPE_CHART[atkType]) == null ? void 0 : _a[dType]) != null ? _b : 1;
+      mult *= factor;
+    }
+    return mult;
+  }
+  function calculateMultiplier(atkType, defTypes) {
+    return multiplierProvider(atkType, defTypes);
+  }
+  function getTypeEffectivenessLabel(mult) {
+    if (mult === 0) return "0\xD7 Immune";
+    if (mult >= 4) return "4.0\xD7 Super Effective";
+    if (mult >= 2) return "2.0\xD7 Type Matchup";
+    if (mult <= 0.25) return "0.25\xD7 Quad Resisted";
+    if (mult <= 0.5) return "0.5\xD7 Resisted";
+    return "1.0\xD7 Type Neutral";
+  }
+
+  // src/damage-calc.ts
+  function computeDamage(attacker, defender, stabType, isTeraBlast = false, isMaxMove = false) {
+    var _a, _b;
+    const isPhysical = attacker.atk >= attacker.spa;
+    const offStat = isPhysical ? attacker.atk : attacker.spa;
+    const defStat = isPhysical ? defender.def : defender.spd;
+    const offLabel = isPhysical ? "Attack" : "Special Attack";
+    const defLabel = isPhysical ? "Defense" : "Special Defense";
+    const mult = calculateMultiplier(stabType, defender.types);
+    const effectiveOffense = Math.round(offStat * mult * (isTeraBlast ? 1.5 : 1));
+    const rawDifference = effectiveOffense - defStat + (isMaxMove ? 25 : 0);
+    const isImmune = mult === 0;
+    let isMinFloor = false;
+    let finalDamage = rawDifference;
+    if (isImmune) {
+      finalDamage = 0;
+    } else if (rawDifference < 10) {
+      finalDamage = 10;
+      isMinFloor = true;
+    }
+    let moveName = isPhysical ? (_a = PHYSICAL_MOVES[stabType]) != null ? _a : "Physical Strike" : (_b = SPECIAL_MOVES[stabType]) != null ? _b : "Special Strike";
+    if (isTeraBlast) moveName = `Tera Blast (${stabType.toUpperCase()})`;
+    if (isMaxMove) moveName = `Max ${moveName}`;
+    return {
+      isPhysical,
+      offStat,
+      defStat,
+      offLabel,
+      defLabel,
+      effectiveOffense,
+      rawDifference,
+      isImmune,
+      isMinFloor,
+      multiplier: mult,
+      damage: finalDamage,
+      stabType,
+      moveName
+    };
+  }
+  function getOptimalStab(attacker, defender) {
+    if (attacker.isTera && attacker.teraType) {
+      return computeDamage(attacker, defender, attacker.teraType, true, attacker.isGmax);
+    }
+    let best = null;
+    for (const t of attacker.types) {
+      const res = computeDamage(attacker, defender, t, false, attacker.isGmax);
+      if (!best || res.damage > best.damage) best = res;
+    }
+    return best;
+  }
+  function getPeakStatProfile(mon) {
+    const stats = [
+      { label: "HP", val: mon.maxHp },
+      { label: "Attack", val: mon.baseAtk },
+      { label: "Defense", val: mon.baseDef },
+      { label: "Special Attack", val: mon.baseSpa },
+      { label: "Special Defense", val: mon.baseSpd },
+      { label: "Speed", val: mon.baseSpeed }
+    ];
+    return stats.reduce((peak, s) => s.val > peak.val ? s : peak, stats[0]);
+  }
+
+  // src/pokemon-naming.ts
+  var REGIONAL_PREFIXES = {
+    "-alola": "Alolan",
+    "-galar": "Galarian",
+    "-hisui": "Hisuian",
+    "-paldea": "Paldean"
+  };
+  function capitalizeWords(str) {
+    return str.split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  }
+  function formatPokemonName(slug) {
+    if (!slug) return "";
+    for (const [suffix, prefix] of Object.entries(REGIONAL_PREFIXES)) {
+      if (slug.includes(suffix)) {
+        const base = slug.replace(suffix, "").replace(/-/g, " ");
+        return `${prefix} ${capitalizeWords(base)}`;
+      }
+    }
+    return capitalizeWords(slug.replace(/-/g, " "));
+  }
+  function getGeneration(id, slug = "") {
+    if (id >= 1e4) {
+      if (slug.includes("alola")) return 7;
+      if (slug.includes("galar")) return 8;
+      if (slug.includes("hisui")) return 8;
+      if (slug.includes("paldea")) return 9;
+      return 7;
+    }
+    if (id <= 151) return 1;
+    if (id <= 251) return 2;
+    if (id <= 386) return 3;
+    if (id <= 493) return 4;
+    if (id <= 649) return 5;
+    if (id <= 721) return 6;
+    if (id <= 809) return 7;
+    if (id <= 905) return 8;
+    return 9;
+  }
+
+  // src/setup-move.ts
+  function resolveSetupMove(mon) {
+    if (mon.baseAtk >= mon.baseSpa + 15) {
+      return { name: "Swords Dance", label: "Swords Dance (+40 Attack)", boostKey: "atk", boostVal: 40, secondaryKey: null, secondaryVal: 0 };
+    }
+    if (mon.baseSpa >= mon.baseAtk + 15) {
+      return { name: "Nasty Plot", label: "Nasty Plot (+40 Special Attack)", boostKey: "spa", boostVal: 40, secondaryKey: null, secondaryVal: 0 };
+    }
+    if (mon.baseSpeed >= 100 && mon.baseAtk >= mon.baseSpa) {
+      return { name: "Dragon Dance", label: "Dragon Dance (+20 Attack / +20 Speed)", boostKey: "atk", boostVal: 20, secondaryKey: "speed", secondaryVal: 20 };
+    }
+    if (mon.baseSpeed >= 100 && mon.baseSpa > mon.baseAtk) {
+      return { name: "Quiver Dance", label: "Quiver Dance (+20 Special Attack / +20 Speed)", boostKey: "spa", boostVal: 20, secondaryKey: "speed", secondaryVal: 20 };
+    }
+    if (mon.baseDef >= 100 && mon.baseDef > mon.baseSpd) {
+      return { name: "Iron Defense", label: "Iron Defense (+40 Defense)", boostKey: "def", boostVal: 40, secondaryKey: null, secondaryVal: 0 };
+    }
+    if (mon.baseSpd >= 100 && mon.baseSpd >= mon.baseDef) {
+      return { name: "Amnesia", label: "Amnesia (+40 Special Defense)", boostKey: "spd", boostVal: 40, secondaryKey: null, secondaryVal: 0 };
+    }
+    if (mon.baseAtk >= mon.baseSpa) {
+      return { name: "Bulk Up", label: "Bulk Up (+20 Attack / +20 Defense)", boostKey: "atk", boostVal: 20, secondaryKey: "def", secondaryVal: 20 };
+    }
+    return { name: "Calm Mind", label: "Calm Mind (+20 Special Attack / +20 Special Defense)", boostKey: "spa", boostVal: 20, secondaryKey: "spd", secondaryVal: 20 };
+  }
+
+  // src/mega-gmax-lookup.ts
+  var MEGA_LOOKUP = {
+    3: { formId: 10033, name: "Mega Venusaur" },
+    6: [
+      { formId: 10034, name: "Mega Charizard X", types: ["fire", "dragon"] },
+      { formId: 10035, name: "Mega Charizard Y", types: ["fire", "flying"] }
+    ],
+    9: { formId: 10036, name: "Mega Blastoise" },
+    15: { formId: 10090, name: "Mega Beedrill" },
+    18: { formId: 10073, name: "Mega Pidgeot" },
+    65: { formId: 10037, name: "Mega Alakazam" },
+    80: { formId: 10071, name: "Mega Slowbro" },
+    94: { formId: 10038, name: "Mega Gengar" },
+    115: { formId: 10039, name: "Mega Kangaskhan" },
+    127: { formId: 10040, name: "Mega Pinsir" },
+    130: { formId: 10041, name: "Mega Gyarados" },
+    142: { formId: 10042, name: "Mega Aerodactyl" },
+    150: [
+      { formId: 10043, name: "Mega Mewtwo X", types: ["psychic", "fighting"] },
+      { formId: 10044, name: "Mega Mewtwo Y", types: ["psychic"] }
+    ],
+    181: { formId: 10045, name: "Mega Ampharos" },
+    208: { formId: 10072, name: "Mega Steelix" },
+    212: { formId: 10046, name: "Mega Scizor" },
+    214: { formId: 10047, name: "Mega Heracross" },
+    229: { formId: 10048, name: "Mega Houndoom" },
+    248: { formId: 10049, name: "Mega Tyranitar" },
+    254: { formId: 10065, name: "Mega Sceptile" },
+    257: { formId: 10050, name: "Mega Blaziken" },
+    260: { formId: 10064, name: "Mega Swampert" },
+    282: { formId: 10051, name: "Mega Gardevoir" },
+    302: { formId: 10066, name: "Mega Sableye" },
+    303: { formId: 10052, name: "Mega Mawile" },
+    306: { formId: 10053, name: "Mega Aggron" },
+    308: { formId: 10054, name: "Mega Medicham" },
+    310: { formId: 10055, name: "Mega Manectric" },
+    319: { formId: 10070, name: "Mega Sharpedo" },
+    323: { formId: 10087, name: "Mega Camerupt" },
+    334: { formId: 10067, name: "Mega Altaria" },
+    354: { formId: 10056, name: "Mega Banette" },
+    359: { formId: 10057, name: "Mega Absol" },
+    362: { formId: 10074, name: "Mega Glalie" },
+    373: { formId: 10089, name: "Mega Salamence" },
+    376: { formId: 10076, name: "Mega Metagross" },
+    380: { formId: 10062, name: "Mega Latias" },
+    381: { formId: 10063, name: "Mega Latios" },
+    382: { formId: 10077, name: "Primal Kyogre" },
+    383: { formId: 10078, name: "Primal Groudon" },
+    384: { formId: 10079, name: "Mega Rayquaza" },
+    428: { formId: 10088, name: "Mega Lopunny" },
+    445: { formId: 10058, name: "Mega Garchomp" },
+    448: { formId: 10059, name: "Mega Lucario" },
+    460: { formId: 10060, name: "Mega Abomasnow" },
+    475: { formId: 10068, name: "Mega Gallade" },
+    531: { formId: 10069, name: "Mega Audino" },
+    719: { formId: 10075, name: "Mega Diancie" },
+    // Pokémon Legends: Z-A & Mega Dimension Expansions
+    26: [
+      { formId: 10304, name: "Mega Raichu X", types: ["electric"] },
+      { formId: 10305, name: "Mega Raichu Y", types: ["electric"] }
+    ],
+    36: { formId: 10278, name: "Mega Clefable" },
+    71: { formId: 10279, name: "Mega Victreebel" },
+    121: { formId: 10280, name: "Mega Starmie" },
+    149: { formId: 10281, name: "Mega Dragonite" },
+    154: { formId: 10282, name: "Mega Meganium" },
+    160: { formId: 10283, name: "Mega Feraligatr" },
+    227: { formId: 10284, name: "Mega Skarmory" },
+    358: { formId: 10306, name: "Mega Chimecho" },
+    398: { formId: 10308, name: "Mega Staraptor" },
+    478: { formId: 10285, name: "Mega Froslass" },
+    485: { formId: 10311, name: "Mega Heatran" },
+    491: { formId: 10312, name: "Mega Darkrai" },
+    500: { formId: 10286, name: "Mega Emboar" },
+    530: { formId: 10287, name: "Mega Excadrill" },
+    545: { formId: 10288, name: "Mega Scolipede" },
+    560: { formId: 10289, name: "Mega Scrafty" },
+    604: { formId: 10290, name: "Mega Eelektross" },
+    609: { formId: 10291, name: "Mega Chandelure" },
+    623: { formId: 10313, name: "Mega Golurk" },
+    652: { formId: 10292, name: "Mega Chesnaught" },
+    655: { formId: 10293, name: "Mega Delphox" },
+    658: { formId: 10294, name: "Mega Greninja" },
+    668: { formId: 10295, name: "Mega Pyroar" },
+    670: { formId: 10296, name: "Mega Floette" },
+    678: { formId: 10314, name: "Mega Meowstic" },
+    687: { formId: 10297, name: "Mega Malamar" },
+    689: { formId: 10298, name: "Mega Barbaracle" },
+    691: { formId: 10299, name: "Mega Dragalge" },
+    701: { formId: 10300, name: "Mega Hawlucha" },
+    718: { formId: 10301, name: "Mega Zygarde" },
+    740: { formId: 10315, name: "Mega Crabominable" },
+    768: { formId: 10316, name: "Mega Golisopod" },
+    780: { formId: 10302, name: "Mega Drampa" },
+    801: { formId: 10317, name: "Mega Magearna" },
+    807: { formId: 10319, name: "Mega Zeraora" },
+    870: { formId: 10303, name: "Mega Falinks" },
+    952: { formId: 10320, name: "Mega Scovillain" },
+    970: { formId: 10321, name: "Mega Glimmora" },
+    978: { formId: 10322, name: "Mega Tatsugiri" },
+    998: { formId: 10325, name: "Mega Baxcalibur" }
+  };
+  var GMAX_LOOKUP = {
+    3: 10195,
+    6: 10196,
+    9: 10197,
+    12: 10198,
+    25: 10199,
+    52: 10200,
+    68: 10201,
+    94: 10202,
+    99: 10203,
+    131: 10204,
+    133: 10205,
+    143: 10206,
+    569: 10207,
+    809: 10208,
+    812: 10209,
+    815: 10210,
+    818: 10211,
+    823: 10212,
+    826: 10213,
+    834: 10214,
+    839: 10215,
+    841: 10216,
+    842: 10217,
+    844: 10218,
+    849: 10219,
+    851: 10220,
+    858: 10221,
+    861: 10222,
+    869: 10223,
+    879: 10224,
+    884: 10225,
+    892: 10226
+  };
+  function resolveMegaTarget(speciesId, choiceKey = "X") {
+    const lookup = MEGA_LOOKUP[speciesId];
+    if (!lookup) return null;
+    if (Array.isArray(lookup)) return choiceKey === "Y" ? lookup[1] : lookup[0];
+    return lookup;
+  }
+  function isDualMega(speciesId) {
+    return Array.isArray(MEGA_LOOKUP[speciesId]);
+  }
+
+  // src/evolution-metadata.ts
+  var STANDALONE_IDS = /* @__PURE__ */ new Set([
+    128,
+    131,
+    142,
+    144,
+    145,
+    146,
+    150,
+    151,
+    214,
+    227,
+    243,
+    244,
+    245,
+    249,
+    250,
+    251,
+    335,
+    336,
+    359,
+    377,
+    378,
+    379,
+    380,
+    381,
+    382,
+    383,
+    384,
+    385,
+    386,
+    442,
+    480,
+    481,
+    482,
+    483,
+    484,
+    485,
+    486,
+    487,
+    488,
+    491,
+    492,
+    493,
+    638,
+    639,
+    640,
+    641,
+    642,
+    643,
+    644,
+    645,
+    646,
+    716,
+    717,
+    718,
+    778,
+    785,
+    786,
+    787,
+    788,
+    793,
+    794,
+    795,
+    796,
+    797,
+    798,
+    799,
+    800,
+    888,
+    889,
+    890,
+    894,
+    895,
+    898,
+    905,
+    984,
+    985,
+    986,
+    987,
+    988,
+    989,
+    990,
+    991,
+    992,
+    993,
+    994,
+    995,
+    1001,
+    1002,
+    1003,
+    1004,
+    1007,
+    1008,
+    1010,
+    1014,
+    1015,
+    1016,
+    1017,
+    1020,
+    1021,
+    1022,
+    1023,
+    1024,
+    1025
+  ]);
+  var HIGH_LEVEL_IDS = /* @__PURE__ */ new Set([149, 248, 373, 376, 445, 635, 637, 706, 784, 887, 998]);
+  var TRADE_ITEM_IDS = /* @__PURE__ */ new Set([208, 212, 230, 464, 466, 467, 474]);
+  var STONE_IDS = /* @__PURE__ */ new Set([31, 34, 36, 38, 45, 59, 91, 103, 134, 135, 136, 182, 350, 468, 475, 681, 752, 908]);
+  var THREE_STAGE_IDS = /* @__PURE__ */ new Set([
+    3,
+    6,
+    9,
+    18,
+    31,
+    34,
+    45,
+    65,
+    68,
+    76,
+    94,
+    149,
+    154,
+    157,
+    160,
+    181,
+    248,
+    254,
+    257,
+    260,
+    272,
+    282,
+    306,
+    330,
+    365,
+    373,
+    376,
+    389,
+    392,
+    395,
+    398,
+    405,
+    407,
+    445,
+    462,
+    464,
+    468,
+    474,
+    477,
+    497,
+    500,
+    503,
+    526,
+    534,
+    542,
+    545,
+    579,
+    601,
+    609,
+    635,
+    652,
+    655,
+    658,
+    663,
+    666,
+    681,
+    724,
+    727,
+    730,
+    738,
+    763,
+    784,
+    812,
+    815,
+    818,
+    823,
+    826,
+    839,
+    858,
+    861,
+    887,
+    908,
+    911,
+    914,
+    923,
+    930,
+    959,
+    983,
+    998
+  ]);
+  function resolveEvolutionMetadata(speciesId) {
+    if (STANDALONE_IDS.has(speciesId)) {
+      return { evoTriggerKey: "standalone", evoTriggerLabel: "Standalone", lineageStageKey: "standalone", lineageStageLabel: "Standalone" };
+    }
+    if (HIGH_LEVEL_IDS.has(speciesId)) {
+      return { evoTriggerKey: "level-50-plus", evoTriggerLabel: "Level Up (Lv. 50+)", lineageStageKey: "stage-3-of-3", lineageStageLabel: "3-Stage (3/3)" };
+    }
+    if (TRADE_ITEM_IDS.has(speciesId)) {
+      return { evoTriggerKey: "trade-item", evoTriggerLabel: "Trade with Item", lineageStageKey: "stage-2-of-2", lineageStageLabel: "2-Stage (2/2)" };
+    }
+    if (STONE_IDS.has(speciesId)) {
+      const isThree = THREE_STAGE_IDS.has(speciesId);
+      return {
+        evoTriggerKey: "evolution-stone",
+        evoTriggerLabel: "Evolution Stone",
+        lineageStageKey: isThree ? "stage-3-of-3" : "stage-2-of-2",
+        lineageStageLabel: isThree ? "3-Stage (3/3)" : "2-Stage (2/2)"
+      };
+    }
+    if (THREE_STAGE_IDS.has(speciesId)) {
+      return { evoTriggerKey: "level-up", evoTriggerLabel: "Level Up (3-Stage)", lineageStageKey: "stage-3-of-3", lineageStageLabel: "3-Stage (3/3)" };
+    }
+    return { evoTriggerKey: "level-up", evoTriggerLabel: "Level Up", lineageStageKey: "stage-2-of-2", lineageStageLabel: "2-Stage (2/2)" };
+  }
+
+  // src/draft-pool.ts
+  var APEX_POKEDEX_IDS = [
+    3,
+    6,
+    9,
+    12,
+    15,
+    18,
+    20,
+    22,
+    24,
+    26,
+    28,
+    31,
+    34,
+    36,
+    38,
+    40,
+    45,
+    47,
+    49,
+    51,
+    53,
+    55,
+    57,
+    59,
+    62,
+    65,
+    68,
+    71,
+    73,
+    76,
+    78,
+    80,
+    83,
+    85,
+    87,
+    89,
+    91,
+    94,
+    97,
+    99,
+    101,
+    103,
+    105,
+    106,
+    107,
+    110,
+    115,
+    119,
+    121,
+    122,
+    124,
+    127,
+    128,
+    130,
+    131,
+    132,
+    134,
+    135,
+    136,
+    139,
+    141,
+    142,
+    143,
+    144,
+    145,
+    146,
+    149,
+    150,
+    151,
+    154,
+    157,
+    160,
+    162,
+    164,
+    166,
+    168,
+    169,
+    171,
+    178,
+    181,
+    182,
+    184,
+    185,
+    186,
+    189,
+    192,
+    195,
+    196,
+    197,
+    199,
+    201,
+    202,
+    203,
+    205,
+    208,
+    210,
+    211,
+    212,
+    213,
+    214,
+    217,
+    219,
+    222,
+    224,
+    225,
+    226,
+    227,
+    229,
+    230,
+    232,
+    234,
+    235,
+    237,
+    241,
+    242,
+    243,
+    244,
+    245,
+    248,
+    249,
+    250,
+    251,
+    254,
+    257,
+    260,
+    262,
+    264,
+    267,
+    269,
+    272,
+    275,
+    277,
+    279,
+    282,
+    284,
+    286,
+    289,
+    291,
+    292,
+    295,
+    297,
+    301,
+    302,
+    303,
+    306,
+    308,
+    310,
+    311,
+    312,
+    313,
+    314,
+    317,
+    319,
+    321,
+    323,
+    324,
+    326,
+    327,
+    330,
+    332,
+    334,
+    335,
+    336,
+    337,
+    338,
+    340,
+    342,
+    344,
+    346,
+    348,
+    350,
+    351,
+    352,
+    354,
+    357,
+    358,
+    359,
+    362,
+    365,
+    367,
+    368,
+    369,
+    370,
+    373,
+    376,
+    377,
+    378,
+    379,
+    380,
+    381,
+    382,
+    383,
+    384,
+    385,
+    386,
+    389,
+    392,
+    395,
+    398,
+    400,
+    402,
+    405,
+    407,
+    409,
+    411,
+    413,
+    414,
+    416,
+    417,
+    419,
+    421,
+    423,
+    424,
+    426,
+    428,
+    429,
+    430,
+    432,
+    435,
+    437,
+    441,
+    442,
+    445,
+    448,
+    450,
+    452,
+    454,
+    455,
+    457,
+    460,
+    461,
+    462,
+    463,
+    464,
+    465,
+    466,
+    467,
+    468,
+    469,
+    470,
+    471,
+    472,
+    473,
+    474,
+    475,
+    476,
+    477,
+    478,
+    479,
+    480,
+    481,
+    482,
+    483,
+    484,
+    485,
+    486,
+    487,
+    488,
+    489,
+    490,
+    491,
+    492,
+    493,
+    494,
+    497,
+    500,
+    503,
+    505,
+    508,
+    510,
+    512,
+    514,
+    516,
+    518,
+    521,
+    523,
+    526,
+    528,
+    530,
+    531,
+    534,
+    537,
+    538,
+    539,
+    542,
+    545,
+    547,
+    549,
+    550,
+    553,
+    555,
+    556,
+    558,
+    560,
+    561,
+    563,
+    565,
+    567,
+    569,
+    571,
+    573,
+    576,
+    579,
+    581,
+    584,
+    586,
+    587,
+    589,
+    591,
+    593,
+    594,
+    596,
+    598,
+    601,
+    604,
+    606,
+    609,
+    612,
+    614,
+    615,
+    617,
+    618,
+    620,
+    621,
+    623,
+    625,
+    626,
+    628,
+    630,
+    631,
+    632,
+    635,
+    637,
+    638,
+    639,
+    640,
+    641,
+    642,
+    643,
+    644,
+    645,
+    646,
+    647,
+    648,
+    649,
+    652,
+    655,
+    658,
+    660,
+    663,
+    666,
+    668,
+    671,
+    673,
+    675,
+    676,
+    678,
+    681,
+    683,
+    685,
+    687,
+    689,
+    691,
+    693,
+    695,
+    697,
+    699,
+    700,
+    701,
+    702,
+    703,
+    706,
+    707,
+    709,
+    711,
+    713,
+    715,
+    716,
+    717,
+    718,
+    719,
+    720,
+    721,
+    724,
+    727,
+    730,
+    733,
+    735,
+    738,
+    740,
+    741,
+    743,
+    745,
+    746,
+    748,
+    750,
+    752,
+    754,
+    756,
+    758,
+    760,
+    763,
+    764,
+    765,
+    766,
+    768,
+    770,
+    771,
+    773,
+    774,
+    775,
+    776,
+    777,
+    778,
+    779,
+    780,
+    781,
+    784,
+    785,
+    786,
+    787,
+    788,
+    791,
+    792,
+    793,
+    794,
+    795,
+    796,
+    797,
+    798,
+    799,
+    800,
+    801,
+    802,
+    804,
+    805,
+    806,
+    807,
+    809,
+    812,
+    815,
+    818,
+    820,
+    823,
+    826,
+    828,
+    830,
+    832,
+    834,
+    836,
+    839,
+    841,
+    842,
+    844,
+    845,
+    847,
+    849,
+    851,
+    853,
+    855,
+    858,
+    861,
+    862,
+    863,
+    864,
+    865,
+    866,
+    867,
+    869,
+    870,
+    871,
+    873,
+    874,
+    875,
+    876,
+    877,
+    879,
+    880,
+    882,
+    884,
+    887,
+    888,
+    889,
+    890,
+    892,
+    893,
+    894,
+    895,
+    896,
+    897,
+    898,
+    899,
+    900,
+    901,
+    902,
+    903,
+    904,
+    905,
+    908,
+    911,
+    914,
+    916,
+    918,
+    920,
+    923,
+    925,
+    927,
+    930,
+    931,
+    934,
+    936,
+    937,
+    939,
+    941,
+    943,
+    945,
+    947,
+    949,
+    950,
+    952,
+    954,
+    956,
+    959,
+    961,
+    962,
+    964,
+    966,
+    967,
+    968,
+    970,
+    972,
+    973,
+    975,
+    976,
+    977,
+    978,
+    979,
+    980,
+    981,
+    982,
+    983,
+    984,
+    985,
+    986,
+    987,
+    988,
+    989,
+    990,
+    991,
+    992,
+    993,
+    994,
+    995,
+    998,
+    1e3,
+    1001,
+    1002,
+    1003,
+    1004,
+    1005,
+    1006,
+    1007,
+    1008,
+    1009,
+    1010,
+    1011,
+    1013,
+    1014,
+    1015,
+    1016,
+    1017,
+    1018,
+    1019,
+    1020,
+    1021,
+    1022,
+    1023,
+    1024,
+    1025,
+    10092,
+    10100,
+    10102,
+    10104,
+    10106,
+    10108,
+    10111,
+    10113,
+    10114,
+    10115,
+    10165,
+    10167,
+    10169,
+    10170,
+    10171,
+    10172,
+    10177,
+    10178,
+    10230,
+    10232,
+    10233,
+    10236,
+    10237,
+    10239,
+    10240,
+    10242,
+    10243,
+    10244,
+    10250,
+    10251,
+    10252
+  ];
+
+  // src/pokemon-factory.ts
+  var SHINY_ODDS = 1 / 150;
+  var SHINY_STAT_BONUS = 20;
+  var homeSpriteUrl = (id) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${id}.png`;
+  var homeShinySpriteUrl = (id) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/${id}.png`;
+  var PokemonFactory = class {
+    constructor(fetchImpl = fetch) {
+      this.speciesCache = /* @__PURE__ */ new Map();
+      this.fetchImpl = fetchImpl;
+    }
+    async resolve(speciesId, randomFn = Math.random) {
+      const isShiny = randomFn() < SHINY_ODDS;
+      const profile = this.speciesCache.has(speciesId) ? this.speciesCache.get(speciesId) : await this.fetchAndCacheProfile(speciesId);
+      const shinyBonus = isShiny ? SHINY_STAT_BONUS : 0;
+      const liveAtk = profile.baseAtk + shinyBonus;
+      const liveSpa = profile.baseSpa + shinyBonus;
+      const liveSpeed = profile.baseSpeed + shinyBonus;
+      const teraType = ALL_TYPES[Math.floor(randomFn() * ALL_TYPES.length)];
+      return {
+        id: profile.id,
+        speciesSlug: profile.speciesSlug,
+        displayName: profile.displayName,
+        types: profile.types,
+        hp: profile.maxHp,
+        maxHp: profile.maxHp,
+        baseAtk: profile.baseAtk,
+        baseDef: profile.baseDef,
+        baseSpa: profile.baseSpa,
+        baseSpd: profile.baseSpd,
+        baseSpeed: profile.baseSpeed,
+        atk: liveAtk,
+        def: profile.baseDef,
+        spa: liveSpa,
+        spd: profile.baseSpd,
+        speed: liveSpeed,
+        heightM: profile.heightM,
+        weightKg: profile.weightKg,
+        abilityKey: profile.abilityKey,
+        abilityName: profile.abilityName,
+        shapeName: profile.shapeName,
+        colorName: profile.colorName,
+        eggGroupKeys: profile.eggGroupKeys,
+        eggGroupLabel: profile.eggGroupLabel,
+        evoTriggerKey: profile.evoTriggerKey,
+        evoTriggerLabel: profile.evoTriggerLabel,
+        lineageStageKey: profile.lineageStageKey,
+        lineageStageLabel: profile.lineageStageLabel,
+        teraType,
+        canMega: profile.canMega,
+        canGmax: profile.canGmax,
+        setupMove: profile.setupMove,
+        boosts: { atk: 0, def: 0, spa: 0, spd: 0, speed: 0, count: 0 },
+        isMega: false,
+        isGmax: false,
+        gmaxTurnsRemaining: 0,
+        isTera: false,
+        usedProtectLastTurn: false,
+        isFainted: false,
+        isShiny
+      };
+    }
+    spriteFor(unit) {
+      return unit.isShiny ? homeShinySpriteUrl(unit.id) : homeSpriteUrl(unit.id);
+    }
+    async fetchAndCacheProfile(speciesId) {
+      var _a, _b, _c, _d, _e, _f, _g, _h;
+      const pokemonRes = await this.fetchImpl(`https://pokeapi.co/api/v2/pokemon/${speciesId}`);
+      const data = await pokemonRes.json();
+      let speciesData = {};
+      if ((_a = data.species) == null ? void 0 : _a.url) {
+        try {
+          const speciesRes = await this.fetchImpl(data.species.url);
+          speciesData = await speciesRes.json();
+        } catch {
+          speciesData = { egg_groups: [], shape: null, color: null };
+        }
+      }
+      const getStat = (name) => {
+        var _a2, _b2;
+        return (_b2 = (_a2 = data.stats.find((s) => s.stat.name === name)) == null ? void 0 : _a2.base_stat) != null ? _b2 : 70;
+      };
+      const types = data.types.map((t) => t.type.name);
+      const heightM = (data.height / 10).toFixed(1);
+      const weightKg = (data.weight / 10).toFixed(1);
+      const abilityObj = (_b = data.abilities) == null ? void 0 : _b[0];
+      const abilityKey = abilityObj ? abilityObj.ability.name : "pressure";
+      const abilityName = abilityKey.replace(/-/g, " ");
+      const shapeName = (_d = (_c = speciesData.shape) == null ? void 0 : _c.name) != null ? _d : "quadruped";
+      const colorName = (_f = (_e = speciesData.color) == null ? void 0 : _e.name) != null ? _f : types[0];
+      const eggGroupKeys = (_h = (_g = speciesData.egg_groups) == null ? void 0 : _g.map((g) => g.name)) != null ? _h : ["undiscovered"];
+      const eggGroupLabel = eggGroupKeys.map((k) => k.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())).join(" / ");
+      const evoMeta = resolveEvolutionMetadata(data.id);
+      const baseAtk = getStat("attack");
+      const baseDef = getStat("defense");
+      const baseSpa = getStat("special-attack");
+      const baseSpd = getStat("special-defense");
+      const baseSpeed = getStat("speed");
+      const profile = {
+        id: data.id,
+        speciesSlug: data.name,
+        displayName: formatPokemonName(data.name),
+        types,
+        maxHp: getStat("hp"),
+        baseAtk,
+        baseDef,
+        baseSpa,
+        baseSpd,
+        baseSpeed,
+        heightM,
+        weightKg,
+        abilityKey,
+        abilityName,
+        shapeName,
+        colorName,
+        eggGroupKeys,
+        eggGroupLabel,
+        canMega: !!MEGA_LOOKUP[data.id],
+        canGmax: !!GMAX_LOOKUP[data.id],
+        ...evoMeta,
+        setupMove: resolveSetupMove({ baseAtk, baseDef, baseSpa, baseSpd, baseSpeed })
+      };
+      this.speciesCache.set(speciesId, profile);
+      return profile;
+    }
+  };
+
+  // src/clue-engine.ts
+  var MAX_ACTIVE_CLUE_MODES = 3;
+  var CLUE_REGISTRY = {
+    TYPING: {
+      id: "TYPING",
+      name: "Typing",
+      reveal: (mon) => ({ modeId: "TYPING", types: mon.types }),
+      score: (mon, pcRoster) => {
+        let score = 20;
+        const existing = new Set(pcRoster.flatMap((m) => m.types));
+        mon.types.forEach((t) => {
+          if (!existing.has(t)) score += 35;
+        });
+        ALL_TYPES.forEach((atk) => {
+          const mult = calculateMultiplier(atk, mon.types);
+          if (mult === 0) score += 25;
+          else if (mult <= 0.5) score += 12;
+          else if (mult >= 2) score -= 14;
+        });
+        return score;
+      }
+    },
+    PEAK_STAT: {
+      id: "PEAK_STAT",
+      name: "Highest Stat",
+      reveal: (mon) => {
+        const peak = getPeakStatProfile(mon);
+        return { modeId: "PEAK_STAT", label: peak.label, value: peak.val };
+      },
+      score: (mon) => Math.round(getPeakStatProfile(mon).val * 0.45)
+    },
+    GENERATION: {
+      id: "GENERATION",
+      name: "Generation",
+      reveal: (mon) => ({ modeId: "GENERATION", generation: getGeneration(mon.id, mon.speciesSlug) }),
+      score: (mon) => {
+        const gen = getGeneration(mon.id, mon.speciesSlug);
+        return gen === 9 ? 30 : gen === 8 ? 25 : gen === 5 || gen === 4 ? 22 : 15;
+      }
+    },
+    SPEED: {
+      id: "SPEED",
+      name: "Base Speed",
+      reveal: (mon) => ({ modeId: "SPEED", baseSpeed: mon.baseSpeed }),
+      score: (mon, pcRoster) => {
+        let score = Math.round(mon.baseSpeed * 0.35);
+        const teamAvg = pcRoster.length ? pcRoster.reduce((a, m) => a + m.baseSpeed, 0) / pcRoster.length : 80;
+        if (mon.baseSpeed >= 105 && teamAvg < 90) score += 32;
+        return score;
+      }
+    },
+    WEAKNESSES: {
+      id: "WEAKNESSES",
+      name: "Weaknesses",
+      reveal: (mon) => ({
+        modeId: "WEAKNESSES",
+        weakTypes: ALL_TYPES.filter((t) => calculateMultiplier(t, mon.types) >= 2)
+      }),
+      score: (mon) => {
+        const weaks = ALL_TYPES.filter((t) => calculateMultiplier(t, mon.types) >= 2);
+        const immunes = ALL_TYPES.filter((t) => calculateMultiplier(t, mon.types) === 0);
+        return 40 - weaks.length * 7 + immunes.length * 28;
+      }
+    },
+    ABILITY: {
+      id: "ABILITY",
+      name: "Ability",
+      reveal: (mon) => ({ modeId: "ABILITY", abilityName: mon.abilityName }),
+      score: (mon) => {
+        const top = /* @__PURE__ */ new Set([
+          "intimidate",
+          "levitate",
+          "magic-guard",
+          "speed-boost",
+          "drought",
+          "drizzle",
+          "beast-boost",
+          "hadron-engine",
+          "orichalcum-pulse",
+          "protean",
+          "libero",
+          "regenerator"
+        ]);
+        return top.has(mon.abilityKey) ? 45 : 20;
+      }
+    },
+    SCALE: {
+      id: "SCALE",
+      name: "Height & Weight",
+      reveal: (mon) => ({ modeId: "SCALE", heightM: mon.heightM, weightKg: mon.weightKg }),
+      score: (mon, pcRoster) => {
+        const lacksBulk = !pcRoster.some((m) => m.maxHp >= 95 || m.def >= 100);
+        const weightKg = parseFloat(mon.weightKg);
+        return weightKg >= 150 && lacksBulk ? 38 : weightKg < 40 ? 25 : 20;
+      }
+    },
+    SHAPE_COLOR: {
+      id: "SHAPE_COLOR",
+      name: "Shape & Color",
+      reveal: (mon) => ({ modeId: "SHAPE_COLOR", shapeName: mon.shapeName, colorName: mon.colorName }),
+      score: (mon, pcRoster) => {
+        let pts = 15;
+        const hasDefTank = pcRoster.some((m) => m.def >= 100);
+        if (!hasDefTank && (mon.shapeName === "quadruped" || mon.shapeName === "armor")) pts += 28;
+        else if (mon.shapeName === "wings") pts += 28;
+        if (["blue", "yellow", "black"].includes(mon.colorName)) pts += 10;
+        return pts;
+      }
+    },
+    EGG_GROUP: {
+      id: "EGG_GROUP",
+      name: "Egg Group",
+      reveal: (mon) => ({ modeId: "EGG_GROUP", eggGroupLabel: mon.eggGroupLabel }),
+      score: (mon) => mon.eggGroupKeys.includes("no-eggs") || mon.eggGroupKeys.includes("undiscovered") ? 50 : mon.eggGroupKeys.includes("dragon") ? 38 : mon.eggGroupKeys.includes("monster") ? 32 : 15
+    },
+    EVO_TRIGGER: {
+      id: "EVO_TRIGGER",
+      name: "Evo Trigger",
+      reveal: (mon) => ({ modeId: "EVO_TRIGGER", evoTriggerLabel: mon.evoTriggerLabel }),
+      score: (mon) => mon.evoTriggerKey === "level-50-plus" ? 48 : mon.evoTriggerKey === "trade-item" ? 32 : mon.evoTriggerKey === "standalone" ? 34 : 18
+    },
+    LINEAGE_STAGE: {
+      id: "LINEAGE_STAGE",
+      name: "Lineage Stage",
+      reveal: (mon) => ({ modeId: "LINEAGE_STAGE", lineageStageLabel: mon.lineageStageLabel }),
+      score: (mon) => mon.lineageStageKey === "stage-3-of-3" ? 42 : mon.lineageStageKey === "standalone" ? 34 : 28
+    }
+  };
+  var ALL_CLUE_MODE_IDS = Object.keys(CLUE_REGISTRY);
+  function clueName(modeId) {
+    return CLUE_REGISTRY[modeId].name;
+  }
+  function revealClue(modeId, mon) {
+    return CLUE_REGISTRY[modeId].reveal(mon);
+  }
+  function revealActiveClues(activeModes, mon) {
+    return activeModes.map((m) => revealClue(m, mon));
+  }
+  function scoreDraftCandidate(mon, pcRoster, activeModes) {
+    let expectedValue = activeModes.reduce(
+      (sum, modeId) => sum + CLUE_REGISTRY[modeId].score(mon, pcRoster),
+      0
+    );
+    if (mon.isShiny) expectedValue += 60;
+    return expectedValue;
+  }
+  var ClueModeSelector = class {
+    constructor(initial = ["TYPING"]) {
+      this.active = [...initial];
+    }
+    getActive() {
+      return [...this.active];
+    }
+    /** Returns false (no-op) if this would drop below 1 active mode. */
+    toggle(modeId) {
+      const index = this.active.indexOf(modeId);
+      if (index > -1) {
+        if (this.active.length === 1) return false;
+        this.active.splice(index, 1);
+        return true;
+      }
+      if (this.active.length >= MAX_ACTIVE_CLUE_MODES) this.active.shift();
+      this.active.push(modeId);
+      return true;
+    }
+  };
+
+  // src/draft-engine.ts
+  var TOTAL_DRAFT_ROUNDS = 6;
+  var SQUAD_SIZE = 6;
+  var TOTAL_PICKS = SQUAD_SIZE * 2;
+  var DraftEngine = class {
+    constructor(factory, initialClueModes = ["TYPING"], randomFn = Math.random, draftPool = APEX_POKEDEX_IDS) {
+      this.round = 1;
+      this.subPhase = "turn1";
+      this.playerSquad = [];
+      this.pcSquad = [];
+      this.usedSpeciesIds = /* @__PURE__ */ new Set();
+      this.currentTrio = [];
+      this.isResolving = false;
+      this.pendingClueModeId = null;
+      this.listeners = {
+        trioReady: [],
+        pickResolved: [],
+        roundAdvanced: [],
+        draftComplete: []
+      };
+      this.factory = factory;
+      this.clueSelector = new ClueModeSelector(initialClueModes);
+      this.randomFn = randomFn;
+      this.draftPool = draftPool;
+    }
+    on(event, listener) {
+      this.listeners[event].push(listener);
+    }
+    emit(event, payload) {
+      this.listeners[event].forEach((l) => l(payload));
+    }
+    // -- getters ---------------------------------------------------------------
+    getRound() {
+      return this.round;
+    }
+    getSubPhase() {
+      return this.subPhase;
+    }
+    getPlayerSquad() {
+      return [...this.playerSquad];
+    }
+    getPcSquad() {
+      return [...this.pcSquad];
+    }
+    getCurrentTrio() {
+      return [...this.currentTrio];
+    }
+    getActiveClueModes() {
+      return this.clueSelector.getActive();
+    }
+    getPickNumber() {
+      return this.playerSquad.length + this.pcSquad.length + 1;
+    }
+    isDraftComplete() {
+      return this.playerSquad.length + this.pcSquad.length >= TOTAL_PICKS;
+    }
+    isPlayerTurnToPick() {
+      return this.round % 2 === 1 && this.subPhase === "turn1" || this.round % 2 === 0 && this.subPhase === "turn2";
+    }
+    // -- clue mode management ---------------------------------------------------
+    /**
+     * Requests a clue-mode toggle. If the draft hasn't started yet (both
+     * squads empty), it applies immediately. If picks are already in
+     * progress, the caller must show a confirmation and call either
+     * confirmClueModeChange(true) to apply-and-continue this draft, or
+     * confirmClueModeChange(false) to apply-and-restart (caller then calls
+     * resetDraft() itself).
+     */
+    requestClueModeChange(modeId) {
+      const isMidDraft = this.playerSquad.length > 0 || this.pcSquad.length > 0;
+      if (isMidDraft) {
+        this.pendingClueModeId = modeId;
+        return { requiresConfirmation: true };
+      }
+      this.clueSelector.toggle(modeId);
+      return { requiresConfirmation: false };
+    }
+    /** Resolves a requestClueModeChange() that required confirmation. */
+    confirmClueModeChange(continueThisDraft) {
+      if (!this.pendingClueModeId) return;
+      this.clueSelector.toggle(this.pendingClueModeId);
+      this.pendingClueModeId = null;
+      if (!continueThisDraft) this.resetDraft();
+    }
+    // -- draft flow --------------------------------------------------------------
+    /** Draws a new trio and, if it's the PC's turn, resolves its pick immediately. */
+    async startTurn() {
+      this.isResolving = false;
+      const availableIds = this.draftPool.filter((id) => !this.usedSpeciesIds.has(id));
+      const pool = availableIds.length >= 3 ? availableIds : this.draftPool;
+      const chosenIds = this.shuffle(pool).slice(0, 3);
+      chosenIds.forEach((id) => this.usedSpeciesIds.add(id));
+      this.currentTrio = await Promise.all(chosenIds.map((id) => this.factory.resolve(id, this.randomFn)));
+      const owner = this.isPlayerTurnToPick() ? "player" : "pc";
+      this.emit("trioReady", { trio: [...this.currentTrio], owner, pickNumber: this.getPickNumber() });
+      if (owner === "pc") {
+        this.resolvePcPick();
+      }
+    }
+    /** The player picks trioIndex (0-2) from the current trio. Throws if it isn't the player's turn. */
+    pickForPlayer(trioIndex) {
+      if (this.isResolving) throw new Error("A pick is already being resolved for this trio.");
+      if (!this.isPlayerTurnToPick()) throw new Error("It is not the player's turn to pick.");
+      if (trioIndex < 0 || trioIndex >= this.currentTrio.length) throw new Error("trioIndex out of range.");
+      this.isResolving = true;
+      const picked = this.currentTrio[trioIndex];
+      const passedOver = this.currentTrio.filter((_, i) => i !== trioIndex);
+      this.playerSquad.push(picked);
+      const event = {
+        round: this.round,
+        pickNumber: this.getPickNumber() - 1,
+        owner: "player",
+        picked,
+        passedOver,
+        trio: [...this.currentTrio],
+        trioIndex
+      };
+      this.emit("pickResolved", event);
+      return event;
+    }
+    /** Resolves the PC's pick against the current trio using the clue-scored heuristic. */
+    resolvePcPick() {
+      this.isResolving = true;
+      const activeModes = this.clueSelector.getActive();
+      let bestIndex = 0;
+      let bestScore = -Infinity;
+      this.currentTrio.forEach((candidate, idx) => {
+        const score = scoreDraftCandidate(candidate, this.pcSquad, activeModes);
+        if (score > bestScore) {
+          bestScore = score;
+          bestIndex = idx;
+        }
+      });
+      const picked = this.currentTrio[bestIndex];
+      const passedOver = this.currentTrio.filter((_, i) => i !== bestIndex);
+      this.pcSquad.push(picked);
+      const event = {
+        round: this.round,
+        pickNumber: this.getPickNumber() - 1,
+        owner: "pc",
+        picked,
+        passedOver,
+        trio: [...this.currentTrio],
+        trioIndex: bestIndex
+      };
+      this.emit("pickResolved", event);
+      return event;
+    }
+    /**
+     * Advances to the next sub-phase/round after a pick has been resolved and
+     * acknowledged by the caller (mirrors the prototype's "Continue" button).
+     * Emits draftComplete once both squads reach SQUAD_SIZE.
+     */
+    async advance() {
+      if (this.subPhase === "turn1") {
+        this.subPhase = "turn2";
+      } else if (this.round >= TOTAL_DRAFT_ROUNDS) {
+        this.emit("draftComplete", { playerSquad: [...this.playerSquad], pcSquad: [...this.pcSquad] });
+        return;
+      } else {
+        this.round++;
+        this.subPhase = "turn1";
+      }
+      this.emit("roundAdvanced", { round: this.round, subPhase: this.subPhase });
+      await this.startTurn();
+    }
+    resetDraft() {
+      this.round = 1;
+      this.subPhase = "turn1";
+      this.playerSquad = [];
+      this.pcSquad = [];
+      this.usedSpeciesIds = /* @__PURE__ */ new Set();
+      this.currentTrio = [];
+      this.isResolving = false;
+      this.pendingClueModeId = null;
+    }
+    shuffle(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(this.randomFn() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+  };
+
+  // src/battle-simulator.ts
+  var PROTECT_PUNISH_DAMAGE = 20;
+  var BlockedActionError = class extends Error {
+    constructor(reasonCode, message) {
+      super(message);
+      this.reasonCode = reasonCode;
+    }
+  };
+  function wipeBoosts(mon) {
+    const shinyBonus = mon.isShiny ? SHINY_STAT_BONUS : 0;
+    mon.atk = mon.baseAtk + shinyBonus;
+    mon.spa = mon.baseSpa + shinyBonus;
+    mon.def = mon.baseDef;
+    mon.spd = mon.baseSpd;
+    mon.speed = mon.baseSpeed + shinyBonus;
+    mon.boosts = { atk: 0, def: 0, spa: 0, spd: 0, speed: 0, count: 0 };
+  }
+  var BattleSimulator = class {
+    constructor(playerSquad, pcSquad, fetchImpl = fetch, randomFn = Math.random) {
+      this.activePlayerMon = null;
+      this.activePcMon = null;
+      this.playerGimmickUsed = false;
+      this.pcGimmickUsed = false;
+      this.combatState = { phase: "AWAITING_CHOICE", turnCount: 1, lastPcSwitchTurn: 0 };
+      this.playerSquad = playerSquad;
+      this.pcSquad = pcSquad;
+      this.fetchImpl = fetchImpl;
+      this.randomFn = randomFn;
+    }
+    // ---------------------------------------------------------------------------
+    // Lead selection
+    // ---------------------------------------------------------------------------
+    /** Player picks their starting lead; the PC's lead is chosen by a simple speed+bulk+damage heuristic. */
+    selectLead(playerChoice) {
+      this.activePlayerMon = playerChoice;
+      wipeBoosts(playerChoice);
+      let bestScore = -Infinity;
+      let pcLead = this.pcSquad[0];
+      this.pcSquad.forEach((candidate) => {
+        let score = candidate.speed + candidate.hp;
+        score += getOptimalStab(candidate, playerChoice).damage;
+        if (score > bestScore) {
+          bestScore = score;
+          pcLead = candidate;
+        }
+      });
+      wipeBoosts(pcLead);
+      this.activePcMon = pcLead;
+      this.combatState = { phase: "AWAITING_CHOICE", turnCount: 1, lastPcSwitchTurn: 0 };
+      return { playerLead: playerChoice, pcLead };
+    }
+    /** Player picks their next Pokémon after a faint (SELECT_REPLACEMENT phase). No turn is consumed. */
+    selectReplacement(playerChoice) {
+      wipeBoosts(playerChoice);
+      this.activePlayerMon = playerChoice;
+      this.combatState.phase = "AWAITING_CHOICE";
+    }
+    // ---------------------------------------------------------------------------
+    // Available actions for the current player turn
+    // ---------------------------------------------------------------------------
+    getAvailableGimmicks(mon) {
+      if (this.playerGimmickUsed || mon.isMega || mon.isGmax || mon.isTera) return [];
+      const options = [];
+      if (mon.canMega) {
+        options.push(...isDualMega(mon.id) ? ["MEGA_X", "MEGA_Y"] : ["MEGA"]);
+      }
+      if (mon.canGmax) options.push("GMAX");
+      options.push("TERA");
+      return options;
+    }
+    /** True while the player's active mon is Gigantamaxed with turns remaining — switching is locked. */
+    isSwitchLocked(mon) {
+      return !!(mon.isGmax && mon.gmaxTurnsRemaining > 0);
+    }
+    // ---------------------------------------------------------------------------
+    // Turn resolution
+    // ---------------------------------------------------------------------------
+    /**
+     * Resolves one full turn: applies any pre-turn gimmick transformations in
+     * speed order, decides the PC's action, orders both actions by priority
+     * (switch > protect > attack/setup, speed-broken), executes them in order,
+     * and reports the outcome. Mutates activePlayerMon/activePcMon/squads
+     * in place, matching the prototype's model.
+     *
+     * Throws BlockedActionError if the requested action is illegal right now
+     * (e.g. switching out a Gigantamaxed Pokémon still under Max Move lock).
+     */
+    async resolveTurn(playerAction, playerGimmick = null) {
+      if (!this.activePlayerMon || !this.activePcMon) {
+        throw new Error("resolveTurn() called before both leads are selected.");
+      }
+      if (this.combatState.phase === "RESOLVING") {
+        throw new BlockedActionError("TURN_ALREADY_RESOLVING", "A turn is already resolving \u2014 please wait for it to finish.");
+      }
+      if (playerAction.type === "SWITCH" && this.isSwitchLocked(this.activePlayerMon)) {
+        throw new BlockedActionError("GMAX_LOCKED_SWITCH", "Unable to switch out if your Pok\xE9mon is Gigantamaxed.");
+      }
+      this.combatState.phase = "RESOLVING";
+      const pMon = this.activePlayerMon;
+      const pcMon = this.activePcMon;
+      const pcDecision = this.decidePcTurnAction();
+      const playerChoseProtect = playerAction.type === "PROTECT";
+      const pcChoseProtect = pcDecision.action.type === "PROTECT";
+      const isPlayerFasterForGimmick = pMon.speed >= pcMon.speed;
+      const applyOrder = isPlayerFasterForGimmick ? [["player", playerGimmick, pMon], ["pc", pcDecision.gimmick, pcMon]] : [["pc", pcDecision.gimmick, pcMon], ["player", playerGimmick, pMon]];
+      for (const [role, gimmick, mon] of applyOrder) {
+        if (gimmick) await this.applyGimmickTransformation(role, mon, gimmick);
+      }
+      const getPriority = (act) => act.type === "SWITCH" ? 6 : act.type === "PROTECT" ? 4 : 0;
+      const pPri = getPriority(playerAction);
+      const pcPri = getPriority(pcDecision.action);
+      let act1Role, act1Action, act2Role, act2Action;
+      if (pPri > pcPri) {
+        [act1Role, act1Action, act2Role, act2Action] = ["player", playerAction, "pc", pcDecision.action];
+      } else if (pcPri > pPri) {
+        [act1Role, act1Action, act2Role, act2Action] = ["pc", pcDecision.action, "player", playerAction];
+      } else {
+        const isPlayerFaster = this.activePlayerMon.speed >= this.activePcMon.speed;
+        [act1Role, act1Action, act2Role, act2Action] = isPlayerFaster ? ["player", playerAction, "pc", pcDecision.action] : ["pc", pcDecision.action, "player", playerAction];
+      }
+      let isPlayerProtected = false;
+      let isPcProtected = false;
+      const act1Attacker = act1Role === "player" ? this.activePlayerMon : this.activePcMon;
+      const act1Defender = act1Role === "player" ? this.activePcMon : this.activePlayerMon;
+      const act1Result = this.executeSingleAction(act1Role, act1Attacker, act1Defender, act1Action, isPlayerProtected, isPcProtected);
+      if (act1Result.protected) {
+        if (act1Role === "player") isPlayerProtected = true;
+        else isPcProtected = true;
+      }
+      if (act1Result.defenderFainted || act1Result.attackerFainted) {
+        return this.finishTurn(act1Role, act1Result, null, playerChoseProtect, pcChoseProtect);
+      }
+      const act2Attacker = act2Role === "player" ? this.activePlayerMon : this.activePcMon;
+      const act2Defender = act2Role === "player" ? this.activePcMon : this.activePlayerMon;
+      const act2Result = this.executeSingleAction(act2Role, act2Attacker, act2Defender, act2Action, isPlayerProtected, isPcProtected);
+      return this.finishTurn(act1Role, act1Result, act2Result, playerChoseProtect, pcChoseProtect);
+    }
+    finishTurn(act1Role, act1Result, act2Result, playerChoseProtect, pcChoseProtect) {
+      const turnCount = this.combatState.turnCount;
+      const faintedResult = (act2Result == null ? void 0 : act2Result.defenderFainted) || (act2Result == null ? void 0 : act2Result.attackerFainted) ? act2Result : act1Result.defenderFainted || act1Result.attackerFainted ? act1Result : null;
+      if (faintedResult) {
+        const faintedRole = faintedResult.defenderFainted ? faintedResult.role === "player" ? "pc" : "player" : faintedResult.role;
+        const faintedMon = faintedRole === "player" ? this.activePlayerMon : this.activePcMon;
+        faintedMon.isFainted = true;
+        wipeBoosts(faintedMon);
+        const alivePlayerCount = this.playerSquad.filter((m) => !m.isFainted).length;
+        const alivePcCount = this.pcSquad.filter((m) => !m.isFainted).length;
+        const matchOver = alivePlayerCount === 0 || alivePcCount === 0;
+        this.combatState.phase = "AWAITING_CHOICE";
+        return {
+          turnCount,
+          first: act1Result,
+          second: act2Result,
+          matchOver,
+          playerWon: matchOver ? alivePlayerCount > 0 : null,
+          requiresPlayerReplacement: !matchOver && faintedRole === "player",
+          requiresPcReplacement: !matchOver && faintedRole === "pc"
+        };
+      }
+      if (this.activePlayerMon.isGmax) {
+        this.activePlayerMon.gmaxTurnsRemaining--;
+        this.revertGmaxIfExpired(this.activePlayerMon);
+      }
+      if (this.activePcMon.isGmax) {
+        this.activePcMon.gmaxTurnsRemaining--;
+        this.revertGmaxIfExpired(this.activePcMon);
+      }
+      this.activePlayerMon.usedProtectLastTurn = playerChoseProtect;
+      this.activePcMon.usedProtectLastTurn = pcChoseProtect;
+      this.combatState.turnCount++;
+      this.combatState.phase = "AWAITING_CHOICE";
+      return {
+        turnCount,
+        first: act1Result,
+        second: act2Result,
+        matchOver: false,
+        playerWon: null,
+        requiresPlayerReplacement: false,
+        requiresPcReplacement: false
+      };
+    }
+    // ---------------------------------------------------------------------------
+    // PC decision-making (draft-phase AI's battle-phase counterpart)
+    // ---------------------------------------------------------------------------
+    decidePcTurnAction() {
+      var _a, _b;
+      const cs = this.combatState;
+      const pcMon = this.activePcMon;
+      const pMon = this.activePlayerMon;
+      const alivePcBench = this.pcSquad.filter((m) => !m.isFainted && m.id !== pcMon.id);
+      let pcGimmick = null;
+      if (!this.pcGimmickUsed && !pcMon.isMega && !pcMon.isGmax && !pcMon.isTera) {
+        const pAtkOnPc2 = getOptimalStab(pMon, pcMon);
+        const isOneShotDanger = pAtkOnPc2.damage >= pcMon.hp;
+        const teraDefMult = calculateMultiplier(pAtkOnPc2.stabType, [pcMon.teraType]);
+        if (isOneShotDanger && teraDefMult <= 0.5) {
+          pcGimmick = { type: "TERA" };
+        } else if (pcMon.canMega && pcMon.hp >= pcMon.maxHp * 0.7) {
+          pcGimmick = { type: "MEGA" };
+        } else if (pcMon.canGmax && isOneShotDanger) {
+          pcGimmick = { type: "GMAX" };
+        }
+      }
+      const pAtkOnPc = getOptimalStab(pMon, pcMon);
+      const pcAtkOnP = getOptimalStab(pcMon, pMon);
+      const isPcFaster = pcMon.speed >= pMon.speed;
+      const canPcKillNow = pcAtkOnP.damage >= pMon.hp;
+      const isPcInOneShotDanger = pAtkOnPc.damage >= pcMon.hp;
+      const incomingDmgRatio = pAtkOnPc.damage / pcMon.maxHp;
+      const canSetup = pcMon.boosts.count < 2;
+      const canProtect = !pcMon.usedProtectLastTurn;
+      const hasInvestedBoosts = pcMon.boosts.count >= 1;
+      if (pMon.hp <= 35 && isPcFaster && pcAtkOnP.damage >= pMon.hp) {
+        return { action: { type: "ATTACK", stabType: pcAtkOnP.stabType }, gimmick: pcGimmick };
+      }
+      const isHardWalledByImmunity = pcMon.types.every((t) => computeDamage(pcMon, pMon, t).isImmune);
+      if (isHardWalledByImmunity && alivePcBench.length > 0 && !hasInvestedBoosts && !pcGimmick) {
+        let bestPivot = null;
+        let bestScore = -Infinity;
+        alivePcBench.forEach((benchMon) => {
+          const counterDmg = getOptimalStab(benchMon, pMon).damage;
+          const incomingDmg = getOptimalStab(pMon, benchMon).damage;
+          const isCounterImmune = benchMon.types.every((t) => computeDamage(benchMon, pMon, t).isImmune);
+          if (!isCounterImmune) {
+            const score = counterDmg * 1.5 + (benchMon.hp - incomingDmg);
+            if (score > bestScore) {
+              bestScore = score;
+              bestPivot = benchMon;
+            }
+          }
+        });
+        if (bestPivot) {
+          cs.lastPcSwitchTurn = cs.turnCount;
+          return { action: { type: "SWITCH", targetMon: bestPivot }, gimmick: null };
+        }
+      }
+      if (canPcKillNow && (isPcFaster || !isPcInOneShotDanger)) {
+        return { action: { type: "ATTACK", stabType: pcAtkOnP.stabType }, gimmick: pcGimmick };
+      }
+      if (pMon.usedProtectLastTurn) {
+        if (canSetup && pcMon.hp >= pcMon.maxHp * 0.45 && incomingDmgRatio <= 0.35) {
+          return { action: { type: "SETUP", setupData: (_a = pcMon.setupMove) != null ? _a : resolveSetupMove(pcMon) }, gimmick: pcGimmick };
+        }
+        if (!pcAtkOnP.isImmune) {
+          return { action: { type: "ATTACK", stabType: pcAtkOnP.stabType }, gimmick: pcGimmick };
+        }
+      }
+      if (isPcInOneShotDanger && !isPcFaster && !pcGimmick) {
+        if (canProtect && this.randomFn() < 0.7) {
+          return { action: { type: "PROTECT" }, gimmick: null };
+        }
+      }
+      if (canSetup && incomingDmgRatio <= 0.28 && pcMon.hp >= pcMon.maxHp * 0.4 && !canPcKillNow) {
+        return { action: { type: "SETUP", setupData: (_b = pcMon.setupMove) != null ? _b : resolveSetupMove(pcMon) }, gimmick: pcGimmick };
+      }
+      return { action: { type: "ATTACK", stabType: pcAtkOnP.stabType }, gimmick: pcGimmick };
+    }
+    /** After the PC's active mon faints, picks its next Pokémon. Call this, then re-enter AWAITING_CHOICE. */
+    pcSendReplacement() {
+      const pMon = this.activePlayerMon;
+      const aliveMembers = this.pcSquad.filter((m) => !m.isFainted);
+      if (aliveMembers.length === 0) throw new Error("No living PC Pok\xE9mon remain.");
+      let bestPayoff = -Infinity;
+      let chosen = aliveMembers[0];
+      aliveMembers.forEach((candidate) => {
+        let payoff;
+        const isFaster = candidate.speed > pMon.speed;
+        const candAtk = getOptimalStab(candidate, pMon);
+        if (isFaster && candAtk.damage >= pMon.hp) {
+          payoff = 8e3;
+        } else {
+          const pAtk = getOptimalStab(pMon, candidate);
+          const candSurvives = candidate.hp - pAtk.damage > 0;
+          payoff = candSurvives && candAtk.damage >= pMon.hp ? 4e3 : candidate.hp + candidate.speed - pAtk.damage;
+        }
+        if (payoff > bestPayoff) {
+          bestPayoff = payoff;
+          chosen = candidate;
+        }
+      });
+      wipeBoosts(chosen);
+      this.activePcMon = chosen;
+      this.combatState.phase = "AWAITING_CHOICE";
+      return chosen;
+    }
+    // ---------------------------------------------------------------------------
+    // Single-action execution
+    // ---------------------------------------------------------------------------
+    executeSingleAction(role, attacker, defender, action, isPlayerProtected, isPcProtected) {
+      var _a, _b;
+      if (action.type === "SWITCH") {
+        const target = action.targetMon;
+        wipeBoosts(target);
+        if (role === "player") this.activePlayerMon = target;
+        else this.activePcMon = target;
+        const summary = `${role === "player" ? "User" : "Rival"} switched to ${target.displayName}`;
+        return {
+          role,
+          actionType: "SWITCH",
+          summary,
+          damageResult: null,
+          narrative: `${summary}.`,
+          defenderFainted: false,
+          attackerFainted: false,
+          protected: false
+        };
+      }
+      if (action.type === "PROTECT") {
+        const summary = `${attacker.displayName} used Protect`;
+        return {
+          role,
+          actionType: "PROTECT",
+          summary,
+          damageResult: null,
+          narrative: `${attacker.displayName} protected itself with Spiky Shield!`,
+          defenderFainted: false,
+          attackerFainted: false,
+          protected: true
+        };
+      }
+      if (action.type === "SETUP") {
+        const sData = action.setupData;
+        attacker[sData.boostKey] += sData.boostVal;
+        attacker.boosts[sData.boostKey] = ((_a = attacker.boosts[sData.boostKey]) != null ? _a : 0) + sData.boostVal;
+        if (sData.secondaryKey) {
+          attacker[sData.secondaryKey] += sData.secondaryVal;
+          attacker.boosts[sData.secondaryKey] = ((_b = attacker.boosts[sData.secondaryKey]) != null ? _b : 0) + sData.secondaryVal;
+        }
+        attacker.boosts.count += 1;
+        const summary = `${attacker.displayName} used ${sData.name}`;
+        return {
+          role,
+          actionType: "SETUP",
+          summary,
+          damageResult: null,
+          narrative: `${summary}! Its stats rose sharply.`,
+          defenderFainted: false,
+          attackerFainted: false,
+          protected: false
+        };
+      }
+      const targetProtected = role === "player" ? isPcProtected : isPlayerProtected;
+      const isMaxMove = attacker.isGmax;
+      const isTeraBlast = !!action.isTeraBlast || attacker.isTera;
+      const atkData = computeDamage(attacker, defender, action.stabType, isTeraBlast, isMaxMove);
+      if (targetProtected && !isMaxMove) {
+        attacker.hp = Math.max(0, attacker.hp - PROTECT_PUNISH_DAMAGE);
+        let narrative2 = `${defender.displayName} blocked the attack! ${attacker.displayName} took ${PROTECT_PUNISH_DAMAGE} recoil punish!`;
+        const attackerFainted = attacker.hp <= 0;
+        if (attackerFainted) narrative2 += ` ${attacker.displayName} fainted from recoil!`;
+        return {
+          role,
+          actionType: "ATTACK",
+          summary: `${attacker.displayName} had its ${atkData.moveName} blocked and took damage instead!`,
+          damageResult: atkData,
+          narrative: narrative2,
+          defenderFainted: false,
+          attackerFainted,
+          protected: false
+        };
+      }
+      defender.hp = Math.max(0, defender.hp - atkData.damage);
+      let narrative = `${attacker.displayName} landed ${atkData.damage} damage!`;
+      const defenderFainted = defender.hp <= 0;
+      if (defenderFainted) narrative += ` ${defender.displayName} has been defeated!`;
+      return {
+        role,
+        actionType: "ATTACK",
+        summary: `${attacker.displayName} used ${atkData.moveName}`,
+        damageResult: atkData,
+        narrative,
+        defenderFainted,
+        attackerFainted: false,
+        protected: false
+      };
+    }
+    // ---------------------------------------------------------------------------
+    // Gimmick transformations
+    // ---------------------------------------------------------------------------
+    async applyGimmickTransformation(role, mon, gimmick) {
+      if (role === "player") this.playerGimmickUsed = true;
+      else this.pcGimmickUsed = true;
+      if (gimmick.type === "MEGA" || gimmick.type === "MEGA_X" || gimmick.type === "MEGA_Y") {
+        await this.applyMegaEvolution(mon, gimmick.type === "MEGA_Y" ? "Y" : "X");
+      } else if (gimmick.type === "GMAX") {
+        this.applyGigantamax(mon);
+      } else if (gimmick.type === "TERA") {
+        this.applyTerastallization(mon);
+      }
+    }
+    async applyMegaEvolution(mon, choiceKey = "X") {
+      const target = resolveMegaTarget(mon.id, choiceKey);
+      if (!target) return;
+      try {
+        const res = await this.fetchImpl(`https://pokeapi.co/api/v2/pokemon/${target.formId}`);
+        const data = await res.json();
+        const getStat = (name) => {
+          var _a, _b;
+          return (_b = (_a = data.stats.find((s) => s.stat.name === name)) == null ? void 0 : _a.base_stat) != null ? _b : 70;
+        };
+        const baseAtk = getStat("attack"), baseDef = getStat("defense"), baseSpa = getStat("special-attack"), baseSpd = getStat("special-defense"), baseSpeed = getStat("speed");
+        const shinyBonus = mon.isShiny ? SHINY_STAT_BONUS : 0;
+        mon.baseAtk = baseAtk;
+        mon.baseDef = baseDef;
+        mon.baseSpa = baseSpa;
+        mon.baseSpd = baseSpd;
+        mon.baseSpeed = baseSpeed;
+        mon.atk = baseAtk + shinyBonus + (mon.boosts.atk || 0);
+        mon.def = baseDef + (mon.boosts.def || 0);
+        mon.spa = baseSpa + shinyBonus + (mon.boosts.spa || 0);
+        mon.spd = baseSpd + (mon.boosts.spd || 0);
+        mon.speed = baseSpeed + shinyBonus + (mon.boosts.speed || 0);
+        mon.types = data.types.map((t) => t.type.name);
+        mon.displayName = target.name;
+      } finally {
+        mon.isMega = true;
+      }
+    }
+    applyGigantamax(mon) {
+      if (!GMAX_LOOKUP[mon.id]) return;
+      mon.isGmax = true;
+      mon.gmaxTurnsRemaining = 3;
+      const newMaxHp = Math.round(mon.maxHp * 1.5);
+      mon.hp += newMaxHp - mon.maxHp;
+      mon.maxHp = newMaxHp;
+    }
+    applyTerastallization(mon) {
+      mon.isTera = true;
+      mon.types = [mon.teraType];
+    }
+    revertGmaxIfExpired(mon) {
+      if (mon.isGmax && mon.gmaxTurnsRemaining <= 0) {
+        mon.isGmax = false;
+        mon.maxHp = Math.round(mon.maxHp / 1.5);
+        mon.hp = Math.min(mon.hp, mon.maxHp);
+      }
+    }
+    spriteFor(mon) {
+      return mon.isShiny ? homeShinySpriteUrl(mon.id) : homeSpriteUrl(mon.id);
+    }
+  };
+
+  // src/sevii-pokemon-repository.ts
+  async function fetchSpeciesDetail(speciesUrl, fetchImpl) {
+    var _a, _b, _c, _d, _e, _f;
+    if (!speciesUrl) return { eggGroupKeys: ["undiscovered"], shapeName: "quadruped", colorName: null };
+    try {
+      const res = await fetchImpl(speciesUrl);
+      const data = await res.json();
+      return {
+        eggGroupKeys: (_b = (_a = data.egg_groups) == null ? void 0 : _a.map((g) => g.name)) != null ? _b : ["undiscovered"],
+        shapeName: (_d = (_c = data.shape) == null ? void 0 : _c.name) != null ? _d : "quadruped",
+        colorName: (_f = (_e = data.color) == null ? void 0 : _e.name) != null ? _f : null
+      };
+    } catch {
+      return { eggGroupKeys: ["undiscovered"], shapeName: "quadruped", colorName: null };
+    }
+  }
+  var SeviiPokemonRepository = class {
+    constructor(bridge, fetchImpl = fetch) {
+      this.speciesDetailCache = /* @__PURE__ */ new Map();
+      this.bridge = bridge;
+      this.fetchImpl = fetchImpl;
+    }
+    /**
+     * Finds a raw Pokémon record for `slug` without cross-contaminating
+     * another form's data: checks the base roster first (exact slug match —
+     * NOT the fuzzy `findBaseSpeciesInAllPokemon` fallback, which is for
+     * resolving a GROUPING key to its default variety, not for looking up a
+     * form that already has its own exact entry), then the regional-forms
+     * cards, in that order. Returns undefined rather than silently
+     * substituting a sibling form's data.
+     *
+     * Also returns the regional entry's own curated `cardLabel` when the hit
+     * came from `regionalForms` — real Sevii's `cardLabelText()` uses
+     * `p.cardLabel` (not `getDisplayName`) for every regional card, and while
+     * `cardLabel` and `nameOverrides[form]` are sourced from the same
+     * `alternate-forms.json` field in every entry checked so far, nothing
+     * guarantees they can never diverge — so `resolveFromRaw` below is kept
+     * exactly aligned with the real branching instead of assuming the two
+     * are always identical (Phase 4 verification, 2026-08-30).
+     */
+    findRawBySlug(slug) {
+      const inBaseRoster = this.bridge.getAllPokemon().find((p) => p.name === slug);
+      if (inBaseRoster) return { raw: inBaseRoster };
+      const regional = this.bridge.getRegionalForms().find((r) => r.data.name === slug);
+      if (regional) return { raw: regional.data, regionalLabel: regional.cardLabel };
+      return void 0;
+    }
+    /**
+     * Resolves the draft pool's list of eligible ids. Sevii's own
+     * `APEX_POKEDEX_IDS` pool (draft-pool.ts) is expressed as PokéAPI numeric
+     * ids; this drops any id the app hasn't loaded yet (defensive —
+     * `allPokemon` loads incrementally per `loadPokemon()`'s own batching, so
+     * a very early draft call before the full roster has landed could
+     * otherwise pick an id with no matching entry).
+     */
+    resolvableDraftPool(candidateIds) {
+      const known = new Set(this.bridge.getAllPokemon().map((p) => p.id));
+      return candidateIds.filter((id) => known.has(id));
+    }
+    /**
+     * Real GENDER-type alternate forms (Meowstic/Meowstic-Female,
+     * Indeedee/Indeedee-Female, Basculegion-Male/Female, Oinkologne/
+     * Oinkologne-Female) as their own independently-stated draftable slugs —
+     * per Diego's explicit instruction (2026-08-30): Sevii already handles
+     * these correctly (`alternate-forms.json`'s `form_type: "GENDER"`
+     * entries), and this game should grow into that sophistication rather
+     * than the reverse. Each returned slug resolves through the SAME
+     * exact-slug path `resolveBySlug()` already uses for regional forms —
+     * no separate code path, no risk of a female variant silently inheriting
+     * the male variant's stats or vice versa.
+     *
+     * Deliberately returns SLUGS, not ids: several GENDER pairs alias the
+     * same base dex id in the draft pool's own numbering (e.g. Meowstic and
+     * Meowstic-Female are different PokéAPI ids, but Basculegion-Male /
+     * Basculegion-Female's curated `.base` values ARE each other's own
+     * slug — see alternate-forms.json), so id-based dedup would either drop
+     * a real variant or double-count one. Slug-based dedup can't make that
+     * mistake.
+     */
+    resolvableGenderFormSlugs() {
+      const entries = this.bridge.getAlternateFormsByType("GENDER");
+      const known = new Set(this.bridge.getAllPokemon().map((p) => p.name));
+      const regionalKnown = new Set(this.bridge.getRegionalForms().map((r) => r.data.name));
+      const slugs = /* @__PURE__ */ new Set();
+      entries.forEach((e) => {
+        if (known.has(e.form) || regionalKnown.has(e.form)) slugs.add(e.form);
+      });
+      return [...slugs];
+    }
+    /**
+     * Produces a fresh BattleUnit for `speciesId` — independent shiny roll
+     * and Tera type on every call, matching the PokemonResolver contract
+     * (types.ts) so this class is a drop-in replacement for Phase 1's
+     * PokemonFactory wherever a caller expects
+     * `.resolve(idOrSlug, randomFn) => Promise<BattleUnit>`. Accepts either
+     * a numeric PokéAPI id (the common case) or a slug string (needed for
+     * GENDER-type alternate forms with no id known ahead of a fetch — see
+     * resolveBySlug()).
+     */
+    async resolve(speciesId, randomFn = Math.random) {
+      if (typeof speciesId === "string") return this.resolveBySlug(speciesId, randomFn);
+      const fromBase = this.bridge.getAllPokemon().find((p) => p.id === speciesId);
+      if (fromBase) return this.resolveFromRaw(fromBase, randomFn);
+      const regional = this.bridge.getRegionalForms().find((r) => r.data.id === speciesId);
+      if (regional) return this.resolveFromRaw(regional.data, randomFn, regional.cardLabel);
+      throw new Error(`SeviiPokemonRepository: no entry for species id ${speciesId} in allPokemon/regionalForms.`);
+    }
+    /**
+     * Same as resolve(), but keyed by the exact form slug (needed for
+     * regional/Mega/Gmax/GENDER variants). Checks Sevii's already-loaded data
+     * first (`findRawBySlug`); a GENDER-type form not covered by either
+     * `allPokemon` (base varieties only) or `regionalForms` (REGIONAL entries
+     * only — `loadRegionalFormsCards()` filters to `form_type==='REGIONAL'`)
+     * falls back to a direct, on-demand `/pokemon/{slug}` fetch — the exact
+     * same on-demand pattern Sevii's own code already uses for any slug
+     * outside `allPokemon` (e.g. `tbAflResolvePokemon`, `getListPokemonData`),
+     * not a new fetch habit introduced by this engine.
+     */
+    async resolveBySlug(slug, randomFn = Math.random) {
+      const genderEntry = this.bridge.getAlternateFormEntry(slug);
+      const genderLabel = (genderEntry == null ? void 0 : genderEntry.form_type) === "GENDER" && genderEntry.label ? genderEntry.label : void 0;
+      const known = this.findRawBySlug(slug);
+      if (known) return this.resolveFromRaw(known.raw, randomFn, known.regionalLabel, genderLabel);
+      const res = await this.fetchImpl(`https://pokeapi.co/api/v2/pokemon/${slug}`);
+      const raw = await res.json();
+      return this.resolveFromRaw(raw, randomFn, void 0, genderLabel);
+    }
+    async resolveFromRaw(raw, randomFn, regionalLabel, genderLabel) {
+      var _a, _b, _c, _d;
+      let speciesDetail = this.speciesDetailCache.get(raw.name);
+      if (!speciesDetail) {
+        speciesDetail = await fetchSpeciesDetail((_a = raw.species) == null ? void 0 : _a.url, this.fetchImpl);
+        this.speciesDetailCache.set(raw.name, speciesDetail);
+      }
+      const isShiny = randomFn() < SHINY_ODDS;
+      const getStat = (name) => {
+        var _a2, _b2;
+        return (_b2 = (_a2 = raw.stats.find((s) => s.stat.name === name)) == null ? void 0 : _a2.base_stat) != null ? _b2 : 70;
+      };
+      const baseAtk = getStat("attack"), baseDef = getStat("defense"), baseSpa = getStat("special-attack"), baseSpd = getStat("special-defense"), baseSpeed = getStat("speed"), maxHp = getStat("hp");
+      const shinyBonus = isShiny ? SHINY_STAT_BONUS : 0;
+      const types = raw.types.map((t) => t.type.name);
+      const override = this.bridge.getVariantOverride(raw.name);
+      const colorName = (_c = (_b = override == null ? void 0 : override.color) != null ? _b : speciesDetail.colorName) != null ? _c : "white";
+      const abilityObj = (_d = raw.abilities) == null ? void 0 : _d[0];
+      const abilityKey = abilityObj ? abilityObj.ability.name : "pressure";
+      const abilityName = abilityKey.replace(/-/g, " ");
+      const evoMeta = resolveEvolutionMetadata(raw.id);
+      const eggGroupLabel = speciesDetail.eggGroupKeys.map((k) => k.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())).join(" / ");
+      const teraType = ALL_TYPES[Math.floor(randomFn() * ALL_TYPES.length)];
+      const spriteGender = this.bridge.hasSpriteGenderDifference(raw.id) ? randomFn() < 0.5 ? "male" : "female" : void 0;
+      return {
+        id: raw.id,
+        speciesSlug: raw.name,
+        // Regional-forms hits use the real app's own cardLabel (cardLabelText()'s p.__regional
+        // branch); everything else is routed through getDisplayName(baseSpeciesNameForPokemon(name))
+        // per golden-standards.md, composed here explicitly since getDisplayName does NOT do this
+        // internally (see sevii-data-bridge.ts's doc comment — fixed in Phase 4 verification,
+        // 2026-08-30, after confirming against the real index.html function bodies that an earlier
+        // version of this call, `getDisplayName(raw.name)` alone, would under-format any base-roster
+        // default variety carrying a suffix PokéAPI never separates out, e.g. "keldeo-ordinary").
+        displayName: regionalLabel != null ? regionalLabel : genderLabel ? `${this.bridge.getDisplayName(this.bridge.baseSpeciesNameForPokemon(raw.name))} (${genderLabel})` : this.bridge.getDisplayName(this.bridge.baseSpeciesNameForPokemon(raw.name)),
+        types,
+        hp: maxHp,
+        maxHp,
+        baseAtk,
+        baseDef,
+        baseSpa,
+        baseSpd,
+        baseSpeed,
+        atk: baseAtk + shinyBonus,
+        def: baseDef,
+        spa: baseSpa + shinyBonus,
+        spd: baseSpd,
+        speed: baseSpeed + shinyBonus,
+        heightM: (raw.height / 10).toFixed(1),
+        weightKg: (raw.weight / 10).toFixed(1),
+        abilityKey,
+        abilityName,
+        shapeName: speciesDetail.shapeName,
+        colorName,
+        eggGroupKeys: speciesDetail.eggGroupKeys,
+        eggGroupLabel,
+        evoTriggerKey: evoMeta.evoTriggerKey,
+        evoTriggerLabel: evoMeta.evoTriggerLabel,
+        lineageStageKey: evoMeta.lineageStageKey,
+        lineageStageLabel: evoMeta.lineageStageLabel,
+        teraType,
+        canMega: !!MEGA_LOOKUP[raw.id],
+        canGmax: !!GMAX_LOOKUP[raw.id],
+        setupMove: resolveSetupMove({ baseAtk, baseDef, baseSpa, baseSpd, baseSpeed }),
+        boosts: { atk: 0, def: 0, spa: 0, spd: 0, speed: 0, count: 0 },
+        isMega: false,
+        isGmax: false,
+        gmaxTurnsRemaining: 0,
+        isTera: false,
+        usedProtectLastTurn: false,
+        isFainted: false,
+        isShiny,
+        spriteGender
+      };
+    }
+  };
+
+  // src/sevii-type-effectiveness.ts
+  function bindEngineToSeviiTypeEffectiveness(bridge) {
+    setMultiplierProvider((atkType, defTypes) => {
+      var _a;
+      const matchups = bridge.calculateMatchups(defTypes);
+      if (matchups) return (_a = matchups[atkType]) != null ? _a : 1;
+      return calculateMultiplier(atkType, defTypes);
+    });
+    return resetMultiplierProviderToStaticChart;
+  }
+
+  // src/sevii-sprite-resolver.ts
+  function resolveSpriteUrls(bridge, pokemonId, shiny, female = false) {
+    return {
+      primary: bridge.spriteHomeUrl(pokemonId, shiny, female),
+      fallback: bridge.spritePixelFallbackUrl(pokemonId, shiny, female)
+    };
+  }
+  async function precacheSprites(bridge, pokemonIds, shinyFlags, preload, femaleFlags = []) {
+    await Promise.all(
+      pokemonIds.map(async (id, i) => {
+        const { primary, fallback } = resolveSpriteUrls(bridge, id, !!shinyFlags[i], !!femaleFlags[i]);
+        try {
+          await preload(primary);
+        } catch {
+          try {
+            await preload(fallback);
+          } catch {
+          }
+        }
+      })
+    );
+  }
+
+  // src/sevii-storage-adapter.ts
+  var BLIND_DRAFT_STORAGE_KEY = "sevii_blinddraft_v1";
+  var SCHEMA_VERSION = 1;
+  function emptyShape() {
+    return { version: SCHEMA_VERSION, draftHistory: [], hallOfFame: [], lockedTeams: [] };
+  }
+  function toPersistedRosterMember(unit) {
+    return {
+      speciesSlug: unit.speciesSlug,
+      displayName: unit.displayName,
+      isShiny: unit.isShiny,
+      teraType: unit.teraType,
+      spriteGender: unit.spriteGender
+    };
+  }
+  var SeviiStorageAdapter = class {
+    constructor(bridge) {
+      this.cache = null;
+      this.bridge = bridge;
+    }
+    load() {
+      if (this.cache) return this.cache;
+      try {
+        const raw = this.bridge.localStorageGet(BLIND_DRAFT_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.version === SCHEMA_VERSION && Array.isArray(parsed.draftHistory)) {
+            this.cache = parsed;
+            return this.cache;
+          }
+        }
+      } catch {
+      }
+      this.cache = emptyShape();
+      this.save();
+      return this.cache;
+    }
+    save() {
+      if (!this.cache) return;
+      try {
+        this.bridge.localStorageSet(BLIND_DRAFT_STORAGE_KEY, JSON.stringify(this.cache));
+      } catch {
+      }
+    }
+    getDraftHistory() {
+      return [...this.load().draftHistory];
+    }
+    recordCompletedDraft(record) {
+      const shape = this.load();
+      shape.draftHistory.push(record);
+      this.save();
+    }
+    getHallOfFame() {
+      return [...this.load().hallOfFame];
+    }
+    /** Enshrines an already-recorded draft (by id) into the Hall of Fame. No-ops if the id isn't a winning record already in history. */
+    enshrineInHallOfFame(draftRecordId) {
+      const shape = this.load();
+      const record = shape.draftHistory.find((r) => r.id === draftRecordId);
+      if (!record || !record.playerWon) return false;
+      if (shape.hallOfFame.some((r) => r.id === draftRecordId)) return true;
+      shape.hallOfFame.push(record);
+      this.save();
+      return true;
+    }
+    getLockedTeams() {
+      return [...this.load().lockedTeams];
+    }
+    lockTeam(team) {
+      const shape = this.load();
+      shape.lockedTeams.push(team);
+      this.save();
+    }
+    unlockTeam(teamId) {
+      const shape = this.load();
+      shape.lockedTeams = shape.lockedTeams.filter((t) => t.id !== teamId);
+      this.save();
+    }
+  };
+
+  // src/sevii-adapter.ts
+  function bindEngineToSevii(bridge, fetchImpl = fetch, randomFn = Math.random) {
+    const repository = new SeviiPokemonRepository(bridge, fetchImpl);
+    const storage = new SeviiStorageAdapter(bridge);
+    const unbindTypeEffectiveness = bindEngineToSeviiTypeEffectiveness(bridge);
+    return {
+      repository,
+      storage,
+      unbindTypeEffectiveness,
+      createDraftEngine: (initialClueModes = ["TYPING"]) => new DraftEngine(repository, initialClueModes, randomFn, [
+        ...repository.resolvableDraftPool(APEX_POKEDEX_IDS),
+        // Real GENDER-type alternate forms (Meowstic/-Female, Indeedee/-Female,
+        // Basculegion-Male/-Female, Oinkologne/-Female) as their own independently-
+        // stated draftable entries — see resolvableGenderFormSlugs()'s doc comment.
+        ...repository.resolvableGenderFormSlugs()
+      ]),
+      createBattleSimulator: (playerSquad, pcSquad) => new BattleSimulator(playerSquad, pcSquad, fetchImpl, randomFn)
+    };
+  }
+
+  // src/blind-draft-ui.ts
+  function formatClueReveal(r) {
+    switch (r.modeId) {
+      case "TYPING":
+        return r.types.join(" / ");
+      case "PEAK_STAT":
+        return `${r.label} (${r.value})`;
+      case "GENERATION":
+        return `Gen ${r.generation}`;
+      case "SPEED":
+        return `${r.baseSpeed} base speed`;
+      case "WEAKNESSES":
+        return r.weakTypes.length ? r.weakTypes.join(" / ") : "No weaknesses";
+      case "ABILITY":
+        return r.abilityName;
+      case "SCALE":
+        return `${r.heightM}m / ${r.weightKg}kg`;
+      case "SHAPE_COLOR":
+        return `${r.colorName} / ${r.shapeName}`;
+      case "EGG_GROUP":
+        return r.eggGroupLabel;
+      case "EVO_TRIGGER":
+        return r.evoTriggerLabel;
+      case "LINEAGE_STAGE":
+        return r.lineageStageLabel;
+    }
+  }
+  function el(tag, className, attrs) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (attrs) for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+    return node;
+  }
+  function clear(node) {
+    while (node.firstChild) node.removeChild(node.firstChild);
+  }
+  var ToastHost = class {
+    constructor(mountPoint) {
+      this.stack = el("div", "bdb-toast-stack");
+      mountPoint.appendChild(this.stack);
+    }
+    toast(message, kind = "info", durationMs = 2600) {
+      const node = el("div", `bdb-toast bdb-toast--${kind}`.trim());
+      node.textContent = message;
+      this.stack.appendChild(node);
+      requestAnimationFrame(() => node.classList.add("bdb-toast--show"));
+      setTimeout(() => {
+        node.classList.remove("bdb-toast--show");
+        setTimeout(() => node.remove(), 220);
+      }, durationMs);
+    }
+    /** Non-blocking replacement for window.confirm(). Resolves true/false; never blocks the main thread. */
+    confirmBanner(message, confirmLabel = "Confirm", cancelLabel = "Cancel") {
+      return new Promise((resolve) => {
+        const node = el("div", "bdb-confirm-banner");
+        const text = el("div", "bdb-confirm-banner-text");
+        text.textContent = message;
+        const actions = el("div", "bdb-confirm-banner-actions");
+        const cancelBtn = el("button", "bdb-confirm-banner-btn bdb-confirm-banner-btn--cancel");
+        cancelBtn.textContent = cancelLabel;
+        const confirmBtn = el("button", "bdb-confirm-banner-btn bdb-confirm-banner-btn--confirm");
+        confirmBtn.textContent = confirmLabel;
+        actions.append(cancelBtn, confirmBtn);
+        node.append(text, actions);
+        this.stack.appendChild(node);
+        requestAnimationFrame(() => node.classList.add("bdb-toast--show"));
+        const finish = (result) => {
+          node.classList.remove("bdb-toast--show");
+          setTimeout(() => node.remove(), 220);
+          resolve(result);
+        };
+        cancelBtn.addEventListener("click", () => finish(false));
+        confirmBtn.addEventListener("click", () => finish(true));
+      });
+    }
+  };
+  function buildCard(opts) {
+    const { unit, bridge, activeClueModes, selected, disabled, onClick } = opts;
+    const card = el("div", "bdb-card");
+    if (selected) card.classList.add("bdb-card--selected");
+    if (disabled) card.setAttribute("data-disabled", "true");
+    const spriteWrap = el("div", "bdb-card-sprite-wrap");
+    const sprite = el("img", "bdb-card-sprite", { alt: unit.displayName, loading: "lazy" });
+    const urls = resolveSpriteUrls(bridge, unit.id, unit.isShiny, unit.spriteGender === "female");
+    sprite.src = urls.primary;
+    sprite.addEventListener("error", () => {
+      sprite.src = urls.fallback;
+    }, { once: true });
+    spriteWrap.appendChild(sprite);
+    card.appendChild(spriteWrap);
+    if (unit.isShiny) {
+      const flag = el("div", "bdb-card-shiny-flag");
+      flag.textContent = "\u2726";
+      card.appendChild(flag);
+    }
+    if (activeClueModes && activeClueModes.length > 0) {
+      const reveals = revealActiveClues(activeClueModes, unit);
+      reveals.forEach((r) => {
+        const line = el("div", "bdb-card-clue-line");
+        line.textContent = `${clueName(r.modeId)}: ${formatClueReveal(r)}`;
+        card.appendChild(line);
+      });
+    } else {
+      const number = el("div", "bdb-card-number");
+      number.textContent = `#${String(bridge.resolveDexNumber(unit.speciesSlug, unit.id)).padStart(3, "0")}`;
+      card.appendChild(number);
+      const name = el("div", "bdb-card-name");
+      name.textContent = unit.displayName;
+      card.appendChild(name);
+      const badges = el("div", "bdb-card-type-badges");
+      unit.types.forEach((t) => {
+        const img = el("img", "bdb-card-type-badge", { alt: t, src: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/sword-shield/${t}.png` });
+        badges.appendChild(img);
+      });
+      card.appendChild(badges);
+    }
+    if (unit.hp !== void 0 && unit.maxHp) {
+      const bar = el("div", "bdb-card-hp-bar");
+      const fill = el("div", "bdb-card-hp-fill");
+      const pct = Math.max(0, Math.min(100, unit.hp / unit.maxHp * 100));
+      fill.style.width = `${pct}%`;
+      fill.style.background = pct > 50 ? "#78e642" : pct > 20 ? "#f8d030" : "#ad2119";
+      bar.appendChild(fill);
+      card.appendChild(bar);
+    }
+    if (onClick && !disabled) card.addEventListener("click", onClick);
+    return card;
+  }
+  var BdbSheet = class {
+    constructor(mountPoint, title, onClose) {
+      this.backdrop = el("div", "bdb-sheet-backdrop");
+      this.sheet = el("div", "bdb-sheet");
+      const header = el("div", "bdb-sheet-header");
+      const titleEl = el("div", "bdb-sheet-title");
+      titleEl.textContent = title;
+      const closeBtn = el("button", "bdb-sheet-close");
+      closeBtn.textContent = "\u2715";
+      header.append(titleEl, closeBtn);
+      this.body = el("div", "bdb-sheet-body");
+      this.sheet.append(header, this.body);
+      const close = () => {
+        this.close();
+        onClose == null ? void 0 : onClose();
+      };
+      closeBtn.addEventListener("click", close);
+      this.backdrop.addEventListener("click", close);
+      mountPoint.append(this.backdrop, this.sheet);
+    }
+    setBody(node) {
+      clear(this.body);
+      this.body.appendChild(node);
+    }
+    open() {
+      this.backdrop.classList.add("bdb-open");
+      this.sheet.classList.add("bdb-open");
+    }
+    close() {
+      this.backdrop.classList.remove("bdb-open");
+      this.sheet.classList.remove("bdb-open");
+    }
+  };
+  var BdbModal = class {
+    constructor(mountPoint, onClose) {
+      this.backdrop = el("div", "bdb-modal-backdrop");
+      const modal = el("div", "bdb-modal");
+      const header = el("div", "bdb-modal-header");
+      const titleBlock = el("div", "bdb-modal-title-block");
+      this.titleEl = el("div", "bdb-modal-title");
+      this.subtitleEl = el("div", "bdb-modal-subtitle");
+      titleBlock.append(this.titleEl, this.subtitleEl);
+      const closeBtn = el("button", "bdb-modal-close");
+      closeBtn.textContent = "\u2715";
+      header.append(titleBlock, closeBtn);
+      this.body = el("div", "bdb-modal-body");
+      this.footer = el("div", "bdb-modal-footer");
+      modal.append(header, this.body, this.footer);
+      this.backdrop.appendChild(modal);
+      const close = () => {
+        this.close();
+        onClose == null ? void 0 : onClose();
+      };
+      closeBtn.addEventListener("click", close);
+      this.backdrop.addEventListener("click", (e) => {
+        if (e.target === this.backdrop) close();
+      });
+      mountPoint.appendChild(this.backdrop);
+    }
+    setTitle(title, subtitle = "") {
+      this.titleEl.textContent = title;
+      this.subtitleEl.textContent = subtitle;
+      this.subtitleEl.style.display = subtitle ? "" : "none";
+    }
+    setBody(node) {
+      clear(this.body);
+      this.body.appendChild(node);
+    }
+    setFooter(buttons) {
+      clear(this.footer);
+      buttons.forEach((b) => {
+        const btn = el("button", "bdb-modal-footer-btn");
+        btn.textContent = b.label;
+        btn.addEventListener("click", b.onClick);
+        this.footer.appendChild(btn);
+      });
+    }
+    open() {
+      this.backdrop.classList.add("bdb-open");
+    }
+    close() {
+      this.backdrop.classList.remove("bdb-open");
+    }
+  };
+  var BlindDraftBattleSection = class {
+    constructor(opts) {
+      this.draft = null;
+      this.battle = null;
+      this.currentPlayerLead = null;
+      this.currentPcLead = null;
+      /** True while a resolveTurn() call is in flight — see resolvePlayerAction()'s doc comment. */
+      this.turnInFlight = false;
+      var _a;
+      this.mount = opts.mountPoint;
+      this.bound = opts.bound;
+      this.bridge = opts.bridge;
+      this.pcThinkDelayMs = (_a = opts.pcThinkDelayMs) != null ? _a : 550;
+      this.root = el("div", "bdb-section");
+      this.headerBar = el("div", "bdb-header-bar");
+      this.gridWrapper = el("div", "bdb-grid-wrapper");
+      this.squadStrip = el("div", "bdb-squad-strip");
+      this.actionBar = el("div", "bdb-action-bar");
+      this.root.append(this.headerBar, this.gridWrapper, this.squadStrip, this.actionBar);
+      this.mount.appendChild(this.root);
+      this.toasts = new ToastHost(this.root);
+      this.clueSheet = new BdbSheet(this.root, "Clue Modes");
+      this.gimmickModal = new BdbModal(this.root);
+    }
+    // -- draft phase -------------------------------------------------------
+    startDraft(initialClueModes = ["TYPING"]) {
+      this.draft = this.bound.createDraftEngine(initialClueModes);
+      this.wireDraftEvents(this.draft);
+      this.renderClueModeButton(this.draft);
+      void this.draft.startTurn();
+    }
+    wireDraftEvents(draft) {
+      draft.on("trioReady", async ({ trio, owner, pickNumber }) => {
+        this.renderDraftTrio(trio, draft, owner === "pc");
+        if (owner === "pc" && this.pcThinkDelayMs > 0) {
+          this.toasts.toast("Rival is choosing\u2026", "info", this.pcThinkDelayMs);
+          await new Promise((r) => setTimeout(r, this.pcThinkDelayMs));
+        }
+        this.renderTrioLabel(owner, pickNumber);
+      });
+      draft.on("pickResolved", (event) => {
+        const who = event.owner === "player" ? "You" : "Rival";
+        this.toasts.toast(`${who} drafted ${event.picked.displayName}.`, "success");
+        setTimeout(() => void draft.advance(), 700);
+      });
+      draft.on("roundAdvanced", ({ round, subPhase }) => {
+        this.toasts.toast(`Round ${round} \u2014 ${subPhase === "turn1" ? "first" : "second"} pick.`, "info", 1600);
+      });
+      draft.on("draftComplete", ({ playerSquad, pcSquad }) => {
+        this.toasts.toast("Draft complete! Choose your lead.", "success");
+        this.startBattle(playerSquad, pcSquad);
+      });
+    }
+    renderTrioLabel(owner, pickNumber) {
+      clear(this.headerBar);
+      const label = el("div", "bdb-sheet-title");
+      label.textContent = owner === "player" ? `Pick ${pickNumber} \u2014 your turn` : `Pick ${pickNumber} \u2014 rival's turn`;
+      this.headerBar.appendChild(label);
+    }
+    renderDraftTrio(trio, draft, isPcTurn) {
+      clear(this.gridWrapper);
+      const row = el("div", "bdb-trio-row");
+      const activeClueModes = draft.getActiveClueModes();
+      let pickInFlight = false;
+      trio.forEach((unit, idx) => {
+        row.appendChild(buildCard({
+          unit,
+          bridge: this.bridge,
+          activeClueModes,
+          disabled: isPcTurn || pickInFlight,
+          onClick: () => {
+            if (pickInFlight) return;
+            try {
+              draft.pickForPlayer(idx);
+              pickInFlight = true;
+              Array.from(row.children).forEach((child) => child.setAttribute("data-disabled", "true"));
+            } catch (err) {
+              this.toasts.toast(err instanceof Error ? err.message : "Can't pick that right now.", "error");
+            }
+          }
+        }));
+      });
+      this.gridWrapper.appendChild(row);
+    }
+    renderClueModeButton(draft) {
+      const btn = el("button", "bdb-action-btn bdb-action-btn--outline");
+      btn.textContent = "Clue Modes";
+      btn.addEventListener("click", () => this.openClueSheet(draft));
+      clear(this.actionBar);
+      this.actionBar.appendChild(btn);
+    }
+    openClueSheet(draft) {
+      const list = el("div");
+      const active = new Set(draft.getActiveClueModes());
+      ALL_CLUE_MODE_IDS.forEach((modeId) => {
+        const pill = el("div", "bdb-clue-pill");
+        pill.setAttribute("data-active", String(active.has(modeId)));
+        const label = el("div", "bdb-clue-pill-label");
+        label.textContent = clueName(modeId);
+        const check = el("div", "bdb-clue-pill-check");
+        check.textContent = "\u2713";
+        pill.append(label, check);
+        pill.addEventListener("click", async () => {
+          const req = draft.requestClueModeChange(modeId);
+          if (req.requiresConfirmation) {
+            const restart = await this.toasts.confirmBanner(
+              "Changing clue modes mid-draft will restart this draft. Continue with the current draft instead, or restart?",
+              "Restart",
+              "Keep Drafting"
+            );
+            draft.confirmClueModeChange(!restart);
+            if (restart) this.toasts.toast("Draft restarted with new clue modes.", "info");
+          }
+          this.openClueSheet(draft);
+        });
+        list.appendChild(pill);
+      });
+      this.clueSheet.setBody(list);
+      this.clueSheet.open();
+    }
+    // -- battle phase --------------------------------------------------------
+    startBattle(playerSquad, pcSquad) {
+      this.battle = this.bound.createBattleSimulator(playerSquad, pcSquad);
+      this.promptSelectLead(playerSquad, "Choose your lead Pok\xE9mon");
+    }
+    /** Initial lead selection — both sides pick/auto-pick and boosts wipe on both. */
+    promptSelectLead(squad, title) {
+      if (!this.battle) return;
+      this.gimmickModal.setTitle(title);
+      const list = el("div");
+      squad.filter((u) => !u.isFainted).forEach((unit) => {
+        list.appendChild(buildCard({
+          unit,
+          bridge: this.bridge,
+          onClick: () => {
+            if (!this.battle) return;
+            const { playerLead, pcLead } = this.battle.selectLead(unit);
+            this.currentPlayerLead = playerLead;
+            this.currentPcLead = pcLead;
+            this.gimmickModal.close();
+            this.renderBattleState();
+          }
+        }));
+      });
+      this.gimmickModal.setBody(list);
+      this.gimmickModal.setFooter([]);
+      this.gimmickModal.open();
+    }
+    /** Mid-battle forced switch after a faint — only the player's own bench is affected. */
+    promptSelectReplacement(squad, title) {
+      if (!this.battle) return;
+      this.gimmickModal.setTitle(title);
+      const list = el("div");
+      squad.filter((u) => !u.isFainted).forEach((unit) => {
+        list.appendChild(buildCard({
+          unit,
+          bridge: this.bridge,
+          onClick: () => {
+            if (!this.battle) return;
+            this.battle.selectReplacement(unit);
+            this.currentPlayerLead = unit;
+            this.gimmickModal.close();
+            this.renderBattleState();
+          }
+        }));
+      });
+      this.gimmickModal.setBody(list);
+      this.gimmickModal.setFooter([]);
+      this.gimmickModal.open();
+    }
+    renderBattleState() {
+      if (!this.battle) return;
+      clear(this.squadStrip);
+      [
+        { squad: this.battle.playerSquad, active: this.currentPlayerLead },
+        { squad: this.battle.pcSquad, active: this.currentPcLead }
+      ].forEach(({ squad, active }) => {
+        squad.forEach((unit) => {
+          const chip = el("div", "bdb-squad-chip");
+          chip.setAttribute("data-fainted", String(unit.isFainted));
+          chip.setAttribute("data-active", String(active === unit));
+          const sprite = el("img", "bdb-squad-chip-sprite", { alt: unit.displayName });
+          const urls = resolveSpriteUrls(this.bridge, unit.id, unit.isShiny, unit.spriteGender === "female");
+          sprite.src = urls.primary;
+          sprite.addEventListener("error", () => {
+            sprite.src = urls.fallback;
+          }, { once: true });
+          const name = el("div", "bdb-squad-chip-name");
+          name.textContent = unit.displayName;
+          chip.append(sprite, name);
+          this.squadStrip.appendChild(chip);
+        });
+      });
+      this.renderActionBar();
+    }
+    renderActionBar() {
+      if (!this.battle) return;
+      clear(this.actionBar);
+      const attackBtn = el("button", "bdb-action-btn");
+      attackBtn.textContent = "Attack";
+      attackBtn.addEventListener("click", () => void this.resolvePlayerAction({ type: "ATTACK", stabType: "normal" }));
+      const protectBtn = el("button", "bdb-action-btn bdb-action-btn--outline");
+      protectBtn.textContent = "Protect";
+      protectBtn.addEventListener("click", () => void this.resolvePlayerAction({ type: "PROTECT" }));
+      const gimmickBtn = el("button", "bdb-action-btn bdb-action-btn--outline");
+      gimmickBtn.textContent = "Gimmick";
+      gimmickBtn.addEventListener("click", () => this.openGimmickPicker());
+      [attackBtn, protectBtn, gimmickBtn].forEach((btn) => {
+        btn.disabled = this.turnInFlight;
+        btn.setAttribute("data-disabled", String(this.turnInFlight));
+      });
+      this.actionBar.append(attackBtn, protectBtn, gimmickBtn);
+    }
+    openGimmickPicker() {
+      if (!this.battle || !this.currentPlayerLead) return;
+      const options = this.battle.getAvailableGimmicks(this.currentPlayerLead);
+      this.gimmickModal.setTitle("Choose a Gimmick", "Optional \u2014 activates before your action resolves");
+      const list = el("div");
+      if (options.length === 0) {
+        const empty = el("div", "bdb-card-clue-line");
+        empty.textContent = "No gimmick available for this Pok\xE9mon.";
+        list.appendChild(empty);
+      }
+      options.forEach((g) => {
+        const opt = el("div", "bdb-gimmick-option");
+        opt.textContent = g;
+        opt.addEventListener("click", () => {
+          this.gimmickModal.close();
+          void this.resolvePlayerAction({ type: "ATTACK", stabType: "normal" }, { type: g });
+        });
+        list.appendChild(opt);
+      });
+      this.gimmickModal.setBody(list);
+      this.gimmickModal.setFooter([{ label: "Cancel", onClick: () => this.gimmickModal.close() }]);
+      this.gimmickModal.open();
+    }
+    async resolvePlayerAction(action, gimmick = null) {
+      if (!this.battle || this.turnInFlight) return;
+      this.turnInFlight = true;
+      this.renderActionBar();
+      try {
+        const result = await this.battle.resolveTurn(action, gimmick);
+        this.turnInFlight = false;
+        this.renderTurnResult(result);
+      } catch (err) {
+        this.turnInFlight = false;
+        if (err instanceof BlockedActionError) {
+          this.toasts.toast(err.message, "error");
+        } else {
+          this.toasts.toast("That action couldn't be resolved.", "error");
+        }
+        this.renderActionBar();
+      }
+    }
+    renderTurnResult(result) {
+      this.toasts.toast(result.first.summary, "info", 2200);
+      if (result.second) {
+        setTimeout(() => this.toasts.toast(result.second.summary, "info", 2200), 400);
+      }
+      if (result.matchOver) {
+        setTimeout(() => this.showGameOver(result.playerWon === true), 900);
+        return;
+      }
+      if (result.requiresPlayerReplacement && this.battle) {
+        setTimeout(() => this.promptSelectReplacement(this.battle.playerSquad, "Choose your next Pok\xE9mon"), 500);
+      }
+      this.renderBattleState();
+    }
+    showGameOver(playerWon) {
+      this.gimmickModal.setTitle(playerWon ? "Victory!" : "Defeat", "Blind Draft Battle complete");
+      const body = el("div");
+      const msg = el("div", "bdb-clue-pill-label");
+      msg.textContent = playerWon ? "Your drafted squad won the gauntlet." : "Your drafted squad was defeated.";
+      body.appendChild(msg);
+      this.gimmickModal.setBody(body);
+      this.gimmickModal.setFooter([
+        { label: "New Draft", onClick: () => {
+          this.gimmickModal.close();
+          this.startDraft();
+        } }
+      ]);
+      this.gimmickModal.open();
+    }
+  };
+  return __toCommonJS(bundle_entry_exports);
+})();
+
+  </script>
+
+  <script>
+    // ── Games Section: SeviiDataBridge implementation + mount ──────────────────────────────
+    // Real, live implementation of the SeviiDataBridge interface (sevii-data-bridge.ts) —
+    // every member below forwards to the exact function/global this file already defines,
+    // confirmed by direct read before writing (never re-implemented): allPokemon,
+    // regionalForms, alternateForms/_byForm, getDisplayName, baseSpeciesNameForPokemon,
+    // getVariantVisualOverride, listDexId, calculateMatchups, the SPRITE_HOME/SPRITE_PIX
+    // URL builders (setSpriteSrc's own construction), and plain localStorage.
+    function gamesFindRawById(id) {
+      return allPokemon.find(p => p.id === id) || (regionalForms.find(r => r.data.id === id) || {}).data;
+    }
+    const SeviiGamesBridge = {
+      getAllPokemon() { return allPokemon; },
+      getRegionalForms() { return regionalForms; },
+      getAlternateFormEntry(formSlug) { return alternateForms?._byForm?.[formSlug]; },
+      getAlternateFormsByType(formType) { return (alternateForms || []).filter(f => f.form_type === formType); },
+      findBaseSpeciesInAllPokemon(slug) { return findBaseSpeciesInAllPokemon(slug); },
+      getDisplayName(slug) { return getDisplayName(slug); },
+      baseSpeciesNameForPokemon(slug) { return baseSpeciesNameForPokemon(slug); },
+      getVariantOverride(slug) { return getVariantVisualOverride(slug) || undefined; },
+      resolveDexNumber(slug, fallbackId) { return listDexId(slug, fallbackId); },
+      calculateMatchups(defTypes) { return calculateMatchups(defTypes); },
+      // Home-sprite female variants are full URLs PokéAPI returns per-Pokémon
+      // (sprites.other.home.front_female / front_shiny_female), not something
+      // constructible from the id alone the way the base HOME URL is — mirrors
+      // the exact check updateInfoHeader() already uses (`home?.front_female`).
+      spriteHomeUrl(pokemonId, shiny, female) {
+        const raw = gamesFindRawById(pokemonId);
+        const home = raw?.sprites?.other?.home;
+        if (female) {
+          if (shiny && home?.front_shiny_female) return home.front_shiny_female;
+          if (!shiny && home?.front_female) return home.front_female;
+        }
+        return shiny ? `${SPRITE_HOME}/shiny/${pokemonId}.png` : `${SPRITE_HOME}/${pokemonId}.png`;
+      },
+      spritePixelFallbackUrl(pokemonId, shiny, female) {
+        // The classic pixel-sprite set has no distinct female path in this app's own
+        // setSpriteSrc fallback — mirrored here rather than inventing one.
+        return shiny ? `${SPRITE_PIX}/shiny/${pokemonId}.png` : `${SPRITE_PIX}/${pokemonId}.png`;
+      },
+      hasSpriteGenderDifference(pokemonId) {
+        const raw = gamesFindRawById(pokemonId);
+        return !!(raw?.sprites?.other?.home?.front_female);
+      },
+      localStorageGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } },
+      localStorageSet(key, value) { try { localStorage.setItem(key, value); } catch (e) { /* full/disabled storage degrades to in-memory-only, same as every other Sevii save*Data() */ } },
+    };
+
+    let gamesSectionMounted = false;
+    let gamesBoundEngine = null;
+
+    // Lazy-mounted on first visit to the Games tab — same convention loadAbilitiesSection()/
+    // loadMovesSection() use (abLoaded/mvLoaded flags) — called from switchSection('games').
+    function initGamesSection() {
+      if (gamesSectionMounted) return;
+      gamesSectionMounted = true;
+      const mountPoint = document.getElementById('section-games');
+      if (!mountPoint) { console.warn('Games section mount point (#section-games) not found.'); return; }
+      if (typeof SeviiBlindDraft === 'undefined') { console.warn('SeviiBlindDraft bundle failed to load.'); return; }
+      try {
+        gamesBoundEngine = SeviiBlindDraft.bindEngineToSevii(SeviiGamesBridge);
+        const section = new SeviiBlindDraft.BlindDraftBattleSection({
+          mountPoint,
+          bound: gamesBoundEngine,
+          bridge: SeviiGamesBridge,
+        });
+        section.startDraft(['TYPING']);
+      } catch (err) {
+        console.error('Games section failed to start:', err);
+        mountPoint.textContent = 'Blind Draft Battle failed to load — check the console for details.';
+      }
+    }
+  </script>
+
 </body>
 </html>
