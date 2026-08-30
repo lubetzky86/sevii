@@ -546,6 +546,21 @@
     }
     #tb-journey-back-btn.visible { display: flex; }
     .right-panel.floating.journey-bar-open { padding-top: 40px; }
+    /* Round 23 fix: `padding-top` above only pushes down .info-card, a normal (in-flow) flex
+       child of #right-panel — it does NOT affect any of the 6 nested modals (Ability/Matchups/
+       Obtain/Moveset/Lore/Dex), which are each `position:absolute; top:0` relative to #right-panel
+       itself. An ancestor's padding does not shift where an absolutely-positioned descendant's
+       `top:0` lands (that offset is measured from the padding edge, i.e. unaffected by the
+       padding), so those modals kept rendering their own header right underneath — literally
+       superimposed under — the fixed top bar. These 6 are exactly the set the "Back to Studio"
+       button's own force-close switch statement already handles, so they're exactly the set that
+       must stay clear of it. Nudge all 6 down by the same 40px whenever the bar is showing. */
+    .right-panel.journey-bar-open .ability-modal-backdrop,
+    .right-panel.journey-bar-open .matchups-modal-backdrop,
+    .right-panel.journey-bar-open .obtain-modal-backdrop,
+    .right-panel.journey-bar-open .moveset-modal-backdrop,
+    .right-panel.journey-bar-open .lore-modal-backdrop,
+    .right-panel.journey-bar-open .dex-modal-backdrop { top: 40px; }
     /* When opened from Abilities/Moves — floats over current section */
     .right-panel.floating {
       position: fixed;
@@ -1607,12 +1622,12 @@
 
     /* "Add from List" trigger + its two-step sheet extras (base sheet chrome recycled from
        .addlist-sheet/.addlist-item above — only the parts that differ get their own rules here).
-       Round 22: the trigger moved from its own full-width row above the roster grid (too much
-       vertical space) into .tb-context-header itself, right alongside the Battle Mode/Game-select
-       pills — same compact header box, same tight 6px row gap, and reuses .tb-game-select-btn's
-       exact pill styling (border/background/color/font) so it visually matches its new neighbors
-       instead of looking like a separate, differently-styled control. */
-    .tb-addfromlist-header-row { display: flex; justify-content: flex-end; }
+       Round 23: sits in its own thin row directly BELOW the Battle Mode enclosure (not inside
+       it — round 22's attempt grew that box's height and crowded "Select a game") and is styled
+       as a small underlined text link, recycling .tb-hub-clear-link's own class verbatim, so it
+       reads as a light secondary action rather than another full header pill. Minimal vertical
+       footprint: no button chrome, no icon, just short link text right-aligned on its own line. */
+    .tb-addfromlist-row { display: flex; justify-content: flex-end; margin: 4px 2px 0; }
     .tb-afl-back-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: #f0efe9; font-size: 16px; font-weight: 900; color: #43656e; cursor: pointer; flex-shrink: 0; margin-right: 4px; }
     .tb-afl-back-btn:hover { background: #e2ddd0; }
     .tb-afl-pokemon-view { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
@@ -4007,17 +4022,19 @@
                 <span id="tb-game-select-label">Select a game</span><span class="tb-game-select-chevron">▾</span>
               </button>
           </div>
+        </div>
 
-          <!-- "Add from List" — second roster entry point alongside each empty slot's own
-               "+ Add Team Member". Opens #tb-addfromlist-backdrop: step 1 picks one of the user's
-               Lists, step 2 multi-selects Pokémon from it (capped at the team's remaining open
-               slots) and imports them all at once. See tbOpenAddFromList() below. Round 22: lives
-               in its own slim row inside .tb-context-header (same tight 6px row gap as the Battle
-               Mode controls above it) instead of a separate full-width row above the roster grid —
-               reuses .tb-game-select-btn's exact pill styling so it matches its header neighbors. -->
-          <div class="tb-addfromlist-header-row">
-            <button class="tb-game-select-btn" id="tb-addfromlist-btn">Add from List</button>
-          </div>
+        <!-- "Add from List" — second roster entry point alongside each empty slot's own
+             "+ Add Team Member". Opens #tb-addfromlist-backdrop: step 1 picks one of the user's
+             Lists, step 2 multi-selects Pokémon from it (capped at the team's remaining open
+             slots) and imports them all at once. See tbOpenAddFromList() below. Round 23: sits
+             OUTSIDE the Battle Mode enclosure (.tb-context-header) — putting it inside had grown
+             that box's own height and visually crowded/displaced "Select a game" — as a single
+             thin row of its own, styled as a small underlined text link (recycling
+             .tb-hub-clear-link's exact discreet treatment, not a full pill) so it reads as a
+             secondary action rather than another prominent header control. -->
+        <div class="tb-addfromlist-row">
+          <button class="tb-hub-clear-link" id="tb-addfromlist-btn">Add from List</button>
         </div>
 
         <div class="grid-wrapper">
