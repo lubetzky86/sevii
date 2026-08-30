@@ -4762,14 +4762,19 @@
 
     </div>
 
-  </div>
+    <!-- ── GAMES SECTION (Blind Draft Battle) — placeholder section name/icon per Diego,
+         2026-08-30. Empty mount point: BlindDraftBattleSection (blind-draft-ui.ts, bundled below
+         as window.SeviiBlindDraft) builds its whole DOM into this div the first time the Games
+         tab is opened (see initGamesSection() near the end of the closing <script>), the same
+         lazy-init-on-first-visit convention abilities/moves/lists already use in switchSection().
+         MUST live inside .app-body (a sibling of the other .section-panel elements) — placing it
+         after .app-body's closing tag was the real cause of the huge blank gap above the Games
+         content reported 2026-08-30: outside .app-body it isn't a flex child of the layout that
+         fills the screen below the header, so it just stacked below .app-body's full box in
+         normal document flow instead of occupying the same space the other sections do. -->
+    <div class="section-panel" id="section-games"></div>
 
-  <!-- ── GAMES SECTION (Blind Draft Battle) — placeholder section name/icon per Diego,
-       2026-08-30. Empty mount point: BlindDraftBattleSection (blind-draft-ui.ts, bundled below
-       as window.SeviiBlindDraft) builds its whole DOM into this div the first time the Games
-       tab is opened (see initGamesSection() near the end of the closing <script>), the same
-       lazy-init-on-first-visit convention abilities/moves/lists already use in switchSection(). -->
-  <div class="section-panel" id="section-games"></div>
+  </div>
 
 
   <script>
