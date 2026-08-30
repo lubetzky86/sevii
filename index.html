@@ -16301,14 +16301,38 @@ var SeviiBlindDraft = (() => {
       this.emit("pickResolved", event);
       return event;
     }
-    /** Resolves the PC's pick against the current trio using the clue-scored heuristic. */
+    /**
+     * Resolves the PC's pick against the current trio using the clue-scored heuristic.
+     *
+     * Scoring each candidate (scoreDraftCandidate) had NO error handling — called
+     * synchronously from startTurn() right after trioReady, with no try/catch anywhere in
+     * the chain (startTurn/advance are fire-and-forget `void` calls from the UI layer). A
+     * real player's full roster spans 1000+ entries including regional/alternate forms with
+     * data shapes a small hand-built test never exercises; if scoring THROWS for any one
+     * candidate — a malformed/edge-case entry, anything — the PC's turn dies silently mid-
+     * pick with zero feedback: the header stays on "rival's turn" forever, nothing else
+     * happens, and there is no error to even diagnose. This is very plausibly the real cause
+     * of the "stuck on the rival's turn" behavior reported integrating into Sevii,
+     * 2026-08-30 (isolated testing with clean synthetic data never reproduced a hang across
+     * several drafts, which only makes sense if the real trigger is a specific real-data
+     * shape this session couldn't reproduce). Fix: score defensively per-candidate — a
+     * throwing candidate is logged and scored as unattractive (-Infinity) rather than
+     * aborting the whole pick, so the PC ALWAYS completes a pick from whatever in the trio
+     * didn't throw, and the turn can never hang here again.
+     */
     resolvePcPick() {
       this.isResolving = true;
       const activeModes = this.clueSelector.getActive();
       let bestIndex = 0;
       let bestScore = -Infinity;
       this.currentTrio.forEach((candidate, idx) => {
-        const score = scoreDraftCandidate(candidate, this.pcSquad, activeModes);
+        var _a;
+        let score = -Infinity;
+        try {
+          score = scoreDraftCandidate(candidate, this.pcSquad, activeModes);
+        } catch (err) {
+          console.error(`DraftEngine: scoring "${(_a = candidate == null ? void 0 : candidate.displayName) != null ? _a : idx}" threw \u2014 treating as unattractive instead of hanging the turn.`, err);
+        }
         if (score > bestScore) {
           bestScore = score;
           bestIndex = idx;
@@ -17422,9 +17446,18 @@ var SeviiBlindDraft = (() => {
       draft.on("pickResolved", (event) => {
         const who = event.owner === "player" ? "You" : "Rival";
         this.toasts.toast(`${who} drafted ${event.picked.displayName}.`, "success");
-        this.revealDraftPick(event);
-        this.renderDraftSquads(draft);
-        setTimeout(() => void draft.advance(), 1100);
+        try {
+          this.revealDraftPick(event);
+          this.renderDraftSquads(draft);
+        } catch (err) {
+          console.error("Blind Draft Battle: pick-reveal rendering failed (continuing anyway):", err);
+        }
+        setTimeout(() => {
+          draft.advance().catch((err) => {
+            console.error("Blind Draft Battle: advancing the draft failed:", err);
+            this.toasts.toast("Something went wrong advancing the draft \u2014 check your connection and reopen the Games tab.", "error", 5e3);
+          });
+        }, 1100);
       });
       draft.on("roundAdvanced", ({ round, subPhase }) => {
         this.toasts.toast(`Round ${round} \u2014 ${subPhase === "turn1" ? "first" : "second"} pick.`, "info", 1600);
