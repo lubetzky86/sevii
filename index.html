@@ -2777,6 +2777,17 @@
       #grid-sort-wrapper .grid-sort-dir, #ab-sort-wrap .grid-sort-dir, #mv-sort-wrap .grid-sort-dir { width: 44px; height: 44px; flex: 0 0 44px; border-radius: 10px; font-size: 16px; }
 
       #right-panel { width: 100%; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100; }
+      /* Round 21 fix: this mobile #right-panel rule's z-index:100 is an ID selector, which beats
+         the desktop-authored `.right-panel.floating { z-index: 500 }` class rule on specificity
+         regardless of source order — so on every real mobile-width viewport (this app is
+         mobile-first; this is the ACTIVE breakpoint almost all the time), the floating Info Card
+         (Team Builder's "Learn More") was rendering at z-index 100, well BELOW Studio's own
+         `.tb-studio-backdrop` at z-index 210. Every DOM/JS check in prior rounds passed (classes
+         added, content populated, no exceptions) because the panel WAS there — just painted
+         underneath Studio, invisible and unclickable, which is why it read as a dead button.
+         This ID+class override restores 500 specifically for the floating case, without
+         touching the plain (non-floating, in-Pokémon-section) mobile behavior above. */
+      #right-panel.floating { z-index: 500; }
       /* Ability/Move detail panels were only "position:absolute" (relative to their section's
          own container, which sits below the Sevii header + search bar), so on mobile the header
          and search bar stayed visible above the detail screen. Matching #right-panel's fixed
@@ -4339,6 +4350,66 @@
       const el = document.getElementById(id);
       if(el) document.body.appendChild(el);
     });
+
+    // ── Fix 2 (bug, found round 21 via an actual browser click-through — prior rounds only
+    // verified this feature by re-reading the code, never by running it): #right-panel (the
+    // real Info Card, and everything nested inside it — #info-*, the Ability/Matchups/Obtain/
+    // Moveset/Lore/Dex modals) was ALWAYS authored as HTML nested inside #section-pokemon, the
+    // exact same `.section-panel`-gets-`display:none`-when-inactive trap Fix 1 above already
+    // documents and fixes for the Dex Picker. This was never a problem for the Info Card's own
+    // native use (viewing a Pokémon from the Pokémon section, where #section-pokemon is always
+    // the active panel already) — but Team Builder Studio's "Learn More" button (added later)
+    // opens this exact panel while #section-teambuilder is the active section instead, so
+    // #right-panel's whole subtree was invisible: `tbOpenLearnMore()` added the `floating`/
+    // `open` classes and `selectPokemon()` correctly populated every #info-* field (confirmed:
+    // no JS exceptions, `#info-pokemon-name` really did read "BULBASAUR" in the DOM) — the panel
+    // was just never painted, because its `display:none` ancestor removed the entire subtree
+    // from the render tree regardless of `#right-panel.floating`'s own `position:fixed`. This is
+    // why static code review (checking classes/ids/wiring) kept passing while the button visibly
+    // did nothing — only actually running the app in a browser and looking surfaced it.
+    //
+    // Fix: hoist #right-panel to be a direct child of `.app-body` (its own visual ancestor —
+    // NOT `<body>`) instead of a child of `#section-pokemon`. `.app-body` is what carries
+    // `position:relative`, and `.right-panel`'s DEFAULT (non-floating) CSS is `position:
+    // absolute` — moving it under `<body>` instead would have positioned it against the
+    // viewport's initial containing block, silently shifting the Info Card's normal in-Pokémon-
+    // section appearance. Hoisting to `.app-body` — a sibling of `#section-pokemon` rather than
+    // a descendant of it — keeps the exact same positioned ancestor (so normal, non-floating
+    // rendering from the Pokémon section is pixel-identical to before) while removing it from
+    // the `.section-panel` whose `display:none` was hiding it whenever a different tab is active.
+    // #tb-journey-back-btn is a markup SIBLING of #right-panel (both were authored inside
+    // #section-pokemon) — hoisting #right-panel alone left the back button behind inside the
+    // same now-hidden section, so it also needs moving here (found via the same real
+    // browser click-through: the button reported `display:block`/`.visible` yet a
+    // getBoundingClientRect() of {0,0,0,0}, the exact signature of a `display:none` ancestor
+    // collapsing an otherwise-correctly-styled descendant).
+    (function(){
+      const rp = document.getElementById('right-panel');
+      const backBtn = document.getElementById('tb-journey-back-btn');
+      const appBody = document.querySelector('.app-body');
+      if(rp && appBody) appBody.appendChild(rp);
+      if(backBtn && appBody) appBody.appendChild(backBtn);
+    })();
+
+    // #tb-addfromlist-backdrop (Team Builder's "Add from List" sheet) was authored right next to
+    // the pre-existing #addlist-backdrop, both physically nested inside #right-panel. That's fine
+    // for #addlist-backdrop — it's only ever opened via a button INSIDE the Info Card itself
+    // (#info-addlist-btn), so #right-panel is always already `.open` (on-screen, untransformed)
+    // whenever it's triggered. #tb-addfromlist-backdrop is different: its trigger button
+    // (#tb-addfromlist-btn) lives in the Team Builder roster screen, opened while #right-panel is
+    // in its normal CLOSED state — `transform: translateX(100%)` plus `overflow: hidden`. A CSS
+    // `transform` on an ancestor makes that ancestor the containing block for any `position:fixed`
+    // descendant (a lesser-known but standard behavior), so the sheet's own `position:fixed`
+    // backdrop was being positioned/clipped relative to #right-panel's off-screen, zero-visible
+    // box instead of the viewport — invisible and unclickable, exactly like the two bugs above,
+    // and for the same underlying reason (an ancestor silently swallowing a fixed-position
+    // overlay). Hoisting it to be a direct `.app-body` child (a sibling of #right-panel, not a
+    // descendant) removes it from that transformed containing block entirely.
+    (function(){
+      const afl = document.getElementById('tb-addfromlist-backdrop');
+      const appBody = document.querySelector('.app-body');
+      if(afl && appBody) appBody.appendChild(afl);
+    })();
 
     const FILTER_PATH = 'icons/types/badges';
     const BUTTON_PATH = 'icons/types/buttons';
