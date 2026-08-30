@@ -524,6 +524,17 @@
       background: var(--theme-bg, #fafafa);
     }
     .right-panel.open { transform: translateX(0); }
+    /* Team-builder locked-journey: cards that would normally navigate to a different Pokémon
+       are neutered (selectPokemon() itself no-ops while tbJourneyLocked) — this class just makes
+       that visually obvious rather than leaving them looking clickable but silently broken. */
+    .journey-locked-inert { pointer-events: none !important; opacity: 0.55 !important; cursor: default !important; }
+    #tb-journey-back-btn {
+      position: fixed; z-index: 510; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: #222; color: #fff; border: none; border-radius: 999px; padding: 10px 20px;
+      font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+      display: none;
+    }
+    #tb-journey-back-btn.visible { display: block; }
     /* When opened from Abilities/Moves — floats over current section */
     .right-panel.floating {
       position: fixed;
@@ -1958,6 +1969,9 @@
        absolutely-positioned overlay. */
     #tb-studio-shiny-control { position: static; flex-shrink: 0; z-index: 2; }
     .tb-studio-close:hover { background: rgba(255,255,255,0.4); }
+    .tb-studio-learn-more-btn { position: static; flex-shrink: 0; margin-left: auto; padding: 5px 12px; border-radius: 13px; background: rgba(255,255,255,0.25); border: none; cursor: pointer; font-size: 11px; font-weight: 700; color: white; transition: background 0.15s; z-index: 2; }
+    .tb-studio-learn-more-btn:hover { background: rgba(255,255,255,0.4); }
+    .tb-studio-learn-more-btn:disabled { opacity: 0.4; cursor: default; }
     /* Round 5 (Diego): the nickname editor moves into the header's controls-bar row itself, at
        the far left — same position/role the Party screen's team-name field holds in its own
        topbar — instead of sitting in its own row below the controls. Recycles the Party screen's
@@ -3111,6 +3125,8 @@
       </div>
     </div>
 
+    <button id="tb-journey-back-btn" title="Back to Studio">← Back to Studio</button>
+
     <div class="right-panel" id="right-panel">
 
       <!-- ── OBTAIN MODAL ── -->
@@ -4134,6 +4150,7 @@
                 </div>
               </div>
               <button class="tb-studio-close" id="tb-studio-close" title="Close">✕</button>
+              <button class="tb-studio-learn-more-btn" id="tb-studio-learn-more-btn" title="Learn More">Learn More</button>
             </div>
             <div class="tb-studio-sprite-zone">
               <img class="tb-studio-sprite" id="tb-studio-sprite" alt="">
@@ -6492,6 +6509,12 @@
     // ══════════════════════════════════════════════════════════════════════════════
     let tbStudioTeam = null;        // team object the open Studio belongs to
     let tbStudioSlotIndex = null;   // party slot index the open Studio is editing
+    // True while the Studio's floating "Learn More" Info Card (or any modal nested inside it) is
+    // open — blocks selectPokemon()-driven Pokémon-swap navigation so the user can look around
+    // without abandoning their in-progress team-building journey. See selectPokemon() guard,
+    // tbOpenLearnMore(), and #tb-journey-back-btn.
+    let tbJourneyLocked = false;
+    let tbLearnMoreCloseHandler = null; // the floatingClose fn attached to #info-close-btn while Learn More is open, so "Back to Studio" can detach it precisely
     const tbStudioSpeciesCache = {}; // speciesId -> { colorName, stats: [{name,base}], types }
 
     // ── Item Catalog data (data/items.json) ──────────────────────────────────────────
@@ -7765,6 +7788,12 @@
 
       document.getElementById('tb-studio-backdrop').classList.add('visible');
 
+      // Learn More only makes sense for a filled slot — this is already guaranteed by the
+      // `if(!member || !member.speciesId) return;` bail at the top of this function, but keep the
+      // button explicitly enabled here in case a future caller relaxes that guard.
+      const learnMoreBtn = document.getElementById('tb-studio-learn-more-btn');
+      if(learnMoreBtn) learnMoreBtn.disabled = false;
+
       // Fetch (or read cached) species data, then theme + render stats
       try{
         const data = await tbFetchStudioSpeciesData(member.speciesId);
@@ -7810,6 +7839,74 @@
       tbStudioTeam = null;
       tbStudioSlotIndex = null;
     }
+
+    // "Learn More" — floats the app's shared Info Card (the same detail panel the main Pokédex
+    // browser uses) over Studio, letting the user browse full Pokémon detail without losing their
+    // place in the team-building flow. Copies the exact floating-overlay pattern openPokeSubPanel()
+    // uses (see ~line 4659), plus sets tbJourneyLocked so nested modals can't navigate the user out
+    // of this context (see selectPokemon() guard and the 4 Type-A suppressions).
+    async function tbOpenLearnMore(){
+      if(!tbStudioTeam || tbStudioSlotIndex === null) return;
+      const member = tbStudioTeam.party[tbStudioSlotIndex];
+      if(!member || !member.speciesId) return; // no Pokémon in this slot — nothing to show
+
+      // Reuse the same data-fetch path Studio itself uses for the active party member.
+      let pkData = allPokemon.find(p => p.id === member.speciesId);
+      if(!pkData){
+        try{ pkData = await fetch(`https://pokeapi.co/api/v2/pokemon/${member.speciesId}`).then(r=>r.json()); }
+        catch(e){ return; }
+      }
+
+      tbJourneyLocked = true;
+
+      const rp = document.getElementById('right-panel');
+      rp.classList.add('floating');
+
+      const closeBtn = document.getElementById('info-close-btn');
+      // Tracked on a module-level var so the "Back to Studio" force-close path (below) can detach
+      // this exact listener instead of leaving a stale one-shot handler attached.
+      tbLearnMoreCloseHandler = function floatingClose(){
+        rp.classList.remove('floating', 'open');
+        document.getElementById('left-panel').classList.remove('panel-open');
+        selectedPokemon = null;
+        resetPokemonTheme();
+        tbJourneyLocked = false;
+        document.getElementById('tb-journey-back-btn')?.classList.remove('visible');
+        closeBtn.removeEventListener('click', tbLearnMoreCloseHandler);
+        tbLearnMoreCloseHandler = null;
+      };
+      closeBtn.addEventListener('click', tbLearnMoreCloseHandler, { once: true });
+
+      document.getElementById('tb-journey-back-btn')?.classList.add('visible');
+
+      await selectPokemon(pkData, null);
+    }
+    document.getElementById('tb-studio-learn-more-btn')?.addEventListener('click', tbOpenLearnMore);
+
+    // "Back to Studio" — persistent shortcut visible only while tbJourneyLocked, force-closes the
+    // floating Info Card AND any modal nested inside it (evolution/matchups/ability/moveset/lore/
+    // obtain/dex), dropping the user cleanly back into Studio.
+    document.getElementById('tb-journey-back-btn')?.addEventListener('click', ()=>{
+      switch(activeModal){
+        case 'ability': closeAbilityModal(); break;
+        case 'matchups': closeMatchupsModal(); break;
+        case 'dex': closeDexModal(); break;
+        case 'obtain': closeObtainModal(); break;
+        case 'moveset': closeMovesetModal(); break;
+        case 'lore': closeLoreModal(); break;
+      }
+      if(tbLearnMoreCloseHandler){
+        document.getElementById('info-close-btn')?.removeEventListener('click', tbLearnMoreCloseHandler);
+        tbLearnMoreCloseHandler = null;
+      }
+      const rp = document.getElementById('right-panel');
+      rp.classList.remove('floating', 'open');
+      document.getElementById('left-panel').classList.remove('panel-open');
+      selectedPokemon = null;
+      resetPokemonTheme();
+      tbJourneyLocked = false;
+      document.getElementById('tb-journey-back-btn')?.classList.remove('visible');
+    });
 
     function tbSaveStudioNickname(){
       if(!tbStudioTeam || tbStudioSlotIndex === null) return;
@@ -9850,6 +9947,7 @@
     });
 
     async function selectPokemon(pokemon,cardEl){
+      if(tbJourneyLocked) return; // block Pokémon-swap navigation while in a locked Team Building journey
       selectedPokemon=pokemon;isFemale=false;
       const prevModal=activeModal;
       document.getElementById('ability-modal-backdrop').classList.remove('visible');
@@ -10120,7 +10218,7 @@
 
       validForms.forEach(f=>{
         const card = document.createElement('div');
-        card.className = 'info-alt-form-card';
+        card.className = 'info-alt-form-card' + (tbJourneyLocked ? ' journey-locked-inert' : '');
 
         const img = document.createElement('img');
         // Use pokemon-form sprite cache if available (e.g. vivillon patterns, furfrou trims)
@@ -10383,7 +10481,7 @@
         function navigateTo(name){const found=allPokemon.find(pk=>pk.name===name);if(found)selectPokemon(found,null);else fetch(`https://pokeapi.co/api/v2/pokemon/${name}`).then(r=>r.json()).then(d=>selectPokemon(d,null)).catch(()=>{});}
 
         function makeEvoMon(name,isCurrent){
-          const mon=document.createElement('div');mon.className='info-evo-mon'+(isCurrent?' current':'');
+          const mon=document.createElement('div');mon.className='info-evo-mon'+(isCurrent?' current':'')+(tbJourneyLocked?' journey-locked-inert':'');
           const img=document.createElement('img');img.alt=name;img.style.cssText='width:62px;height:62px;image-rendering:pixelated;';
           const found=allPokemon.find(pk=>pk.name===name);
           if(found){img.src=getEvoSpriteUrl(found.id,isInfoShiny);img.dataset.evoid=found.id;}
@@ -10741,6 +10839,8 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
         '<div class="ability-loading">Loading...</div>';
       document.getElementById('ability-modal-backdrop').classList.add('visible');
       activeModal='ability';
+      const abLearnMoreBtn=document.getElementById('ability-learn-more-btn');
+      if(abLearnMoreBtn) abLearnMoreBtn.style.display = tbJourneyLocked ? 'none' : '';
 
       try{
         const res=await fetch(abilityUrl);
@@ -10822,7 +10922,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
         const pid=parseInt(m[1]);
 
         const card=document.createElement('div');
-        card.className='ability-poke-card';
+        card.className='ability-poke-card'+(tbJourneyLocked?' journey-locked-inert':'');
 
         const img=document.createElement('img');
         img.alt=pk.name;
@@ -11397,6 +11497,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       document.getElementById('matchups-modal-backdrop').classList.add('visible');
 
       const badgeClick=(type)=>{
+        if(tbJourneyLocked) return;
         closeMatchupsModal();
         activeTypes.clear();activeTypes.add(type);
         const el=document.getElementById('type-filters');el.classList.add('has-selection');
@@ -11448,6 +11549,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
           ico.onerror=()=>{ico.style.display='none';};
           ico.addEventListener('click',(e)=>{
             e.stopPropagation();// don't toggle accordion
+            if(tbJourneyLocked) return;
             closeMatchupsModal();
             activeTypes.clear();pokemonTypes.forEach(t=>activeTypes.add(t));
             const el=document.getElementById('type-filters');
@@ -11705,7 +11807,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
     const GMAX_GAMES=new Set(['sword','shield']);
     const METHOD_ICONS={catch:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>',evolve:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>',trade:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',starter:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',gift:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>',mega:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',gmax:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>',unknown:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'};
     function makeMethodCard(type,_,typeLabel,detail,subDetail){const card=document.createElement('div');card.className=`method-card method-${type}`;const icon=document.createElement('div');icon.className='method-card-icon';icon.innerHTML=METHOD_ICONS[type]||METHOD_ICONS.unknown;const body=document.createElement('div');body.className='method-card-body';const te=document.createElement('div');te.className='method-card-type';te.textContent=typeLabel;const de=document.createElement('div');de.className='method-card-detail';de.innerHTML=detail;body.appendChild(te);body.appendChild(de);if(subDetail){const se=document.createElement('div');se.className='method-card-sub';se.textContent=subDetail;body.appendChild(se);}card.appendChild(icon);card.appendChild(body);return card;}
-    function makePreevoCard(evolvesFrom,evoMethod){const sb='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home';const pc=document.createElement('div');pc.className='preevo-card';const m=evolvesFrom.url.match(/\/(\d+)\/$/);const pid=m?parseInt(m[1]):null;const img=document.createElement('img');if(pid){img.src=obtainModalShiny?`${sb}/shiny/${pid}.png`:`${sb}/${pid}.png`;img.dataset.pokeid=pid;img.onerror=()=>{img.src=obtainModalShiny?`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${pid}.png`:`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pid}.png`;};}img.alt=evolvesFrom.name;const info=document.createElement('div');info.className='preevo-card-info';const lbl=document.createElement('div');lbl.className='preevo-card-label';lbl.textContent='Pre-evolution';const nm=document.createElement('div');nm.className='preevo-card-name';nm.textContent=evolvesFrom.name.replace(/-/g,' ');const et=document.createElement('div');et.className='preevo-card-evo';et.textContent=evoMethod||'Evolve to obtain';info.appendChild(lbl);info.appendChild(nm);info.appendChild(et);pc.appendChild(img);pc.appendChild(info);pc.addEventListener('click',()=>{if(pid){closeObtainModal();const found=allPokemon.find(p=>p.id===pid);if(found)selectPokemon(found,null);else fetch(`https://pokeapi.co/api/v2/pokemon/${pid}`).then(r=>r.json()).then(d=>selectPokemon(d,null)).catch(()=>{});}});return pc;}
+    function makePreevoCard(evolvesFrom,evoMethod){const sb='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home';const pc=document.createElement('div');pc.className='preevo-card'+(tbJourneyLocked?' journey-locked-inert':'');const m=evolvesFrom.url.match(/\/(\d+)\/$/);const pid=m?parseInt(m[1]):null;const img=document.createElement('img');if(pid){img.src=obtainModalShiny?`${sb}/shiny/${pid}.png`:`${sb}/${pid}.png`;img.dataset.pokeid=pid;img.onerror=()=>{img.src=obtainModalShiny?`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${pid}.png`:`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pid}.png`;};}img.alt=evolvesFrom.name;const info=document.createElement('div');info.className='preevo-card-info';const lbl=document.createElement('div');lbl.className='preevo-card-label';lbl.textContent='Pre-evolution';const nm=document.createElement('div');nm.className='preevo-card-name';nm.textContent=evolvesFrom.name.replace(/-/g,' ');const et=document.createElement('div');et.className='preevo-card-evo';et.textContent=evoMethod||'Evolve to obtain';info.appendChild(lbl);info.appendChild(nm);info.appendChild(et);pc.appendChild(img);pc.appendChild(info);pc.addEventListener('click',()=>{if(pid){closeObtainModal();const found=allPokemon.find(p=>p.id===pid);if(found)selectPokemon(found,null);else fetch(`https://pokeapi.co/api/v2/pokemon/${pid}`).then(r=>r.json()).then(d=>selectPokemon(d,null)).catch(()=>{});}});return pc;}
     function extractEvoMethod(chain,targetName){function walk(node){for(const next of(node.evolves_to||[])){if(next.species.name===targetName){const d=next.evolution_details?.[0];if(!d)return'Evolve';if(d.item)return`Use ${toTitleCase(d.item.name.replace(/-/g,' '))}`;if(d.min_level)return`Reach level ${d.min_level}`;if(d.min_happiness)return'High friendship';if(d.trigger?.name==='trade')return'Trade';if(d.known_move)return`Learn ${toTitleCase(d.known_move.name.replace(/-/g,' '))}`;if(d.held_item)return`Hold ${toTitleCase(d.held_item.name.replace(/-/g,' '))}`;if(d.time_of_day)return`Level up (${d.time_of_day})`;return'Evolve';}const f=walk(next);if(f)return f;}return null;}if(!chain?.chain)return null;return walk(chain.chain);}
 
     async function openObtainModal(){
@@ -12082,7 +12184,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
               const isCurrent=name===currentName;
               const sid=evoIdCache[name]||'0';
               const node=document.createElement('div');
-              node.className = 'obtain-evo-node';
+              node.className = 'obtain-evo-node'+(tbJourneyLocked?' journey-locked-inert':'');
               node.style.cssText=`display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px;border-radius:10px;cursor:pointer;transition:transform 0.12s,box-shadow 0.12s;${isCurrent?`border:2px solid ${p.dark};background:rgba(255,255,255,0.9);box-shadow:0 2px 8px rgba(0,0,0,0.12);`:'border:2px solid transparent;'}`;
               const img=document.createElement('img');
               setSpriteSrc(img, sid, obtainModalShiny);
@@ -12233,7 +12335,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
 
       function makeEggCard(name,sid,currentName,p){
         const card=document.createElement('div');
-        card.className='obtain-egg-card'+(name===currentName?' current-pokemon':'');
+        card.className='obtain-egg-card'+(name===currentName?' current-pokemon':'')+(tbJourneyLocked?' journey-locked-inert':'');
         if(name===currentName)card.style.borderColor=p.dark;
         const img=document.createElement('img');
         setSpriteSrc(img, sid, obtainModalShiny);
@@ -12898,6 +13000,8 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
       document.getElementById('moveset-move-popup-body').innerHTML =
         '<div class="ability-loading">Loading...</div>';
       document.getElementById('moveset-move-popup-backdrop').classList.add('visible');
+      const mvLearnMoreBtn=document.getElementById('move-popup-learn-more-btn');
+      if(mvLearnMoreBtn) mvLearnMoreBtn.style.display = tbJourneyLocked ? 'none' : '';
 
       try {
         const res  = await fetch(moveUrl);
@@ -13011,7 +13115,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
           if (!pid) return;
 
           const card = document.createElement('div');
-          card.className = 'ability-poke-card';
+          card.className = 'ability-poke-card' + (tbJourneyLocked ? ' journey-locked-inert' : '');
 
           const img = document.createElement('img');
           setSpriteSrc(img, pid, movePopupShiny);
@@ -13459,7 +13563,7 @@ const basePart=name.split('-')[0];const ok=d.id>10000||d.name===name||d.name===b
 
       for (const rel of rels) {
         const relCard = document.createElement('div');
-        relCard.className = 'lore-rel-card';
+        relCard.className = 'lore-rel-card' + (tbJourneyLocked ? ' journey-locked-inert' : '');
 
         // Sprite wrapper — position:relative so sparkle stays inside it
         const spriteWrap = document.createElement('div');
