@@ -9924,13 +9924,31 @@
     // change, sidebar resize, etc.) without depending on rAF-timing assumptions. This is the
     // primary correctness guarantee; the rAF calls elsewhere are just an early first-paint kick.
     // Module-level singleton — created once, never per selectPokemon() call, so it can't leak.
+    //
+    // Round 17: also observes .info-number-block, not just .info-name-row. Root cause of the
+    // "Hisuian Braviary" report (and every other Pokémon whose curated display name is right at
+    // the edge of the fit budget): the genus text (#info-pokemon-species, "THE VALIANT POKÉMON")
+    // is set inside renderInfoCard(), which only runs after `await fetch(speciesUrl)` resolves —
+    // strictly AFTER updateInfoHeader()'s synchronous fit and after the double-rAF re-fit have
+    // already run. When that genus text arrives, .info-number-block (flex-shrink:0) grows wider,
+    // which steals width from the name column — but .info-name-row ITSELF never changes size (its
+    // own width is fixed by the panel, `justify-content:space-between` only redistributes space
+    // AMONG its children), so the row-only ResizeObserver never fires for this. Observing the
+    // number block directly catches it, because growing #info-pokemon-species's text DOES change
+    // .info-number-block's own box size. Confirmed via an isolated headless reproduction: without
+    // this, a name that fit against the pre-genus width overflows once genus text lands; with it,
+    // the callback re-runs fitPokemonNameFont() and it re-fits correctly. This is a THIRD distinct
+    // trigger class beyond the two documented above (real layout-size changes, font load/swap) —
+    // a sibling element's content-driven width change — not a widening of either existing fix.
     let _infoNameResizeObserver=null;
     function ensureInfoNameResizeObserver(){
       if(_infoNameResizeObserver)return;
       const row=document.querySelector('.info-name-row');
+      const numberBlock=document.querySelector('.info-number-block');
       if(!row||typeof ResizeObserver==='undefined')return;
       _infoNameResizeObserver=new ResizeObserver(()=>{ fitPokemonNameFont(); });
       _infoNameResizeObserver.observe(row);
+      if(numberBlock) _infoNameResizeObserver.observe(numberBlock);
     }
     // Also re-fit once the custom webfont has actually loaded/swapped — scrollWidth can change
     // after the initial fit ran against a fallback font, without the container itself resizing
