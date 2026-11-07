@@ -34,7 +34,7 @@
     "ghost": 1.0,
     "dark": 1.0,
     "ice": 1.0,
-    "flying": 1.0,
+    "flying": 0.5,
     "steel": 0.5,
     "dragon": 0.5,
     "fairy": 1.0
@@ -114,7 +114,7 @@
     "ghost": 0.5,
     "dark": 2.0,
     "ice": 1.0,
-    "flying": 1.0,
+    "flying": 0.5,
     "steel": 0.5,
     "dragon": 1.0,
     "fairy": 0.5
@@ -174,7 +174,7 @@
     "ghost": 0.0,
     "dark": 2.0,
     "ice": 2.0,
-    "flying": 1.0,
+    "flying": 0.5,
     "steel": 2.0,
     "dragon": 1.0,
     "fairy": 0.5
